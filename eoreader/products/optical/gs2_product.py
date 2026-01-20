@@ -472,9 +472,4 @@ class Gs2Product(DimapV1Product):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(regex=r".*QL\.png")
-        else:
-            quicklook_path = next(self.path.glob("*QL.png"))
-
-        return quicklook_path
+        return self._glob("*QL.png")

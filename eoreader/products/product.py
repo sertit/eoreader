@@ -890,6 +890,48 @@ class Product:
         """
         raise NotImplementedError
 
+    def _read_vector(self, glob_str: str, **kwargs) -> gpd.GeoDataFrame:
+        """"""
+        if self.is_archived:
+            regex = utils.convert_glob_to_regex(glob_str)
+            vec = self._read_archived_vector(archive_regex=regex, **kwargs)
+        else:
+            try:
+                vec = vectors.read(next(self.path.glob(glob_str)), **kwargs)
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file '{glob_str}' in {self.path}"
+                ) from exc
+
+        return vec
+
+    def _glob(
+        self, glob_str: str, as_rio_path: bool = False, base_path: AnyPathStrType = None
+    ) -> AnyPathStrType:
+        if base_path is None:
+            base_path = self.path
+
+        if self.is_archived:
+            regex = utils.convert_glob_to_regex(glob_str)
+
+            if as_rio_path:
+                found_path = self._get_archived_rio_path(
+                    regex=regex, archive_path=base_path
+                )
+            else:
+                found_path = self._get_archived_path(
+                    regex=regex, archive_path=base_path
+                )
+        else:
+            try:
+                found_path = next(base_path.glob(glob_str))
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file '{glob_str}' in {base_path}"
+                ) from exc
+
+        return found_path
+
     def _read_mtd_xml(
         self, mtd_from_path: str, mtd_archived: str = None
     ) -> (etree._Element, dict):
@@ -2683,7 +2725,7 @@ class Product:
         if archive_path is None:
             archive_path = self.path
 
-        return utils.get_archived_path(
+        return archive_path / utils.get_archived_path(
             archive_path=archive_path,
             regex=regex,
             as_list=as_list,

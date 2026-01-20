@@ -17,17 +17,17 @@
 Aleph-1 (Satellogic) products https://developers.satellogic.com/imagery-products/introduction.html
 """
 
-import json
 import logging
 from datetime import datetime
 from enum import unique
 
 import geopandas as gpd
 import numpy as np
+import utils
 import xarray as xr
 from dicttoxml import dicttoxml
 from lxml import etree
-from sertit import files, path, vectors
+from sertit import files, path
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -491,34 +491,26 @@ class Aleph1Product(VhrProduct):
         return band_arr
 
     @cache
-    def _get_stac_regex(self):
-        """Get STAC regex, either if archived or not."""
-        return r".*_stac\.geojson" if self.is_archived else "*_stac.geojson"
-
-    @cache
     def _read_stac_mtd(self) -> gpd.GeoDataFrame:
         """Read STAC metadata (also geojson footprint of the image)"""
-        regex = self._get_stac_regex()
-        if self.is_archived:
-            mtd = self._read_archived_vector(archive_regex=regex)
-        else:
-            try:
-                mtd = vectors.read(next(self.path.glob(regex)))
-            except StopIteration as exc:
-                raise FileNotFoundError(
-                    f"Non existing file *_stac.geojson in {self.path}"
-                ) from exc
-
-        return mtd
+        return self._read_vector("*_stac.geojson")
 
     @cache
     def _read_mtd_dict(self) -> dict:
         """Return metadata as a dict"""
-        regex = self._get_stac_regex()
+        glob_str = "*_stac.geojson"
         if self.is_archived:
+            import json
+
+            regex = utils.convert_glob_to_regex(glob_str)
             mtd = json.loads(self._read_archived_file(regex))
         else:
-            mtd = files.read_json(next(self.path.glob(regex)), print_file=False)
+            try:
+                mtd = files.read_json(next(self.path.glob(glob_str)), print_file=False)
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file '{glob_str}' in {self.path}"
+                ) from exc
 
         return mtd
 
@@ -684,14 +676,7 @@ class Aleph1Product(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(
-                regex=r".*preview\.png"
-            )
-        else:
-            quicklook_path = next(self.path.glob("*preview.png"))
-
-        return quicklook_path
+        return self._glob("*preview.png")
 
     def _get_job_id(self) -> str:
         """

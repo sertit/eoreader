@@ -596,6 +596,23 @@ def get_max_cores():
         return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
 
 
+def convert_glob_to_regex(glob_str: str) -> str:
+    """Convert a glob to a regex"""
+    try:
+        # Comes with Python 3.13
+        import glob
+
+        regex = glob.translate(glob_str)
+    except AttributeError:
+        regex = (
+            glob_str.replace(".", r"\.")
+            .replace("**", "*")
+            .replace("*", ".*")
+            .replace("?", ".")
+        )
+    return regex
+
+
 @cache
 def get_archived_file_list(archive_path: AnyPathStrType):
     """

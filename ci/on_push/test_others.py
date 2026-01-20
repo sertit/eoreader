@@ -11,7 +11,8 @@ import tempenv
 import xarray as xr
 from rasterio.enums import Resampling
 from rasterio.windows import Window
-from sertit import AnyPath, path, unistra
+from sertit import AnyPath, ci, path, unistra
+from utils import convert_glob_to_regex
 
 from ci.scripts_utils import (
     READER,
@@ -586,3 +587,7 @@ def test_constellations():
     assert not Constellation.is_real_constellation(Constellation.VANTOR)
     assert not Constellation.is_real_constellation(Constellation.MAXAR)
     assert not Constellation.is_real_constellation(Constellation.S1_RTC_ASF)
+
+
+def test_regex_glob():
+    ci.assert_val(convert_glob_to_regex("**/*_rgb.png"), r".*/.*_rgb\.png", "ASF regex")

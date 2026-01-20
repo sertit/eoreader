@@ -330,21 +330,9 @@ class S2TheiaProduct(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
-                band_id = self.bands[band].id
-                try:
-                    if self.is_archived:
-                        band_paths[band] = self._get_archived_rio_path(
-                            rf".*FRE_B{band_id}\.tif"
-                        )
-                    else:
-                        band_paths[band] = path.get_file_in_dir(
-                            self.path, f"FRE_B{band_id}.tif"
-                        )
-                except (FileNotFoundError, IndexError) as ex:
-                    raise InvalidProductError(
-                        f"Non existing {band.name} ({band_id}) band for {self.path}"
-                    ) from ex
-
+                band_paths[band] = self._glob(
+                    f"*FRE_B{self.bands[band].id}.tif", as_rio_path=True
+                )
         return band_paths
 
     def _read_band(
@@ -584,21 +572,7 @@ class S2TheiaProduct(OpticalProduct):
             AnyPathType: Mask path
         """
         assert res_id in ["R1", "R2"]
-
-        mask_regex = f"*{mask_id}_{res_id}.tif"
-        try:
-            if self.is_archived:
-                mask_path = self._get_archived_rio_path(mask_regex.replace("*", ".*"))
-            else:
-                mask_path = path.get_file_in_dir(
-                    self.path.joinpath("MASKS"), mask_regex, exact_name=True
-                )
-        except (FileNotFoundError, IndexError) as ex:
-            raise InvalidProductError(
-                f"Non existing mask {mask_regex} in {self.name}"
-            ) from ex
-
-        return mask_path
+        return self._glob(f"*MASKS/*{mask_id}_{res_id}.tif", as_rio_path=True)
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
@@ -1022,14 +996,7 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(
-                regex=r".*QKL_ALL\.jpg"
-            )
-        else:
-            quicklook_path = next(self.path.glob("**/*QKL_ALL.jpg"))
-
-        return quicklook_path
+        return self._glob("**/*QKL_ALL.jpg")
 
     @cache
     def get_cloud_cover(self) -> float:

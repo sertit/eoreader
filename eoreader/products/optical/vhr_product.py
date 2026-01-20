@@ -395,24 +395,12 @@ class VhrProduct(OpticalProduct):
             list | AnyPathType: Path or list of paths (needs this because of potential mosaic)
 
         """
-        prod_path = []
-        try:
-            if filename and not filename.startswith("*"):
-                filename = f"*{filename}"
+        if filename and not filename.startswith("*"):
+            filename = f"*{filename}"
 
-            if self.is_archived:
-                prod_path = self._get_archived_rio_path(
-                    rf".{filename}.*\.{extension}",
-                )
-            else:
-                prod_path = next(self.path.glob(f"{filename}*.{extension}"))
-
-        except (FileNotFoundError, IndexError, StopIteration) as exc:
-            raise InvalidProductError(
-                f"No file corresponding to *{filename}*.{extension} found in {self.path}"
-            ) from exc
-
-        return prod_path
+        return self._glob(
+            f"{filename}*.{extension}", as_rio_path=extension in ["tif", "vrt"]
+        )
 
     def _get_utm_band_path(
         self,

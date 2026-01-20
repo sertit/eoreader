@@ -1083,20 +1083,7 @@ class DimapV2Product(VhrProduct):
             mask = gpd.GeoDataFrame(geometry=[], crs=crs)
         else:
             try:
-                if self.is_archived:
-                    # Open the zip file
-                    mask = self._read_archived_vector(
-                        archive_regex=rf".*MASKS.*{mask_str}.*\.GML",
-                        crs=crs,
-                    )
-                else:
-                    mask_gml_path = path.get_file_in_dir(
-                        self.path.joinpath("MASKS"),
-                        f"*{mask_str}*.GML",
-                        exact_name=True,
-                    )
-
-                    mask = vectors.read(mask_gml_path, crs=crs)
+                mask = self._read_vector(f"*MASKS/*{mask_str}*.GML", crs=crs)
             except FileNotFoundError as exc:
                 if mask_str in optional_masks:
                     mask = gpd.GeoDataFrame(geometry=[], crs=crs)
@@ -1323,12 +1310,7 @@ class DimapV2Product(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(regex=".*PREVIEW.*JPG")
-        else:
-            quicklook_path = next(self.path.glob("*PREVIEW*.JPG"))
-
-        return quicklook_path
+        return self._glob("*PREVIEW*.JPG")
 
     def _get_job_id(self) -> str:
         """

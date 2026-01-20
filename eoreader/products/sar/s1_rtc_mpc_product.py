@@ -235,14 +235,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(
-                regex=r".*preview\.png"
-            )
-        else:
-            quicklook_path = next(self.path.glob("*preview.png"))
-
-        return quicklook_path
+        return self._glob("*preview.png")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

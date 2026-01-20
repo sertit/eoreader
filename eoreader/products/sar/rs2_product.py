@@ -25,7 +25,6 @@ from enum import unique
 
 import geopandas as gpd
 from lxml import etree
-from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 from utils import qck_wrapper
@@ -418,14 +417,7 @@ class Rs2Product(SarProduct):
         """
         # Open extent KML file
         try:
-            if self.is_archived:
-                product_kml = self._read_archived_vector(
-                    archive_regex=r".*product\.kml"
-                )
-            else:
-                extent_file = next(self.path.glob("*product.kml"))
-                product_kml = vectors.read(extent_file)
-
+            product_kml = self._read_vector("*product.kml")
             extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
 
             if extent_wgs84.empty:
@@ -590,12 +582,7 @@ class Rs2Product(SarProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self._get_archived_rio_path(regex=r".*BrowseImage\.tif")
-        else:
-            quicklook_path = next(self.path.glob("BrowseImage.tif"))
-
-        return quicklook_path
+        return self._glob("BrowseImage.tif")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

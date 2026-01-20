@@ -140,12 +140,9 @@ class Sv1Product(VhrProduct):
         (setting sensor type, band names and so on)
         """
         try:
-            if self.is_archived:
-                self._get_archived_path(r".*PSH\.xml")
-            else:
-                next(self.path.glob("*PSH.xml"))
+            self._glob("*PSH.xml")
             self.band_combi = Sv1BandCombination.PSH
-        except (FileNotFoundError, StopIteration):
+        except FileNotFoundError:
             self.band_combi = Sv1BandCombination.PMS
 
         # Post init done by the super class
@@ -305,17 +302,7 @@ class Sv1Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        if self.is_archived:
-            footprint = self._read_archived_vector(archive_regex=r".*\.shp")
-        else:
-            try:
-                footprint = vectors.read(next(self.path.glob("*.shp")))
-            except StopIteration as exc:
-                raise FileNotFoundError(
-                    f"Non existing file *.shp in {self.path}"
-                ) from exc
-
-        return footprint.to_crs(self.crs())
+        return self._read_vector("*.shp").to_crs(self.crs())
 
     @cache
     def extent(self, **kwargs) -> gpd.GeoDataFrame:
@@ -395,21 +382,7 @@ class Sv1Product(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-
-        try:
-            if self.is_archived:
-                footprint_path = self._get_archived_path(r".*\.shp")
-            else:
-                footprint_path = next(self.path.glob("*.shp"))
-        except (FileNotFoundError, StopIteration) as exc:
-            raise InvalidProductError(
-                "Footprint shapefile cannot be found in the product!"
-            ) from exc
-
-        # Open identifier
-        name = path.get_filename(footprint_path)
-
-        return name
+        return path.get_filename(self._glob("*.shp"))
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -731,12 +704,8 @@ class Sv1Product(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(regex=r".*MUX\.jpg")
-        else:
-            quicklook_path = next(self.path.glob("*MUX.jpg"))
 
-        return quicklook_path
+        return self._glob("*MUX.jpg")
 
     def _get_job_id(self) -> str:
         """

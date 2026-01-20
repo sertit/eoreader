@@ -19,10 +19,6 @@ import contextlib
 import difflib
 import json
 import logging
-import os
-import re
-import tempfile
-import zipfile
 from collections import defaultdict, namedtuple
 from datetime import datetime
 from enum import unique
@@ -37,7 +33,7 @@ from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, geometry, path, rasters, types, vectors
+from sertit import AnyPath, files, geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import box
@@ -127,20 +123,20 @@ class S2Jp2Masks(ListEnum):
 
 
 BAND_DIR_NAMES = {
-    S2ProductType.L1C: ".",
+    S2ProductType.L1C: "IMG_DATA",
     S2ProductType.L2A: {
-        "01": ["R60m"],
-        "02": ["R10m", "R20m", "R60m"],
-        "03": ["R10m", "R20m", "R60m"],
-        "04": ["R10m", "R20m", "R60m"],
-        "05": ["R20m", "R60m"],
-        "06": ["R20m", "R60m"],
-        "07": ["R20m", "R60m"],
-        "08": ["R10m"],
-        "8A": ["R20m", "R60m"],
-        "09": ["R60m"],
-        "11": ["R20m", "R60m"],
-        "12": ["R20m", "R60m"],
+        "B01": ["R60m"],
+        "B02": ["R10m", "R20m", "R60m"],
+        "B03": ["R10m", "R20m", "R60m"],
+        "B04": ["R10m", "R20m", "R60m"],
+        "B05": ["R20m", "R60m"],
+        "B06": ["R20m", "R60m"],
+        "B07": ["R20m", "R60m"],
+        "B08": ["R10m"],
+        "B8A": ["R20m", "R60m"],
+        "B09": ["R60m"],
+        "B11": ["R20m", "R60m"],
+        "B12": ["R20m", "R60m"],
         "SCL": ["R20m", "R60m"],
         "AOT": ["R10m", "R20m", "R60m"],
         "WVP": ["R10m", "R20m", "R60m"],
@@ -176,7 +172,7 @@ MASK_MAPPING_PB_0400 = {
 
 class S2Product(OpticalProduct):
     """
-    Class of Sentinel-2 Products
+    Class of Sentinel-2 SAFE Products
 
     You can use directly the .zip file
     """
@@ -534,108 +530,9 @@ class S2Product(OpticalProduct):
 
         return name
 
-    def _get_qi_folder(self):
-        """"""
-        if self._is_sinergise:
-            mask_folder = "qi"
-        elif self.is_archived:
-            mask_folder = ".*GRANULE.*QI_DATA"
-        else:
-            mask_folder = "**/*GRANULE/*/QI_DATA"
-
-        return mask_folder
-
-    def _get_image_folder(self):
-        """"""
-        if self._is_sinergise:
-            img_folder = "."
-        elif self.is_archived:
-            img_folder = ".*GRANULE.*IMG_DATA"
-        else:
-            img_folder = "**/*GRANULE/*/IMG_DATA"
-
-        return img_folder
-
-    def _get_res_band_folder(self, band_list: list, pixel_size: float = None) -> dict:
-        """
-        Return the folder containing the bands of a proper S2 products.
-        (IMG_DATA for L1C, IMG_DATA/Rx0m for L2A)
-
-        Args:
-            band_list (list): Wanted bands (listed as 01, 02...)
-            pixel_size (float): Band resolution for Sentinel-2 products {R10m, R20m, R60m}.
-                                The wanted bands will be chosen in this proper folder.
-
-        Returns:
-            dict: Dictionary containing the folder path for each queried band
-        """
-        if pixel_size is not None and types.is_iterable(pixel_size):
-            pixel_size = pixel_size[0]
-
-        # Open the band directory names
-        s2_bands_folder = {}
-
-        # Manage L2A
-        band_dir = BAND_DIR_NAMES[self.product_type]
-        for band in band_list:
-            if is_s2_l2a_specific_band(band):
-                band_id = band.name
-            else:
-                band_id = self.bands[band].id
-
-            if band_id is None:
-                raise InvalidProductError(
-                    f"Non existing band ({band.name}) for S2-{self.product_type.name} products"
-                )
-
-            # If L2A products, we care about the resolution
-            if self.product_type == S2ProductType.L2A:
-                # If we got a true S2 resolution, open the corresponding band
-                if pixel_size and f"R{int(pixel_size)}m" in band_dir[band_id]:
-                    dir_name = f"R{int(pixel_size)}m"
-
-                # Else open the first one, it will be resampled when the band will be read
-                else:
-                    dir_name = band_dir[band_id][0]
-            # If L1C, we do not
-            else:
-                dir_name = band_dir
-
-            if self.is_archived:
-                # Get the band folder (use dirname is the first of the list is a band)
-                band_path = os.path.dirname(
-                    self._get_archived_rio_path(
-                        f"{self._get_image_folder()}.*{dir_name}"
-                    )
-                )
-
-                # Workaround for a bug involving some bad archives
-                if band_path.startswith("/"):
-                    band_path = band_path[1:]
-
-                # Workaround for PEPS Sentinel-2 archives with incomplete manifest (without any directory)
-                if band_path.endswith(".jp2"):
-                    band_path = os.path.dirname(band_path)
-                else:
-                    band_path = os.path.basename(band_path)
-
-                s2_bands_folder[band] = band_path
-            else:
-                # Search for the name of the folder into the S2 products
-                try:
-                    s2_bands_folder[band] = next(
-                        self.path.glob(f"{self._get_image_folder()}/{dir_name}")
-                    )
-                except (IndexError, StopIteration):
-                    s2_bands_folder[band] = self.path
-
-        for band in band_list:
-            if band not in s2_bands_folder:
-                raise InvalidProductError(
-                    f"Band folder for band {band.value} not found in {self.path}"
-                )
-
-        return s2_bands_folder
+    def _get_qi_regex(self):
+        """Get QI regex (Handle sinergise products)"""
+        return "qi" if self._is_sinergise else "**/QI_DATA"
 
     def get_band_paths(
         self, band_list: list, pixel_size: float = None, **kwargs
@@ -663,7 +560,8 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        band_folders = self._get_res_band_folder(band_list, pixel_size)
+        band_dir = BAND_DIR_NAMES[self.product_type]
+
         band_paths = {}
         for band in band_list:
             # Get clean band path
@@ -676,21 +574,30 @@ class S2Product(OpticalProduct):
                 else:
                     band_id = f"B{self.bands[band].id}"
 
-                try:
-                    if self.is_archived:
-                        band_paths[band] = self._get_archived_rio_path(
-                            f".*{band_folders[band]}.*{band_id}.*.jp2",
-                        )
+                # If L2A products, we care about the resolution
+                if self.product_type == S2ProductType.L2A:
+                    # If we got a true S2 resolution, open the corresponding band
+                    if pixel_size and f"R{int(pixel_size)}m" in band_dir[band_id]:
+                        dir_name = f"R{int(pixel_size)}m"
+
+                    # Else open the first one, it will be resampled when the band is read
                     else:
-                        band_paths[band] = path.get_file_in_dir(
-                            band_folders[band],
-                            f"{band_id}",
-                            extension="jp2",
-                        )
-                except (FileNotFoundError, IndexError) as ex:
-                    raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
-                    ) from ex
+                        dir_name = band_dir[band_id][0]
+                # If L1C, we do not
+                else:
+                    dir_name = band_dir
+
+                try:
+                    band_paths[band] = self._glob(
+                        f"**/{dir_name}/*{band_id}*.jp2",
+                        as_rio_path=True,
+                    )
+                except FileNotFoundError:
+                    # If missing subfolder...
+                    band_paths[band] = self._glob(
+                        f"**/*{band_id}*.jp2",
+                        as_rio_path=True,
+                    )
 
         return band_paths
 
@@ -1078,29 +985,16 @@ class S2Product(OpticalProduct):
         """
         if band in [S2MaskBandNames.CLDPRB, S2MaskBandNames.SNWPRB]:
             try:
-                if self.is_archived:
-                    mask_path = self._get_archived_rio_path(
-                        f"{self._get_qi_folder()}.*MSK_{band.name}_20m.jp2"
-                    )
-                else:
-                    mask_path = path.get_file_in_dir(
-                        self.path,
-                        f"{self._get_qi_folder()}/MSK_{band.name}_20m.jp2",
-                        exact_name=True,
-                    )
+                mask_path = self._glob(
+                    f"{self._get_qi_regex()}/MSK_{band.name}_20m.jp2", as_rio_path=True
+                )
             except FileNotFoundError:
                 # For some old processing baselines
                 # (2.04? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
-                if self.is_archived:
-                    mask_path = self._get_archived_rio_path(
-                        f"{self._get_qi_folder()}.*_{band.name.replace('PRB', '')}_20m.jp2"
-                    )
-                else:
-                    mask_path = path.get_file_in_dir(
-                        self.path,
-                        f"{self._get_qi_folder()}/*_{band.name.replace('PRB', '')}_20m.jp2",
-                        exact_name=True,
-                    )
+                mask_path = self._glob(
+                    f"{self._get_qi_regex()}/*_{band.name.replace('PRB', '')}_20m.jp2",
+                    as_rio_path=True,
+                )
 
             # Old mask proba files are not geocoded
             if self._processing_baseline < 2.07:
@@ -1204,43 +1098,16 @@ class S2Product(OpticalProduct):
         # Get QI_DATA path
         band_name = self.bands[band].id if isinstance(band, BandNames) else band
 
-        tmp_dir = tempfile.TemporaryDirectory()
+        # Read vector
         try:
-            if self.is_archived:
-                # Open the zip file
-                # WE DON'T KNOW WHY BUT DO NOT USE path.read_archived_vector HERE !!!
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(
-                        f"{self._get_qi_folder()}.*{mask_id.value}_B{band_name}.gml"
-                    )
-                    mask_path = zip_ds.extract(
-                        list(filter(regex.match, filenames))[0], tmp_dir.name
-                    )
-            else:
-                # Get mask path
-                mask_path = path.get_file_in_dir(
-                    self.path,
-                    f"{self._get_qi_folder()}/*{mask_id.value}_B{band_name}.gml",
-                    exact_name=True,
-                )
-
-            # Read vector
-            try:
-                mask = vectors.read(
-                    mask_path,
-                    crs=self.crs(),
-                    **utils._prune_keywords(**kwargs),
-                )
-            except vectors.DataSourceError:
-                LOGGER.warning(f"Corrupted mask: {mask_path}. Returning an empty one.")
-                mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
-
-        except Exception as ex:
-            raise InvalidProductError(ex) from ex
-
-        finally:
-            tmp_dir.cleanup()
+            mask = self._read_vector(
+                f"{self._get_qi_regex()}/*{mask_id.value}_B{band_name}.gml",
+                crs=self.crs(),
+                **utils._prune_keywords(**kwargs),
+            )
+        except vectors.DataSourceError:
+            LOGGER.warning(f"Corrupted mask: {mask_id}. Returning an empty one.")
+            mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
 
         return mask
 
@@ -1277,18 +1144,10 @@ class S2Product(OpticalProduct):
 
         # Get QI_DATA path
         band_id = self.bands[band].id if isinstance(band, BandNames) else band
-
-        if self.is_archived:
-            mask_path = self._get_archived_rio_path(
-                f"{self._get_qi_folder()}.*{mask_id.value}_B{band_id}.jp2"
-            )
-        else:
-            # Get mask path
-            mask_path = path.get_file_in_dir(
-                self.path,
-                f"{self._get_qi_folder()}/*{mask_id.value}_B{band_id}.jp2",
-                exact_name=True,
-            )
+        mask_path = self._glob(
+            f"{self._get_qi_regex()}/*{mask_id.value}_B{band_id}.jp2",
+            as_rio_path=True,
+        )
 
         # Read mask
         mask = utils.read(
@@ -2258,24 +2117,13 @@ class S2Product(OpticalProduct):
             str: Quicklook path
         """
         try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(regex=r".*ql\.jpg")
-            else:
-                quicklook_path = next(self.path.glob("**/*ql.jpg"))
-        except (StopIteration, FileNotFoundError):
+            quicklook_path = self._glob("**/*ql.jpg")
+        except FileNotFoundError:
             try:
-                if self.is_archived:
-                    quicklook_path = self.path / self._get_archived_path(
-                        regex=r".*preview\.jpg"
-                    )
-                else:
-                    quicklook_path = next(self.path.glob("**/preview.jpg"))
-            except (StopIteration, FileNotFoundError):
+                quicklook_path = self._glob("**/preview.jpg")
+            except FileNotFoundError:
                 # Use the PVI
-                if self.is_archived:
-                    quicklook_path = self._get_archived_rio_path(regex=r".*PVI\.jp2")
-                else:
-                    quicklook_path = next(self.path.glob("**/*PVI.jp2"))
+                quicklook_path = self._glob("**/*PVI.jp2", as_rio_path=True)
 
         return quicklook_path
 

@@ -943,9 +943,4 @@ class S3Product(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self._get_archived_path(regex=r".*.jpg")
-        else:
-            quicklook_path = next(self.path.glob("**/*.jpg"))
-
-        return quicklook_path
+        return self._glob("**/*.jpg")

@@ -402,9 +402,4 @@ class Vis1Product(DimapV1Product):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self._get_archived_rio_path(regex=r".*Preview\.tif")
-        else:
-            quicklook_path = next(self.path.glob("*Preview.tif"))
-
-        return quicklook_path
+        return self._glob("*Preview.tif", as_rio_path=True)

@@ -458,19 +458,9 @@ class S3OlciProduct(S3Product):
         raw_band_paths = {}
         for band in self.get_existing_bands():
             # Get band filename and subdataset
-            filename = self._replace(self._radiance_file, band=self.bands[band].name)
-
-            if self.is_archived:
-                raw_path = self._get_archived_path(f".*{filename}")
-            else:
-                try:
-                    raw_path = next(self.path.glob(f"*{filename}"))
-                except StopIteration as exc:
-                    raise FileNotFoundError(
-                        f"Non existing file {filename} in {self.path}"
-                    ) from exc
-
-            raw_band_paths[band] = raw_path
+            raw_band_paths[band] = self._glob(
+                f"*{self._replace(self._radiance_file, band=self.bands[band].name)}"
+            )
 
         return raw_band_paths
 

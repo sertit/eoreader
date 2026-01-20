@@ -1975,14 +1975,9 @@ class LandsatProduct(OpticalProduct):
         """
         quicklook_path = None
         try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*thumb_large\.jpeg"
-                )
-            else:
-                quicklook_path = next(self.path.glob("*thumb_large.jpeg"))
+            quicklook_path = self._glob("*thumb_large.jpeg")
 
-        except (StopIteration, FileNotFoundError):
+        except FileNotFoundError:
             # Thumbnail only exists for collection 2, not for one: do not throw a warning in this case
             if self._collection == LandsatCollection.COL_2:
                 LOGGER.warning(f"No quicklook found in {self.condensed_name}")

@@ -26,7 +26,7 @@ from enum import unique
 import geopandas as gpd
 from lxml import etree
 from rasterio import crs
-from sertit import path, vectors
+from sertit import path
 from sertit.misc import ListEnum
 from shapely import box
 
@@ -154,17 +154,7 @@ class S1RtcAsfProduct(SarProduct):
         # Footprint is always in UTM
         # https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#image-files
         # Products are distributed as GeoTIFFs (one for each available polarization) projected to the appropriate UTM Zone for the location of the scene.
-        if self.is_archived:
-            footprint = self._read_archived_vector(archive_regex=r".*\.shp")
-        else:
-            try:
-                footprint = vectors.read(next(self.path.glob("*.shp")))
-            except StopIteration as exc:
-                raise FileNotFoundError(
-                    f"Non existing file *.shp in {self.path}"
-                ) from exc
-
-        return footprint
+        return self._read_vector("*.shp")
 
     @cache
     def crs(self) -> crs.CRS:
@@ -283,17 +273,9 @@ class S1RtcAsfProduct(SarProduct):
             str: Quicklook path
         """
         try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*_rgb\.png"
-                )
-            else:
-                quicklook_path = next(self.path.glob("*_rgb.png"))
-        except (StopIteration, FileNotFoundError):
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(regex=r".*\.png")
-            else:
-                quicklook_path = next(self.path.glob("*.png"))
+            quicklook_path = self._glob("*_rgb.png")
+        except FileNotFoundError:
+            quicklook_path = self._glob("*.png")
 
         return quicklook_path
 

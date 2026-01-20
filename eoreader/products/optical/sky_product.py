@@ -478,24 +478,8 @@ class SkyProduct(PlanetProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = "**/*metadata*.json"
-        mtd_archived = r".*metadata.*\.json"
-
         # MTD are geojson -> open as gpd.GeoDataFrame
-        try:
-            if self.is_archived:
-                data = self._read_archived_vector(archive_regex=mtd_archived)
-
-            else:
-                try:
-                    mtd_file = next(self.path.glob(mtd_from_path))
-                    data = vectors.read(mtd_file)
-                except StopIteration as ex:
-                    raise InvalidProductError(
-                        f"Metadata file ({mtd_from_path}) not found in {self.path}"
-                    ) from ex
-        except etree.XMLSyntaxError as exc:
-            raise InvalidProductError(f"Invalid metadata XML for {self.path}!") from exc
+        data = self._read_vector("**/*metadata*.json")
 
         # Format datetime
         data["acquired"] = data["acquired"].dt.strftime(DATETIME_FMT)

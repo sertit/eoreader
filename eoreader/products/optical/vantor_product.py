@@ -751,7 +751,6 @@ class VantorProduct(VhrProduct):
                 )
                 # Copy .IMD file
                 if self.is_archived:
-                    imd_fn = f"{self.name}.IMD"
                     imd_file = self._read_archived_file(".*IMD")
                 else:
                     imd_fn = next(self.path.glob("*.IMD"))
@@ -1750,12 +1749,7 @@ class VantorProduct(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(regex=r".*BROWSE\.JPG")
-        else:
-            quicklook_path = next(self.path.glob("*BROWSE.JPG"))
-
-        return quicklook_path
+        return self._glob("*BROWSE.JPG")
 
     def _get_job_id(self) -> str:
         """

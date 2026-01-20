@@ -107,12 +107,9 @@ class ReProduct(PlanetProduct):
         (setting sensor type, band names and so on)
         """
         try:
-            if self.is_archived:
-                self._get_archived_path(r".*udm\.tif")
-            else:
-                next(self.path.glob("**/*udm.tif"))
+            self._glob("**/*udm.tif")
             self._has_udm = True
-        except (FileNotFoundError, StopIteration):
+        except FileNotFoundError:
             # Some RE products don't have udm files
             LOGGER.warning(
                 "UDM mask not found. This product won't be cleaned and won't have any cloud band."
@@ -368,12 +365,7 @@ class ReProduct(PlanetProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self._get_archived_rio_path(regex=r".*_browse\.tif")
-        else:
-            quicklook_path = next(self.path.glob("**/*_browse.tif"))
-
-        return quicklook_path
+        return self._glob("**/*_browse.tif")
 
     def _merge_subdatasets_mtd(self):
         """

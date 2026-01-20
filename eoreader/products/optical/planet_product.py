@@ -177,19 +177,13 @@ class PlanetProduct(OpticalProduct):
 
         # Manage mask type
         try:
-            if self.is_archived:
-                self._get_archived_path(r".*udm2.*\.tif")
-            else:
-                next(self.path.glob("**/*udm2*.tif"))
+            self._glob("**/*udm2*.tif")
             self._mask_type = PlanetMaskType.UDM2
-        except (FileNotFoundError, StopIteration):
+        except FileNotFoundError:
             try:
-                if self.is_archived:
-                    self._get_archived_path(r".*udm.*\.tif")
-                else:
-                    next(self.path.glob("**/*udm*.tif"))
+                self._glob("**/*udm*.tif")
                 self._mask_type = PlanetMaskType.UDM
-            except (FileNotFoundError, StopIteration):
+            except FileNotFoundError:
                 LOGGER.warning(
                     "UDM mask not found. This product won't be cleaned and won't have any cloud band."
                 )

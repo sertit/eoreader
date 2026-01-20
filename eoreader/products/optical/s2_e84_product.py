@@ -25,7 +25,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, path, rasters, types
+from sertit import AnyPath, files, rasters, types
 from sertit.files import CustomDecoder
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -234,14 +234,7 @@ class S2E84Product(OpticalProduct):
             AnyPathType: band path
 
         """
-        if self.is_archived:
-            prod_path = self._get_archived_rio_path(rf".*{file_id}\.{ext}")
-        else:
-            prod_path = path.get_file_in_dir(
-                self.path, f"*{file_id}.{ext}", exact_name=True
-            )
-
-        return prod_path
+        return self._glob(f"*{file_id}.{ext}", as_rio_path=True)
 
     def open_mask(
         self, pixel_size: float = None, size: list | tuple = None, **kwargs
@@ -744,12 +737,7 @@ class S2E84Product(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self._get_archived_path(regex=r".*.jpg")
-        else:
-            quicklook_path = next(self.path.glob("*.jpg"))
-
-        return quicklook_path
+        return self._glob("*.jpg")
 
 
 class S2E84StacProduct(StacProduct, S2E84Product):

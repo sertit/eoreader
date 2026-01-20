@@ -267,7 +267,7 @@ class S3SlstrProduct(S3Product):
         self._F1_is_f = True
         try:
             self._get_raw_band_path(F1)
-        except (FileNotFoundError, StopIteration):
+        except FileNotFoundError:
             self._F1_is_f = False
 
     def _get_preprocessed_band_path(
@@ -533,17 +533,7 @@ class S3SlstrProduct(S3Product):
         else:
             filename = band
 
-        if self.is_archived:
-            raw_path = self._get_archived_path(f".*{filename}*")
-        else:
-            try:
-                raw_path = next(self.path.glob(f"*{filename}*"))
-            except StopIteration as exc:
-                raise FileNotFoundError(
-                    f"Non existing file {filename} in {self.path}"
-                ) from exc
-
-        return raw_path
+        return self._glob(f"*{filename}*")
 
     def _preprocess(
         self,

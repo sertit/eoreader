@@ -30,7 +30,7 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import path, rasters, types, xml
+from sertit import rasters, types, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -137,14 +137,7 @@ class HlsProduct(OpticalProduct):
             AnyPathType: band path
 
         """
-        if self.is_archived:
-            prod_path = self._get_archived_rio_path(rf".*{band_id}\.tif")
-        else:
-            prod_path = path.get_file_in_dir(
-                self.path, f"*{band_id}.tif", exact_name=True
-            )
-
-        return prod_path
+        return self._glob(f"*{band_id}.tif", as_rio_path=True)
 
     def _get_fmask_path(self) -> AnyPathType:
         """
@@ -1035,9 +1028,4 @@ class HlsProduct(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(regex=r".*.jpg")
-        else:
-            quicklook_path = next(self.path.glob("*.jpg"))
-
-        return quicklook_path
+        return self._glob("*.jpg")

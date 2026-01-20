@@ -16,13 +16,12 @@
 """Sentinel-1 products"""
 
 import logging
-import os
 from datetime import datetime
 from enum import unique
 
 import geopandas as gpd
 from lxml import etree
-from sertit import path, vectors
+from sertit import path
 from sertit.misc import ListEnum
 from utils import qck_wrapper
 
@@ -242,20 +241,7 @@ class S1Product(SarProduct):
         """
         try:
             # Open the map-overlay file
-            if self.is_archived:
-                extent_wgs84 = self._read_archived_vector(
-                    archive_regex=".*preview.*map-overlay.kml"
-                )
-            else:
-                preview_overlay = self.path.joinpath("preview", "map-overlay.kml")
-
-                if os.path.isfile(preview_overlay):
-                    # Open the KML file
-                    extent_wgs84 = vectors.read(preview_overlay)
-                else:
-                    # raise to be caught by fallback
-                    raise InvalidProductError
-
+            extent_wgs84 = self._read_vector("*preview/map-overlay.kml")
             if extent_wgs84.empty:
                 raise ValueError(
                     "Something went wrong when reading the 'map-overlay.kml' file"
@@ -359,11 +345,8 @@ class S1Product(SarProduct):
             str: True name of the product (from metadata)
         """
         try:
-            if self.is_archived:
-                pdf_file = self._get_archived_path(r".*\.pdf", as_list=False)
-            else:
-                pdf_file = next(self.path.glob("*.pdf"))
-        except (FileNotFoundError, StopIteration):
+            pdf_file = self._glob("*.pdf")
+        except FileNotFoundError:
             # The name is not in the classic metadata, but can be found in the product-preview
             try:
                 mtd_from_path = "preview/product-preview.html"
@@ -422,14 +405,7 @@ class S1Product(SarProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = self.path / self._get_archived_path(
-                regex=r".*preview.quick-look\.png"
-            )
-        else:
-            quicklook_path = next(self.path.glob("preview/quick-look.png"))
-
-        return quicklook_path
+        return self._glob("preview/quick-look.png")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
