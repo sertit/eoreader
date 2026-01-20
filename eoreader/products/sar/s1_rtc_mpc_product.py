@@ -25,6 +25,7 @@ from datetime import datetime
 from lxml import etree
 from sertit import AnyPath, xml
 from sertit.types import AnyPathStrType
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
@@ -226,6 +227,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         """
         return xml.dict_to_xml(self.stac_mtd), {}
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -233,18 +235,14 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*preview\.png"
-                )
-            else:
-                quicklook_path = next(self.path.glob("*preview.png"))
-        except (StopIteration, FileNotFoundError):
-            pass
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(
+                regex=r".*preview\.png"
+            )
+        else:
+            quicklook_path = next(self.path.glob("*preview.png"))
 
-        return str(quicklook_path)
+        return quicklook_path
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

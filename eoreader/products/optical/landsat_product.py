@@ -66,7 +66,7 @@ from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.stac_product import StacProduct
 from eoreader.reader import Constellation
 from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -1965,6 +1965,7 @@ class LandsatProduct(OpticalProduct):
 
         return cc
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -1980,7 +1981,7 @@ class LandsatProduct(OpticalProduct):
                 )
             else:
                 quicklook_path = next(self.path.glob("*thumb_large.jpeg"))
-            quicklook_path = str(quicklook_path)
+
         except (StopIteration, FileNotFoundError):
             # Thumbnail only exists for collection 2, not for one: do not throw a warning in this case
             if self._collection == LandsatCollection.COL_2:
@@ -2079,6 +2080,7 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
         """
         return self._read_mtd_xml_stac(self._get_path("mtl.xml"))
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.

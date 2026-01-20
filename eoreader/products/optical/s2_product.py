@@ -80,7 +80,7 @@ from eoreader.products import OpticalProduct, StacProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.product import OrbitDirection
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -2249,6 +2249,7 @@ class S2Product(OpticalProduct):
 
         return cc
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
@@ -2256,7 +2257,6 @@ class S2Product(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(regex=r".*ql\.jpg")
@@ -2272,18 +2272,10 @@ class S2Product(OpticalProduct):
                     quicklook_path = next(self.path.glob("**/preview.jpg"))
             except (StopIteration, FileNotFoundError):
                 # Use the PVI
-                try:
-                    if self.is_archived:
-                        quicklook_path = self._get_archived_rio_path(
-                            regex=r".*PVI\.jp2"
-                        )
-                    else:
-                        quicklook_path = next(self.path.glob("**/*PVI.jp2"))
-                except (StopIteration, FileNotFoundError):
-                    LOGGER.warning(f"No quicklook found in {self.condensed_name}")
-
-        if quicklook_path is not None:
-            quicklook_path = str(quicklook_path)
+                if self.is_archived:
+                    quicklook_path = self._get_archived_rio_path(regex=r".*PVI\.jp2")
+                else:
+                    quicklook_path = next(self.path.glob("**/*PVI.jp2"))
 
         return quicklook_path
 
@@ -2485,6 +2477,7 @@ class S2StacProduct(StacProduct, S2Product):
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.

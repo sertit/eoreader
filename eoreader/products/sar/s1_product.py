@@ -24,6 +24,7 @@ import geopandas as gpd
 from lxml import etree
 from sertit import path, vectors
 from sertit.misc import ListEnum
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError
@@ -413,6 +414,7 @@ class S1Product(SarProduct):
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -420,17 +422,12 @@ class S1Product(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*preview.quick-look\.png"
-                )
-            else:
-                quicklook_path = next(self.path.glob("preview/quick-look.png"))
-            quicklook_path = str(quicklook_path)
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(
+                regex=r".*preview.quick-look\.png"
+            )
+        else:
+            quicklook_path = next(self.path.glob("preview/quick-look.png"))
 
         return quicklook_path
 

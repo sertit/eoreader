@@ -47,7 +47,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.dimap_v1_product import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -394,6 +394,7 @@ class Vis1Product(DimapV1Product):
             rpcs = None
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -401,13 +402,9 @@ class Vis1Product(DimapV1Product):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self._get_archived_rio_path(regex=r".*Preview\.tif")
-            else:
-                quicklook_path = str(next(self.path.glob("*Preview.tif")))
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self._get_archived_rio_path(regex=r".*Preview\.tif")
+        else:
+            quicklook_path = next(self.path.glob("*Preview.tif"))
 
         return quicklook_path

@@ -411,6 +411,35 @@ def simplify(footprint_fct: Callable):
     return simplify_wrapper
 
 
+def qck_wrapper(fct: Callable):
+    """
+    Output as string
+
+    Args:
+        fct (Callable): Function to decorate
+
+    Returns:
+        Callable: decorated function
+    """
+
+    @wraps(fct)
+    def wrapper(self):
+        """str wrapper"""
+        quicklook_path = None
+        try:
+            quicklook_path = fct(self)
+
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        if quicklook_path is not None:
+            quicklook_path = str(quicklook_path)
+
+        return quicklook_path
+
+    return wrapper
+
+
 def write_path_in_attrs(
     xda: AnyXrDataStructure, path: AnyPathStrType
 ) -> AnyXrDataStructure:

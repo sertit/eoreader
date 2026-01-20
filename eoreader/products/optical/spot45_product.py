@@ -29,6 +29,7 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -665,6 +666,7 @@ class Spot45Product(DimapV1Product):
             ) from exc
         return dn_arr / rad_gain + rad_bias
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -672,16 +674,12 @@ class Spot45Product(DimapV1Product):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*PREVIEW\.JPG"
-                )
-            else:
-                quicklook_path = str(next(self.path.glob("*PREVIEW.JPG")))
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(
+                regex=r".*PREVIEW\.JPG"
+            )
+        else:
+            quicklook_path = next(self.path.glob("*PREVIEW.JPG"))
 
         return quicklook_path
 

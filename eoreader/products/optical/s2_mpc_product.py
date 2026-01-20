@@ -23,6 +23,7 @@ import xarray as xr
 from lxml import etree
 from sertit import AnyPath
 from sertit.types import AnyPathStrType, AnyPathType
+from utils import qck_wrapper
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.bands import BandNames
@@ -178,6 +179,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.

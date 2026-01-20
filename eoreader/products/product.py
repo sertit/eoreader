@@ -94,7 +94,7 @@ from eoreader.exceptions import (
 from eoreader.keywords import DEM_KW, EXO_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import DEFAULT_TILE_SIZE, simplify
+from eoreader.utils import DEFAULT_TILE_SIZE, qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -2494,6 +2494,7 @@ class Product:
     def __repr__(self):
         return "\n".join(self._to_repr())
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing (no such thing for Sentinel-2)

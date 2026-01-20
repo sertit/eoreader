@@ -52,7 +52,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -935,6 +935,7 @@ class S3Product(OpticalProduct):
         """
         raise NotImplementedError
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
@@ -942,12 +943,9 @@ class S3Product(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        try:
-            if self.is_archived:
-                quicklook_path = self._get_archived_path(regex=r".*.jpg")
-            else:
-                quicklook_path = str(next(self.path.glob("**/*.jpg")))
-        except (FileNotFoundError, StopIteration):
-            quicklook_path = None
+        if self.is_archived:
+            quicklook_path = self._get_archived_path(regex=r".*.jpg")
+        else:
+            quicklook_path = next(self.path.glob("**/*.jpg"))
 
         return quicklook_path

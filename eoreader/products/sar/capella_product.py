@@ -33,6 +33,7 @@ from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import SarBandNames as sab
@@ -462,6 +463,7 @@ class CapellaProduct(SarProduct):
 
         return band_paths
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -469,13 +471,7 @@ class CapellaProduct(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            quicklook_path = str(next(self.path.glob("*.png")))
-        except StopIteration:
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
-
-        return quicklook_path
+        return next(self.path.glob("*.png"))
 
     # @cache
     def get_orbit_direction(self) -> OrbitDirection:

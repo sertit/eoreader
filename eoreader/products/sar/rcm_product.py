@@ -28,6 +28,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -398,6 +399,7 @@ class RcmProduct(SarProduct):
         pol_chan = [pol.value for pol in self.pol_channels]
         return f"{self.get_datetime()}_{self.constellation.name}_{'_'.join(pol_chan)}_{mode_name}_{self.product_type.value}"
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -405,13 +407,7 @@ class RcmProduct(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            quicklook_path = str(next(self.path.glob("preview/productOverview.png")))
-        except StopIteration:
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
-
-        return quicklook_path
+        return next(self.path.glob("preview/productOverview.png"))
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

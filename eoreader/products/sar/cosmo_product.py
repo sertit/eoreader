@@ -34,6 +34,7 @@ from sertit import AnyPath, misc, path, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
@@ -425,6 +426,7 @@ class CosmoProduct(SarProduct):
                     "Missing the XML metadata file. Cannot read the product."
                 ) from exc
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -452,7 +454,7 @@ class CosmoProduct(SarProduct):
                         "For now, only the quicklook of the first swath is taken into account."
                     )
 
-        return str(qlk_path)
+        return qlk_path
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

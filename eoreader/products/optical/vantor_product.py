@@ -62,7 +62,7 @@ from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -1742,6 +1742,7 @@ class VantorProduct(VhrProduct):
 
         return cc
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -1749,17 +1750,10 @@ class VantorProduct(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    regex=r".*BROWSE\.JPG"
-                )
-            else:
-                quicklook_path = next(self.path.glob("*BROWSE.JPG"))
-            quicklook_path = str(quicklook_path)
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(regex=r".*BROWSE\.JPG")
+        else:
+            quicklook_path = next(self.path.glob("*BROWSE.JPG"))
 
         return quicklook_path
 

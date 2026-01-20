@@ -35,7 +35,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 from eoreader.products.sar.sar_product import _ExtendedFormatter
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -467,6 +467,7 @@ class SaocomProduct(SarProduct):
 
         return self._read_mtd_xml(mtd_from_path)
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -474,33 +475,27 @@ class SaocomProduct(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            quicklook_path, qlk_exists = self._get_out_path(
-                f"{self.condensed_name}_QLK.png"
-            )
+        quicklook_path, qlk_exists = self._get_out_path(
+            f"{self.condensed_name}_QLK.png"
+        )
 
-            if not qlk_exists:
-                try:
-                    zip_path = next(self.path.glob(f"{self.name}.zip"))
-                    rio_qlk_path = self._get_archived_rio_path(
-                        archive_path=zip_path, regex="Images/.*png", as_list=False
-                    )
-                except FileNotFoundError:
-                    rio_qlk_path = next(self.path.glob("Images/*.png"))
-
-                # Write quicklook on disk
-                utils.write(
-                    utils.read(rio_qlk_path),
-                    quicklook_path,
-                    dtype="uint8",
-                    nodata=255,
-                    driver="PNG",
+        if not qlk_exists:
+            try:
+                zip_path = next(self.path.glob(f"{self.name}.zip"))
+                rio_qlk_path = self._get_archived_rio_path(
+                    archive_path=zip_path, regex="Images/.*png", as_list=False
                 )
+            except FileNotFoundError:
+                rio_qlk_path = next(self.path.glob("Images/*.png"))
 
-            quicklook_path = str(quicklook_path)
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+            # Write quicklook on disk
+            utils.write(
+                utils.read(rio_qlk_path),
+                quicklook_path,
+                dtype="uint8",
+                nodata=255,
+                driver="PNG",
+            )
 
         return quicklook_path
 

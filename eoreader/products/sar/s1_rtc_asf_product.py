@@ -35,7 +35,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products import S1SensorMode, SarProduct
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import Constellation
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -274,6 +274,7 @@ class S1RtcAsfProduct(SarProduct):
         # No MTD!
         return etree.Element("root"), {}
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -281,7 +282,6 @@ class S1RtcAsfProduct(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
@@ -290,17 +290,12 @@ class S1RtcAsfProduct(SarProduct):
             else:
                 quicklook_path = next(self.path.glob("*_rgb.png"))
         except (StopIteration, FileNotFoundError):
-            try:
-                if self.is_archived:
-                    quicklook_path = self.path / self._get_archived_path(
-                        regex=r".*\.png"
-                    )
-                else:
-                    quicklook_path = next(self.path.glob("*.png"))
-            except (StopIteration, FileNotFoundError):
-                pass
+            if self.is_archived:
+                quicklook_path = self.path / self._get_archived_path(regex=r".*\.png")
+            else:
+                quicklook_path = next(self.path.glob("*.png"))
 
-        return str(quicklook_path)
+        return quicklook_path
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:

@@ -28,6 +28,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -581,6 +582,7 @@ class Rs2Product(SarProduct):
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -588,16 +590,10 @@ class Rs2Product(SarProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self._get_archived_rio_path(
-                    regex=r".*BrowseImage\.tif"
-                )
-            else:
-                quicklook_path = str(next(self.path.glob("BrowseImage.tif")))
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self._get_archived_rio_path(regex=r".*BrowseImage\.tif")
+        else:
+            quicklook_path = next(self.path.glob("BrowseImage.tif"))
 
         return quicklook_path
 

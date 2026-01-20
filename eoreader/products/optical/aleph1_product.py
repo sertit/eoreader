@@ -51,7 +51,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import simplify
+from eoreader.utils import qck_wrapper, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -676,6 +676,7 @@ class Aleph1Product(VhrProduct):
         """
         return self._get_path("TOA", "vrt")
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -683,16 +684,12 @@ class Aleph1Product(VhrProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = str(
-                    self.path / self._get_archived_path(regex=r".*preview\.png")
-                )
-            else:
-                quicklook_path = str(next(self.path.glob("*preview.png")))
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(
+                regex=r".*preview\.png"
+            )
+        else:
+            quicklook_path = next(self.path.glob("*preview.png"))
 
         return quicklook_path
 

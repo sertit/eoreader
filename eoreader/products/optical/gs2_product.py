@@ -29,6 +29,7 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
+from utils import qck_wrapper
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -463,6 +464,7 @@ class Gs2Product(DimapV1Product):
             rpcs = None
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -470,13 +472,9 @@ class Gs2Product(DimapV1Product):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(regex=r".*QL\.png")
-            else:
-                quicklook_path = str(next(self.path.glob("*QL.png")))
-        except (StopIteration, FileNotFoundError):
-            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+        if self.is_archived:
+            quicklook_path = self.path / self._get_archived_path(regex=r".*QL\.png")
+        else:
+            quicklook_path = next(self.path.glob("*QL.png"))
 
         return quicklook_path

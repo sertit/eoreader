@@ -30,6 +30,7 @@ import xarray as xr
 from sertit import files
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
+from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME
 from eoreader.bands import (
@@ -359,6 +360,7 @@ class ReProduct(PlanetProduct):
 
         return band_arr
 
+    @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing
@@ -366,14 +368,10 @@ class ReProduct(PlanetProduct):
         Returns:
             str: Quicklook path
         """
-        quicklook_path = None
-        try:
-            if self.is_archived:
-                quicklook_path = self._get_archived_rio_path(regex=r".*_browse\.tif")
-            else:
-                quicklook_path = str(next(self.path.glob("**/*_browse.tif")))
-        except (StopIteration, FileNotFoundError):
-            pass
+        if self.is_archived:
+            quicklook_path = self._get_archived_rio_path(regex=r".*_browse\.tif")
+        else:
+            quicklook_path = next(self.path.glob("**/*_browse.tif"))
 
         return quicklook_path
 
