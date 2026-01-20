@@ -282,10 +282,12 @@ class UmbraProduct(SarProduct):
         return crs
 
     def _get_stac_mtd_path(self):
+        """Get SATC mtd file path"""
         return next(self.path.glob(f"{self.name}.stac*.json"))
 
     @cache
     def _read_stac_mtd(self) -> gpd.GeoDataFrame:
+        """Read STAC metadata (also geojson footprint of the image)"""
         try:
             stac_mtd = vectors.read(self._get_stac_mtd_path())
         except DataSourceError:
@@ -328,7 +330,7 @@ class UmbraProduct(SarProduct):
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
         """
-        extent = self.footprint()
+        extent = self.footprint().copy()
         extent.geometry = extent.envelope
 
         return extent.to_crs(WGS84)
