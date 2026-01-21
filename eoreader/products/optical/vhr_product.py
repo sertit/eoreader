@@ -398,9 +398,7 @@ class VhrProduct(OpticalProduct):
         if filename and not filename.startswith("*"):
             filename = f"*{filename}"
 
-        return self._glob(
-            f"{filename}*.{extension}", as_rio_path=extension in ["tif", "vrt"]
-        )
+        return self._glob(f"{filename}*.{extension}", as_rio_path=True)
 
     def _get_utm_band_path(
         self,

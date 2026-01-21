@@ -23,7 +23,6 @@ from enum import unique
 
 import geopandas as gpd
 import numpy as np
-import utils
 import xarray as xr
 from bands import SHADOWS
 from dicttoxml import dicttoxml
@@ -33,7 +32,7 @@ from sertit import files, path
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     BLUE,
