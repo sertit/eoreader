@@ -24,7 +24,6 @@ from enum import unique
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from bands import SHADOWS
 from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio.enums import Resampling
@@ -43,6 +42,7 @@ from eoreader.bands import (
     NIR,
     RAW_CLOUDS,
     RED,
+    SHADOWS,
     BandNames,
     SpectralBand,
     to_str,
