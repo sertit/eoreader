@@ -34,13 +34,13 @@ from sertit import AnyPath, misc, path, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import WRITE_LIA_KW
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

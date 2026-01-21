@@ -28,13 +28,13 @@ from lxml import etree
 from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import Constellation
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

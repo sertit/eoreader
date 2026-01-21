@@ -29,7 +29,6 @@ from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 from shapely import Polygon
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
@@ -37,6 +36,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

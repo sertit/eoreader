@@ -29,7 +29,6 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -47,6 +46,7 @@ from eoreader.products import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

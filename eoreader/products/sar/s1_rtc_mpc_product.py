@@ -25,7 +25,6 @@ from datetime import datetime
 from lxml import etree
 from sertit import AnyPath, xml
 from sertit.types import AnyPathStrType
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
@@ -34,6 +33,7 @@ from eoreader.products import S1SensorMode, SarProduct, StacProduct
 from eoreader.products.product import OrbitDirection
 from eoreader.products.sar.s1_rtc_asf_product import S1RtcProductType
 from eoreader.reader import Constellation
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -23,7 +23,6 @@ import xarray as xr
 from lxml import etree
 from sertit import AnyPath
 from sertit.types import AnyPathStrType, AnyPathType
-from utils import qck_wrapper
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.bands import BandNames
@@ -31,6 +30,7 @@ from eoreader.products import S2E84Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.stac_product import StacProduct
 from eoreader.reader import Constellation
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -33,13 +33,13 @@ from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
-from utils import qck_wrapper
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import SarBandNames as sab
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
+from eoreader.utils import qck_wrapper
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

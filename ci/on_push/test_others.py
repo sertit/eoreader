@@ -12,7 +12,6 @@ import xarray as xr
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, ci, path, unistra
-from utils import convert_glob_to_regex
 
 from ci.scripts_utils import (
     READER,
@@ -66,6 +65,7 @@ from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import OpticalProduct, SensorType
 from eoreader.reader import Constellation
+from eoreader.utils import convert_glob_to_regex
 
 reduce_verbosity()
 
