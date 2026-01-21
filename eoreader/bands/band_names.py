@@ -535,10 +535,10 @@ class CloudsBandNames(BandNames):
     """ Binary mask of shadows (High confidence) """
 
     CIRRUS = "CIRRUS"
-    """ Binary mask of cirrus (High confidence) """
+    """ Binary mask of cirrus (or haze) (High confidence) """
 
     ALL_CLOUDS = "ALL CLOUDS"
-    """ All clouds (Including all high confidence clouds, shadows and cirrus) """
+    """ All clouds (Including all high confidence clouds, shadows and cirrus/haze) """
 
 
 RAW_CLOUDS = CloudsBandNames.RAW_CLOUDS

@@ -209,7 +209,9 @@ The only difference with the other bands is that the cloud bands are provided in
 | Vantor (GeoEye-1, WorldViews) | ❌           |                                                           |
 | SuperView-1                   | ❌           |                                                           |
 | GEOSAT-2                      | ❌           |                                                           |
-| Aleph-1 (Satellogic)          | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
+| Aleph-1 (Satellogic)*         | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
+
+* Only true for products generated after 17/11/2025. Before, the cloud bands varied between product types.
 
 ### DEM bands
 

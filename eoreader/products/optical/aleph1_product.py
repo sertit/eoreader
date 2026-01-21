@@ -25,8 +25,10 @@ import geopandas as gpd
 import numpy as np
 import utils
 import xarray as xr
+from bands import SHADOWS
 from dicttoxml import dicttoxml
 from lxml import etree
+from rasterio.enums import Resampling
 from sertit import files, path
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
@@ -47,7 +49,7 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.bands.band_names import Aleph1MaskBandNames
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
@@ -598,6 +600,7 @@ class Aleph1Product(VhrProduct):
                 band=band,
                 pixel_size=pixel_size,
                 size=size,
+                resampling=Resampling.nearest,
                 **kwargs,
             )
             band_arr.attrs["long_name"] = band_name
@@ -609,7 +612,59 @@ class Aleph1Product(VhrProduct):
         """
         Does this product has the specified cloud band?
         """
-        return band in [RAW_CLOUDS, CLOUDS, CIRRUS, ALL_CLOUDS]
+        return band in list(self._get_clouds_thresh().keys()) + [RAW_CLOUDS]
+
+    @cache
+    def _get_clouds_thresh(self) -> dict:
+        """Return cloud threshold according to the product version"""
+        latest_thresh = {ALL_CLOUDS: [2, 3], CIRRUS: 2, CLOUDS: 3}
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open zenith and azimuth angle
+        version = root.findtext(".//product_version")
+        if version is None:
+            LOGGER.warning(
+                "'product_version' not found in metadata! Using latest cloud thresholds."
+            )
+            cloud_thresh = latest_thresh
+        else:
+            LOGGER.debug(f"Product version: {version}")
+            from packaging.version import Version
+
+            version = Version(version)
+            if self.product_type == Aleph1ProductType.L1B:
+                # https://developers.satellogic.com/imagery-products/l1basic.html#changelog
+                # [v1.9.0] 2025-11-17:
+                # Changed cloud mask codification, from [0: no_data, 1: valid_data, 128: shadow_data, 255: cloud] to [0: no_data, 1: clear, 2: haze, 3: cloud].
+                cloud_thresh = (
+                    latest_thresh
+                    if version >= Version("1.9.0")
+                    else {SHADOWS: 128, CLOUDS: 255, ALL_CLOUDS: 255}
+                )
+            elif self.product_type == Aleph1ProductType.L1C:
+                # https://developers.satellogic.com/imagery-products/ortho_ready.html#changelog
+                # [v2.2.0] 17/11/2025:
+                # Changed cloud mask codification, from [0: no_data, 1: valid_data, 255: cloud] to [0: no_data, 1: clear, 2: haze, 3: cloud].
+                cloud_thresh = (
+                    latest_thresh
+                    if version >= Version("2.2.0")
+                    else {CLOUDS: 255, ALL_CLOUDS: 255}
+                )
+            elif self.product_type in [Aleph1ProductType.L1D, Aleph1ProductType.L1D_SR]:
+                # https://developers.satellogic.com/imagery-products/ortho.html#changelog-l1d
+                # [v2.0.0] 17/11/2025:
+                # Changed cloud mask codification, from [0: no_data, 1: valid_data, 128: cloud] to [0: no_data, 1: clear, 2: haze, 3: cloud].
+                cloud_thresh = (
+                    latest_thresh
+                    if version >= Version("2.0.0")
+                    else {CLOUDS: 128, ALL_CLOUDS: 128}
+                )
+            else:
+                raise NotImplementedError
+
+        return cloud_thresh
 
     def _open_clouds(
         self,
@@ -635,22 +690,19 @@ class Aleph1Product(VhrProduct):
             cld_arr = self._open_masks(
                 [Aleph1MaskBandNames.CLOUD], pixel_size=pixel_size, size=size
             )[Aleph1MaskBandNames.CLOUD]
-
-            nodata = cld_arr == 0
+            cloud_thresh = self._get_clouds_thresh()
+            nodata = np.isnan(cld_arr.data)
 
             for band in bands:
-                if band == ALL_CLOUDS:
-                    cloud = self._create_mask(cld_arr, cld_arr >= 2, nodata)
-                elif band == CIRRUS:
-                    cloud = self._create_mask(cld_arr, cld_arr == 2, nodata)
-                elif band == CLOUDS:
-                    cloud = self._create_mask(cld_arr, cld_arr == 3, nodata)
-                elif band == RAW_CLOUDS:
+                if band == RAW_CLOUDS:
                     cloud = cld_arr
                 else:
-                    raise InvalidTypeError(
-                        f"Non existing cloud band for Satellogic: {band}"
-                    )
+                    cloud_thresh_band = cloud_thresh[band]
+                    if isinstance(cloud_thresh_band, list):
+                        cond = np.isin(cld_arr, cloud_thresh_band)
+                    else:
+                        cond = cld_arr == cloud_thresh_band
+                    cloud = self._create_mask(cld_arr, cond, nodata)
 
                 # Rename
                 band_name = to_str(band)[0]
