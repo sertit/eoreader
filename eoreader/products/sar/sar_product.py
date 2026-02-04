@@ -1117,7 +1117,7 @@ class SarProduct(Product):
                     assert AnyPath(pp_dim).suffix == ".dim", (
                         f"Assert {pp_dim} is written in BEAM-DIMAP"
                     )
-                    assert AnyPath(pp_dim).is_dir(), f"Assert {pp_dim} is a directory"
+                    assert AnyPath(pp_dim).exists(), f"Assert {pp_dim} exists"
 
                 # With SNAP 13.0.0, there is an issue with CSK and calibration:
                 # - no output is written for DGM
