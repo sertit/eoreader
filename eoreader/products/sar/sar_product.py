@@ -1088,12 +1088,18 @@ class SarProduct(Product):
                 # Get resolution
                 res_m, res_deg = self._get_resolution(snap_pixel_size)
 
+                # No need to specify polarisation in case of one single polarisation
+                if len(self.pol_channels) == 1:
+                    calib_pola = ""
+                else:
+                    calib_pola = strings.to_cmd_string(band.name)
+
                 # Create SNAP CLI
                 snap_args = [
                     f"-Pfile={strings.to_cmd_string(prod_path)}",
                     f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
                     f"-Pregion={strings.to_cmd_string(region)}",
-                    f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
+                    f"-Pcalib_pola={calib_pola}",
                     f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                     f"-Pdem_path={strings.to_cmd_string(dem_path)}",
                     f"-Pcrs={self.crs()}",
@@ -1115,9 +1121,9 @@ class SarProduct(Product):
 
                     # Check the BEAM-DIMAP output exists (if not, trigger CSK fallback)
                     assert AnyPath(pp_dim).suffix == ".dim", (
-                        f"Assert {pp_dim} is written in BEAM-DIMAP"
+                        f"{pp_dim} is not written in BEAM-DIMAP!"
                     )
-                    assert AnyPath(pp_dim).exists(), f"Assert {pp_dim} exists"
+                    assert AnyPath(pp_dim).exists(), f"{pp_dim} doesn't exist!"
 
                 # With SNAP 13.0.0, there is an issue with CSK and calibration:
                 # - no output is written for DGM

@@ -7,6 +7,7 @@
 - FIX: Ensure outputing quicklook paths as strings
 - FIX: Get correct buffer for windows in geographic CRS when subsetting SAR data
 - FIX: Fix SNAP fallback issue
+- FIX: Workaround for calibration polarisation issue: don't specify any polarisation in case of single-polarisation product.
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)
