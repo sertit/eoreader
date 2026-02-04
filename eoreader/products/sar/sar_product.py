@@ -946,7 +946,9 @@ class SarProduct(Product):
         else:
             try:
                 # Take a buffer to prevent border effects from terrain correction
-                geo_region_gdf = geometry.buffer(geo_region_gdf, 1000, resolution=2)
+                geo_region_gdf = geometry.buffer(
+                    geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
+                )
                 geo_region = geo_region_gdf.to_crs(WGS84).geometry.to_wkt().iat[0]
             except Exception as exc:
                 raise NotImplementedError(

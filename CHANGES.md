@@ -5,6 +5,7 @@
 - **ENH: Adding the support of `Satellogic` (`Aleph-1`) constellation** [#229](https://github.com/sertit/eoreader/issues/229)
 - FIX: Fix border effect (extent replacing footprint) when computing the extent before the footprint for `Umbra` products
 - FIX: Ensure outputing quicklook paths as strings
+- FIX: Get correct buffer for windows in geographic CRS when subsetting SAR data
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)
