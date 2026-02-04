@@ -6,6 +6,7 @@
 - FIX: Fix border effect (extent replacing footprint) when computing the extent before the footprint for `Umbra` products
 - FIX: Ensure outputing quicklook paths as strings
 - FIX: Get correct buffer for windows in geographic CRS when subsetting SAR data
+- FIX: Fix SNAP fallback issue
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)

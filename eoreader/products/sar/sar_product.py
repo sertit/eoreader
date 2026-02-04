@@ -1114,19 +1114,20 @@ class SarProduct(Product):
                     misc.run_cli(cmd_list)
 
                     # Check the BEAM-DIMAP output exists (if not, trigger CSK fallback)
-                    assert (
-                        AnyPath(pp_dim).suffix == ".data" and AnyPath(pp_dim).is_dir()
+                    assert AnyPath(pp_dim).suffix == ".dim", (
+                        f"Assert {pp_dim} is written in BEAM-DIMAP"
                     )
+                    assert AnyPath(pp_dim).is_dir(), f"Assert {pp_dim} is a directory"
 
                 # With SNAP 13.0.0, there is an issue with CSK and calibration:
                 # - no output is written for DGM
                 # - GPT graph fails for SCS
                 # Add this fallback for the moment
-                except AssertionError:
-                    self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args)
+                except AssertionError as ex:
+                    self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args, ex)
                 except RuntimeError as ex:
                     if self.constellation == Constellation.CSK:
-                        self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args)
+                        self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args, ex)
                     else:
                         raise RuntimeError("Something went wrong with SNAP!") from ex
 
@@ -1146,11 +1147,12 @@ class SarProduct(Product):
                     pre_processed_path, pp_dim, band, crop=window_to_crop, **kwargs
                 )
 
-    def _fallback_csk_snap_13(self, write_lia: bool, tmp_dir, snap_args):
+    def _fallback_csk_snap_13(self, write_lia: bool, tmp_dir, snap_args, ex):
         """
         With SNAP 13.0.0, there is an issue with CSK and calibration
         Apply this fallback until it's resolved
         """
+        LOGGER.debug(ex)
         LOGGER.warning(
             "There is an issue with CSK and calibration with SNAP 13.0.0. "
             "This step is removed to make the computation work nevertheless. "
