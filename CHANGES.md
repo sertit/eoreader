@@ -8,6 +8,9 @@
 - FIX: Get correct buffer for windows in geographic CRS when subsetting SAR data
 - FIX: Fix SNAP fallback issue
 - FIX: Workaround for calibration polarisation issue: don't specify any polarisation in case of single-polarisation product.
+- FIX: Fix several issues with S2 STAC products:
+  - Add missing `_has_mask` method
+  - Fix `get_mean_sun_angles` and imports for MPC products
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)

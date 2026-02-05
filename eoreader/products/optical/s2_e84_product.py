@@ -236,6 +236,27 @@ class S2E84Product(OpticalProduct):
         """
         return self._glob(f"*{file_id}.{ext}", as_rio_path=True)
 
+    def _has_mask(self, mask: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        return False
+
     def open_mask(
         self, pixel_size: float = None, size: list | tuple = None, **kwargs
     ) -> xr.DataArray:
