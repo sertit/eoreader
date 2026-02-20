@@ -17,6 +17,7 @@
 
 import logging
 import os
+import re
 import tempfile
 import xml.etree.ElementTree as ET
 from abc import abstractmethod
@@ -921,7 +922,7 @@ class SarProduct(Product):
 
         return prod_path
 
-    def _get_subset(self, **kwargs) -> (str, str):
+    def _get_subset(self, tmp_dir, **kwargs) -> (str, str):
         """Get the subset to be applied"""
         window = kwargs.get("window")
         window_to_crop = None
@@ -945,11 +946,13 @@ class SarProduct(Product):
             geo_region = ""
         else:
             try:
+                # geo_region = window
                 # Take a buffer to prevent border effects from terrain correction
+                geo_region = os.path.join(tmp_dir, "geo_region.json")
                 geo_region_gdf = geometry.buffer(
                     geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
                 )
-                geo_region = geo_region_gdf.to_crs(WGS84).geometry.to_wkt().iat[0]
+                geo_region_gdf.to_crs(WGS84).to_file(geo_region)
             except Exception as exc:
                 raise NotImplementedError(
                     "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."
@@ -1011,17 +1014,21 @@ class SarProduct(Product):
                         continue
                     filename = path.get_filename(no_res_file)
                     split_name = filename.split("_")
-                    if pixel_size is not None and "m" in split_name[-1]:
-                        # Check if resolution is better than the one asked
-                        file_res = float(
-                            split_name[-1].replace("m", "").replace("-", ".")
+                    if pixel_size is not None:
+                        res_fragment = list(
+                            filter(re.compile(".*\dm\.").match, split_name)
                         )
-                        if file_res <= pixel_size:
-                            LOGGER.debug(
-                                f"Deriving {band.name} at {pixel_size} m from {filename}."
+                        if res_fragment:
+                            # Check if resolution is better than the one asked
+                            file_res = float(
+                                res_fragment[-1].replace("m", "").replace("-", ".")
                             )
-                            already_ortho = no_res_file
-                            break
+                            if file_res <= pixel_size:
+                                LOGGER.debug(
+                                    f"Deriving {band.name} at {pixel_size} m from {filename}."
+                                )
+                                already_ortho = no_res_file
+                                break
                     elif filename == no_res_name:
                         # No resolution, take it (for legacy purposes)
                         LOGGER.debug(
@@ -1083,7 +1090,7 @@ class SarProduct(Product):
                 prod_path = self._get_snap_path(tmp_dir, **kwargs)
 
                 # Manage subset
-                geo_region, region, window_to_crop = self._get_subset(**kwargs)
+                geo_region, region, window_to_crop = self._get_subset(tmp_dir, **kwargs)
 
                 # Get resolution
                 res_m, res_deg = self._get_resolution(snap_pixel_size)
@@ -1097,7 +1104,7 @@ class SarProduct(Product):
                 # Create SNAP CLI
                 snap_args = [
                     f"-Pfile={strings.to_cmd_string(prod_path)}",
-                    f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
+                    f"-Pvector_file={strings.to_cmd_string(geo_region)}",
                     f"-Pregion={strings.to_cmd_string(region)}",
                     f"-Pcalib_pola={calib_pola}",
                     f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",

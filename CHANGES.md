@@ -11,6 +11,7 @@
 - FIX: Fix several issues with S2 STAC products:
   - Add missing `_has_mask` method
   - Fix `get_mean_sun_angles` and imports for MPC products
+- FIX: Fix conflict between resolution and window name in SAR orthorectified data
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)
