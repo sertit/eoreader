@@ -47,6 +47,7 @@ from eoreader.env_vars import (
     DSPK_GRAPH,
     PP_GRAPH,
     SAR_DEF_PIXEL_SIZE,
+    SAR_PREDICTOR,
     SNAP_DEM_NAME,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -261,7 +262,8 @@ class SarProduct(Product):
         """
         # If we could know if imageio handles Predictor=3:
         # # 3 for float if handled
-        pred = 3 if self._has_snap_x_or_higher(13) else 1
+        pred = os.getenv(SAR_PREDICTOR, 3 if self._has_snap_x_or_higher(13) else 1)
+        # pred = 3 if self._has_snap_x_or_higher(13) else 1
         LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
         return pred
 
