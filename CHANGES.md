@@ -13,6 +13,7 @@
   - Fix `get_mean_sun_angles` and imports for MPC products
 - FIX: Fix conflict between resolution and window name in SAR orthorectified data
 - FIX: Add the possibility to override SAR predictor
+- FIX: Use the vector file instead of the WKT polygon in GPT graphs (seems more stable)
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)

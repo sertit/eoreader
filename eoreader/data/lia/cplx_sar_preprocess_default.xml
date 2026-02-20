@@ -18,7 +18,7 @@
       <region/>
       <referenceBand/>
       <region>${region}</region>
-      <geoRegion>${geo_region}</geoRegion>
+      <vectorFile>${vector_file}</vectorFile>
       <subSamplingX>1</subSamplingX>
       <subSamplingY>1</subSamplingY>
       <fullSwath>false</fullSwath>
