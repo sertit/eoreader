@@ -1224,7 +1224,8 @@ class SarProduct(Product):
         Returns:
             AnyPathType: Despeckled path
         """
-        already_dspk = self._already_processed_path(band, pixel_size, **kwargs)
+        dspk_band = sab.corresponding_despeckle(band)
+        already_dspk = self._already_processed_path(dspk_band, pixel_size, **kwargs)
         if already_dspk is not None:
             return already_dspk
 
@@ -1260,9 +1261,7 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(
-                despeckled_path, dspk_dim, sab.corresponding_despeckle(band), **kwargs
-            )
+            out = self._write_sar(despeckled_path, dspk_dim, dspk_band, **kwargs)
 
         return out
 
