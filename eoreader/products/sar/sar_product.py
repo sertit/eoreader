@@ -1249,7 +1249,9 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                spk_path = self.get_band_path(band, writable=True, **kwargs)
+                spk_path = self.get_band_path(
+                    band, writable=True, pixel_size=pixel_size, **kwargs
+                )
 
                 cmd_list = snap.get_gpt_cli(
                     str(dspk_graph),
