@@ -20,6 +20,7 @@ from ci.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
     reduce_verbosity,
+    sar_path,
 )
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
@@ -123,7 +124,7 @@ def _test_core_optical(
     ]
     _test_core(
         pattern,
-        [opt_path(), get_ci_db_dir().joinpath("more_optical")],
+        [opt_path(), get_ci_db_dir() / "more_optical"],
         possible_bands=possible_bands,
         tmpdir=tmpdir,
         dem_path=dem_path,
@@ -144,7 +145,7 @@ def _test_core_sar(
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE]
     _test_core(
         pattern,
-        get_ci_db_dir().joinpath("all_sar"),
+        [sar_path(), get_ci_db_dir() / "all_sar"],
         possible_bands=possible_bands,
         tmpdir=tmpdir,
         dem_path=dem_path,
