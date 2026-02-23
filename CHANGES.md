@@ -12,7 +12,7 @@
   - Add missing `_has_mask` method
   - Fix `get_mean_sun_angles` and imports for MPC products
 - FIX: Fix conflict between resolution and window name in SAR orthorectified data
-- FIX: Add the possibility to override SAR predictor
+- FIX: Add the possibility to override SAR predictor (and set back 1 on Windows)
 - FIX: Use the vector file instead of the WKT polygon in GPT graphs (seems more stable)
 - FIX: Fix regression for despeckle bands (outputting raw band instead)
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator

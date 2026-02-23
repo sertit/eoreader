@@ -18,6 +18,7 @@
 import logging
 import os
 import re
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from abc import abstractmethod
@@ -261,8 +262,11 @@ class SarProduct(Product):
 
         """
         # If we could know if imageio handles Predictor=3:
-        # # 3 for float if handled
-        pred = os.getenv(SAR_PREDICTOR, 3 if self._has_snap_x_or_higher(13) else 1)
+        # # 3 for float if handled (SNAP > 13 and not on windows apparently...)
+        pred = os.getenv(
+            SAR_PREDICTOR,
+            3 if self._has_snap_x_or_higher(13) and "win" not in sys.platform else 1,
+        )
         # pred = 3 if self._has_snap_x_or_higher(13) else 1
         LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
         return pred
@@ -950,7 +954,7 @@ class SarProduct(Product):
             try:
                 # geo_region = window
                 # Take a buffer to prevent border effects from terrain correction
-                geo_region = os.path.join(tmp_dir, "geo_region.json")
+                geo_region = os.path.join(self.output, "geo_region.shp")
                 geo_region_gdf = geometry.buffer(
                     geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
                 )
