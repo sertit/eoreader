@@ -2057,7 +2057,6 @@ class S2Product(OpticalProduct):
 
         return tf, width, height, self.crs()
 
-    @cache
     def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),

@@ -17,6 +17,7 @@
 - FIX: Use the vector file instead of the WKT polygon in GPT graphs (seems more stable)
 - FIX: Fix regression for despeckle bands (outputting raw band instead)
 - FIX: Fix pixel size management in despeckling
+- FIX: Don't try to hash `default_transform` as kwargs may be unhashable
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - DOC: Update copyright to 2026
 

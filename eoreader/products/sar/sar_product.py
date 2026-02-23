@@ -307,7 +307,6 @@ class SarProduct(Product):
         )
         return rasters.get_footprint(downsampled_band)
 
-    @cache
     def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
@@ -367,7 +366,6 @@ class SarProduct(Product):
 
         return default_band
 
-    @cache
     def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)

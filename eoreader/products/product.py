@@ -2371,7 +2371,6 @@ class Product:
                         f"Please set the environment variable {DEM_PATH} to an existing file."
                     )
 
-    @cache
     def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
