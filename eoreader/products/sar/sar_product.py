@@ -18,7 +18,6 @@
 import logging
 import os
 import re
-import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from abc import abstractmethod
@@ -265,11 +264,11 @@ class SarProduct(Product):
         # # 3 for float if handled (SNAP > 13 and not on windows apparently...)
         pred = os.getenv(
             SAR_PREDICTOR,
-            3 if self._has_snap_x_or_higher(13) and "win" not in sys.platform else 1,
+            1,
         )
         # pred = 3 if self._has_snap_x_or_higher(13) else 1
         LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
-        return pred
+        return int(pred)
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""
