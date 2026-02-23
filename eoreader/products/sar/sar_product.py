@@ -540,6 +540,10 @@ class SarProduct(Product):
                             self._pre_process_sar(
                                 speckle_ortho_band, speckle_band, pixel_size, **kwargs
                             )
+                        else:
+                            LOGGER.debug(
+                                f"Already existing {speckle_ortho_band.name}, will be used for despeckling."
+                            )
 
                         # Despeckle the noisy band
                         band_paths[band] = self._despeckle_sar(
@@ -973,7 +977,11 @@ class SarProduct(Product):
         return pixel_size, res_deg
 
     def _already_processed_path(
-        self, band: sab, pixel_size: float = None, **kwargs
+        self,
+        band: sab,
+        pixel_size: float = None,
+        use_no_window_path: bool = True,
+        **kwargs,
     ) -> AnyPathType:
         """
         Check if an acceptable orthorectified file already exists on disk
@@ -981,6 +989,7 @@ class SarProduct(Product):
         Args:
             band (sbn): Band to preprocess
             pixel_size (float): Pixel size
+            use_no_window_path (bool): Use the no_window path
             kwargs: Additional arguments
 
         Returns:
@@ -999,7 +1008,7 @@ class SarProduct(Product):
             )
         )
 
-        if no_window_ortho_exists:
+        if use_no_window_path and no_window_ortho_exists:
             already_ortho = no_window_ortho_path
         else:
             # Check if an ortho band with a better resolution exists (and for legacy purposes, without any resolution)
@@ -1248,8 +1257,8 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                spk_path = self.get_band_path(
-                    band, writable=True, pixel_size=pixel_size, **kwargs
+                spk_path = self._already_processed_path(
+                    band, pixel_size=pixel_size, **kwargs
                 )
 
                 cmd_list = snap.get_gpt_cli(
