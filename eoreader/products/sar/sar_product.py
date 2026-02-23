@@ -1480,6 +1480,7 @@ class SarProduct(Product):
         pixel_size: float | tuple = None,
         size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> AnyPathType:
         """
         Compute Hillshade mask

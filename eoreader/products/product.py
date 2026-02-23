@@ -804,8 +804,9 @@ class Product:
     def get_band_file_name(
         self,
         band: BandNames,
-        pixel_size: float,
+        pixel_size: float = None,
         size: list | tuple = None,
+        dem_name: str = "",
         **kwargs,
     ) -> str:
         """
@@ -835,8 +836,10 @@ class Product:
             win_suffix = f"_{win_suffix}"
 
         # Specific if needed
+        if dem_name:
+            dem_name = f"_{dem_name}"
 
-        return f"{self.condensed_name}_{to_str(band, as_list=False)}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
+        return f"{self.condensed_name}_{to_str(band, as_list=False)}{dem_name}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
 
     def _get_band_file_name_sensor_specific_suffix(
         self, band: BandNames, **kwargs
@@ -1517,12 +1520,14 @@ class Product:
                         kwargs.get(SLOPE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
+                        **kwargs,
                     )
                 elif band == HILLSHADE:
                     dem_path = self._compute_hillshade(
                         kwargs.get(HILLSHADE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
+                        **kwargs,
                     )
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
@@ -1911,7 +1916,9 @@ class Product:
         Returns:
             AnyPathType: DEM path (as a VRT)
         """
-        dem_name = f"{self.condensed_name}_DEM_{path.get_filename(dem_path)}.vrt"
+        dem_name = self.get_band_file_name(
+            DEM, dem_name=path.get_filename(dem_path), **kwargs
+        ).replace(".tif", ".vrt")  # VRT here
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
         if warped_dem_exists:
@@ -2100,6 +2107,7 @@ class Product:
         pixel_size: float | tuple = None,
         size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> AnyPathType:
         """
         Compute Hillshade mask
@@ -2122,6 +2130,7 @@ class Product:
         pixel_size: float | tuple = None,
         size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> AnyPathType:
         """
         Compute slope mask
@@ -2137,10 +2146,14 @@ class Product:
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
+        warped_dem_path = self._warp_dem(
+            dem_path, pixel_size, size, resampling, **kwargs
+        )
 
         # Get slope path
-        slope_name = f"{self.condensed_name}_SLOPE_{path.get_filename(dem_path)}.tif"
+        slope_name = self.get_band_file_name(
+            SLOPE, dem_name=path.get_filename(dem_path), **kwargs
+        )
 
         slope_path, slope_exists = self._get_out_path(slope_name)
         if slope_exists:

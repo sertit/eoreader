@@ -32,6 +32,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     GREEN,
+    HILLSHADE,
     BandNames,
     SpectralBandMap,
     is_spectral_band,
@@ -505,6 +506,7 @@ class OpticalProduct(Product):
         pixel_size: float | tuple = None,
         size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> AnyPathType:
         """
         Compute Hillshade mask
@@ -520,11 +522,13 @@ class OpticalProduct(Product):
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
+        warped_dem_path = self._warp_dem(
+            dem_path, pixel_size, size, resampling, **kwargs
+        )
 
         # Get Hillshade path
-        hillshade_name = (
-            f"{self.condensed_name}_HILLSHADE_{path.get_filename(dem_path)}.tif"
+        hillshade_name = self.get_band_file_name(
+            HILLSHADE, dem_name=path.get_filename(dem_path), **kwargs
         )
 
         hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)

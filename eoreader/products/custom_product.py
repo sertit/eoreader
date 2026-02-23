@@ -33,6 +33,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
+    HILLSHADE,
     BandNames,
     SarBand,
     SarBandMap,
@@ -510,6 +511,7 @@ class CustomProduct(Product):
         pixel_size: float | tuple = None,
         size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> AnyPathType:
         """
         Compute Hillshade mask
@@ -525,11 +527,13 @@ class CustomProduct(Product):
         sun_az, sun_zen = self.get_mean_sun_angles()
         if sun_az is not None and sun_zen is not None:
             # Warp DEM
-            warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
+            warped_dem_path = self._warp_dem(
+                dem_path, pixel_size, size, resampling, **kwargs
+            )
 
             # Get Hillshade path
-            hillshade_name = (
-                f"{self.condensed_name}_HILLSHADE_{path.get_filename(dem_path)}.tif"
+            hillshade_name = self.get_band_file_name(
+                HILLSHADE, dem_name=path.get_filename(dem_path), **kwargs
             )
 
             hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
