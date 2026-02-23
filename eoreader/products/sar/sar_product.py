@@ -1006,8 +1006,33 @@ class SarProduct(Product):
             )
         )
 
-        if use_no_window_path and no_window_ortho_exists:
-            already_ortho = no_window_ortho_path
+        if no_window_ortho_exists:
+            if "window" in kwargs:
+                with_window_ortho_path, with_window_ortho_exists = self._is_existing(
+                    self.get_band_file_name(
+                        band,
+                        pixel_size,
+                        **kwargs,
+                    )
+                )
+                if not with_window_ortho_exists:
+                    arr = utils.read(
+                        no_window_ortho_path,
+                        pixel_size=pixel_size if pixel_size != 0 else None,
+                        **kwargs,
+                    )
+                    utils.write(
+                        arr,
+                        with_window_ortho_path,
+                        dtype=np.float32,
+                        nodata=self._snap_no_data,
+                        predictor=self._get_predictor(),
+                        driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+                    )
+                already_ortho = with_window_ortho_path
+            else:
+                already_ortho = no_window_ortho_path
+
         else:
             # Check if an ortho band with a better resolution exists (and for legacy purposes, without any resolution)
             # If so, use it instead of re-orthorectifying bands

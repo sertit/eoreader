@@ -18,6 +18,7 @@
 - FIX: Fix regression for despeckle bands (outputting raw band instead)
 - FIX: Fix pixel size management in despeckling
 - FIX: Don't try to hash `default_transform` as kwargs may be unhashable
+- OPTIM: Better management of windows wrt whole files with SAR data
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - DOC: Update copyright to 2026
 
