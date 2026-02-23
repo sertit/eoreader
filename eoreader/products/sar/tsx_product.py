@@ -367,12 +367,10 @@ class TsxProduct(SarProduct):
         # Open extent KML file
         try:
             extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
-        except (IndexError, StopIteration) as ex:
-            raise InvalidProductError(
-                f"Extent file (products.kml) not found in {self.path}"
-            ) from ex
-
-        extent_wgs84 = vectors.read(extent_file).envelope
+            extent_wgs84 = vectors.read(extent_file).envelope
+        except (IndexError, StopIteration):
+            # Sometimes, GEARTH_POLY.kml cannot be read properly (or is missing)
+            extent_wgs84 = self._fallback_wgs84_extent("preview/map-overlay.kml")
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
