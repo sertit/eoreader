@@ -5,29 +5,16 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
-    </parameters>
-  </node>
-  <node id="Subset">
-    <operator>Subset</operator>
-    <sources>
-      <sourceProduct refid="Read"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <tiePointGrids/>
-      <referenceBand/>
-      <region>${region}</region>
-      <vectorFile>${vector_file}</vectorFile>
-      <subSamplingX>1</subSamplingX>
-      <subSamplingY>1</subSamplingY>
-      <fullSwath>false</fullSwath>
+      <useAdvancedOptions>true</useAdvancedOptions>
       <copyMetadata>true</copyMetadata>
+      <vectorFile>${vector_file}</vectorFile>
+      <pixelRegion>${region}</pixelRegion>
     </parameters>
   </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -76,9 +63,6 @@
     <Description/>
     <node id="Read">
             <displayPosition x="4.0" y="33.0"/>
-    </node>
-    <node id="Subset">
-      <displayPosition x="115.0" y="147.0"/>
     </node>
     <node id="Terrain-Correction">
       <displayPosition x="284.0" y="259.0"/>

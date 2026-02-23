@@ -5,30 +5,16 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
-    </parameters>
-  </node>
-<node id="Subset">
-    <operator>Subset</operator>
-    <sources>
-      <sourceProduct refid="Read"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <tiePointGrids/>
-      <region/>
-      <referenceBand/>
-      <region>${region}</region>
-      <vectorFile>${vector_file}</vectorFile>
-      <subSamplingX>1</subSamplingX>
-      <subSamplingY>1</subSamplingY>
-      <fullSwath>false</fullSwath>
+      <useAdvancedOptions>true</useAdvancedOptions>
       <copyMetadata>true</copyMetadata>
+      <vectorFile>${vector_file}</vectorFile>
+      <pixelRegion>${region}</pixelRegion>
     </parameters>
   </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -41,9 +27,6 @@
       <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
       <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
       <mapProjection>${crs}</mapProjection>
-      <alignToStandardGrid>false</alignToStandardGrid>
-      <standardGridOriginX>0.0</standardGridOriginX>
-      <standardGridOriginY>0.0</standardGridOriginY>
       <nodataValueAtSea>false</nodataValueAtSea>
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
@@ -86,9 +69,6 @@
     <Description/>
     <node id="Read">
             <displayPosition x="7.0" y="19.0"/>
-    </node>
-    <node id="Subset">
-      <displayPosition x="21.0" y="65.0"/>
     </node>
     <node id="Terrain-Correction">
       <displayPosition x="40.0" y="148.0"/>

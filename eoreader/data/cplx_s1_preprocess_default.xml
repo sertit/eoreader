@@ -6,29 +6,16 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
       <formatName>SENTINEL-1</formatName>
-    </parameters>
-  </node>
-  <node id="Subset">
-    <operator>Subset</operator>
-    <sources>
-      <sourceProduct refid="Read"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <tiePointGrids/>
-      <referenceBand/>
-      <region>${region}</region>
-      <vectorFile>${vector_file}</vectorFile>
-      <subSamplingX>1</subSamplingX>
-      <subSamplingY>1</subSamplingY>
-      <fullSwath>false</fullSwath>
+      <useAdvancedOptions>true</useAdvancedOptions>
       <copyMetadata>true</copyMetadata>
+      <vectorFile>${vector_file}</vectorFile>
+      <pixelRegion>${region}</pixelRegion>
     </parameters>
   </node>
   <node id="ThermalNoiseRemoval">
     <operator>ThermalNoiseRemoval</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
@@ -94,9 +81,6 @@
       <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
       <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
       <mapProjection>${crs}</mapProjection>
-      <alignToStandardGrid>false</alignToStandardGrid>
-      <standardGridOriginX>0.0</standardGridOriginX>
-      <standardGridOriginY>0.0</standardGridOriginY>
       <nodataValueAtSea>false</nodataValueAtSea>
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
@@ -139,9 +123,6 @@
     <Description/>
     <node id="Read">
       <displayPosition x="12.0" y="19.0"/>
-    </node>
-    <node id="Subset">
-      <displayPosition x="12.0" y="70.0"/>
     </node>
     <node id="ThermalNoiseRemoval">
       <displayPosition x="4.0" y="126.0"/>
