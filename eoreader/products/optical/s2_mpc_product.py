@@ -92,11 +92,13 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
+        self.tile_name = self._get_tile_name()
+
         # Get processing baseline: N0213 -> 02.13
         pr_baseline = float(self.split_name[3][1:]) / 100
         self._processing_baseline = pr_baseline
 
-        # Pre init done by the super class
+        # Post init done by the super class
         super(S2E84Product, self)._post_init(**kwargs)
 
     def _get_name(self) -> str:
@@ -106,7 +108,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         Returns:
             str: True name of the product (from metadata)
         """
-        return self.item.properties["s2:product_uri"]
+        return self.item.properties["s2:product_uri"].split(".")[0]  # remove .SAFE
 
     def _to_reflectance(
         self,

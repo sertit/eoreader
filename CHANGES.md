@@ -13,6 +13,7 @@
 - FIX: Fix several issues with S2 STAC products:
   - Add missing `_has_mask` method
   - Fix `get_mean_sun_angles` and imports for MPC products
+  - Fix MPC name and condensed name
 - FIX: Fix conflict between resolution and window name in SAR orthorectified data
 - FIX: Add the possibility to override SAR predictor (and set back to 1)
 - FIX: Use the vector file instead of the WKT polygon in GPT graphs (seems more stable)
