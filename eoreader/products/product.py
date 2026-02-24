@@ -807,6 +807,7 @@ class Product:
         pixel_size: float = None,
         size: list | tuple = None,
         dem_name: str = "",
+        suffix: str = "tif",
         **kwargs,
     ) -> str:
         """
@@ -839,7 +840,7 @@ class Product:
         if dem_name:
             dem_name = f"_{dem_name}"
 
-        return f"{self.condensed_name}_{to_str(band, as_list=False)}{dem_name}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
+        return f"{self.condensed_name}_{to_str(band, as_list=False)}{dem_name}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.{suffix}"
 
     def _get_band_file_name_sensor_specific_suffix(
         self, band: BandNames, **kwargs
@@ -1917,8 +1918,8 @@ class Product:
             AnyPathType: DEM path (as a VRT)
         """
         dem_name = self.get_band_file_name(
-            DEM, dem_name=path.get_filename(dem_path), **kwargs
-        ).replace(".tif", ".vrt")  # VRT here
+            DEM, dem_name=path.get_filename(dem_path), suffix="vrt", **kwargs
+        )  # VRT here
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
         if warped_dem_exists:

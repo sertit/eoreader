@@ -1267,8 +1267,10 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self.condensed_name}")
-            dspk_dim = target_file + ".dim"
+            dspk_dim = os.path.join(
+                tmp_dir,
+                self.get_band_file_name(dspk_band, pixel_size, suffix="dim", **kwargs),
+            )
 
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
