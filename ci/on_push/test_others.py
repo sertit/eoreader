@@ -247,26 +247,28 @@ def test_dems():
                 **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
             )
 
-        assert next(prod.output.glob(f"**/*DEM_{path.get_filename(dem)}.vrt")).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{path.get_filename(slope_dem)}.vrt")
+            prod.output.glob(f"**/*DEM_{path.get_filename(dem)}*.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{path.get_filename(hillshade_dem)}.vrt")
+            prod.output.glob(f"**/*DEM_{path.get_filename(slope_dem)}*.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*SLOPE_{path.get_filename(slope_dem)}.tif")
+            prod.output.glob(f"**/*DEM_{path.get_filename(hillshade_dem)}*.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*HILLSHADE_{path.get_filename(hillshade_dem)}.tif")
+            prod.output.glob(f"**/*SLOPE_{path.get_filename(slope_dem)}*.tif")
+        ).is_file()
+        assert next(
+            prod.output.glob(f"**/*HILLSHADE_{path.get_filename(hillshade_dem)}*.tif")
         ).is_file()
 
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*SLOPE_{path.get_filename(hillshade_dem)}.tif"))
+            next(prod.output.glob(f"**/*SLOPE_{path.get_filename(hillshade_dem)}*.tif"))
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(slope_dem)}.tif"))
+            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(slope_dem)}*.tif"))
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(dem)}.tif"))
+            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(dem)}*.tif"))
 
 
 @pytest.mark.skipif(
