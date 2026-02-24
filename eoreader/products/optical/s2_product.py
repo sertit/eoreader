@@ -2076,7 +2076,7 @@ class S2Product(OpticalProduct):
             default_path = self.get_default_band_path(**kwargs)
             return self._get_geocoding_info(default_path)
         else:
-            return super().default_transform()
+            return super().default_transform(**kwargs)
 
     @cache
     def get_cloud_cover(self) -> float:
