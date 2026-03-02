@@ -697,8 +697,9 @@ class PlanetProduct(OpticalProduct):
             )
             if len(cloud_dict) > 1:
                 condition = reduce(
-                    lambda x, y: x.fillna(0).astype(np.uint8)
-                    | y.fillna(0).astype(np.uint8),
+                    lambda x, y: (
+                        x.fillna(0).astype(np.uint8) | y.fillna(0).astype(np.uint8)
+                    ),
                     cloud_dict.values(),
                 )
             else:
