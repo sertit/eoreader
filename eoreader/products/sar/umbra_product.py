@@ -524,7 +524,7 @@ class UmbraProduct(SarProduct):
                     # Reproject and write on disk data
                     dem_path = self._get_dem_path(**kwargs)
                     LOGGER.info(
-                        f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
+                        f"GEC file has RPCs: orthorectifying {band.name} band with {path.get_filename(dem_path)}"
                     )
                     arr = utils.read(self._get_gec_path())
                     self._orthorectify(
