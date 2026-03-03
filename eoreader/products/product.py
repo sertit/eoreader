@@ -141,7 +141,7 @@ class Product:
         **kwargs,
     ) -> None:
         self.needs_extraction = True
-        """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
+        """Does this product needs to be extracted to be processed? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
         if (
@@ -833,9 +833,14 @@ class Product:
 
         # Window
         window = kwargs.get("window")
-        win_suffix = ""
+        max_extent = None
         if window is not None:
-            win_suffix = f"_{utils.get_window_suffix(window, max_extent=self.extent())}"
+            # This way we can avoid RecursionError when computing extents (which doesn't have a window)
+            max_extent = self.extent()
+
+        win_suffix = utils.get_window_suffix(window, max_extent=max_extent)
+        if win_suffix:
+            win_suffix = f"_{win_suffix}"
 
         # Specific if needed
         if dem_name:
