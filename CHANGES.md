@@ -21,6 +21,7 @@
 - FIX: Fix pixel size management in despeckling
 - FIX: Don't try to hash `default_transform` as kwargs may be unhashable
 - OPTIM: Better management of windows wrt whole files with SAR data
+- OPTIM: Don't set a window name if band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - DOC: Update copyright to 2026
 

@@ -725,16 +725,37 @@ def get_band_resampling():
     return resampling
 
 
-def get_window_suffix(window) -> str:
+def get_window_suffix(window, max_extent: gpd.GeoDataFrame = None) -> str:
     """Get the window suffix to add it into band filenames"""
     win_suffix = ""
     if window is not None:
-        if path.is_path(window):
-            win_suffix = path.get_filename(window)
-        elif isinstance(window, gpd.GeoDataFrame):
-            win_suffix = window.attrs.get("name")
-        if not win_suffix:
-            win_suffix = f"win{files.hash_file_content(str(window))}"
+        equals = False
+
+        # Only add a window suffix in case the window don't correspond to the product extent
+        if max_extent is not None:
+            if path.is_path(window):
+                win = vectors.read(path).geometry
+            elif isinstance(window, gpd.GeoDataFrame):
+                win = window.geometry
+            else:
+                win = window
+
+            with contextlib.suppress(Exception):
+                ext = self.extent().geometry
+                equals = (
+                    win.geom_equals_exact(ext, tolerance=0.1).any()
+                    or ext.geometry.within(win).any()
+                )
+
+        if not equals:
+            if path.is_path(window):
+                win_suffix = path.get_filename(window)
+            elif isinstance(window, gpd.GeoDataFrame):
+                win_suffix = window.attrs.get("name")
+
+            # Fallback
+            if not win_suffix:
+                win_suffix = f"win{files.hash_file_content(str(window))}"
 
     return win_suffix
 

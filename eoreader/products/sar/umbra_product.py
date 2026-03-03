@@ -553,7 +553,6 @@ class UmbraProduct(SarProduct):
                     ortho_path = raw_band_path
         return ortho_path
 
-    # @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
         Get cloud cover as given in the metadata

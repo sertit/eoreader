@@ -832,9 +832,10 @@ class Product:
         res_str = self._pixel_size_to_str(pixel_size)
 
         # Window
-        win_suffix = utils.get_window_suffix(kwargs.get("window"))
-        if win_suffix:
-            win_suffix = f"_{win_suffix}"
+        window = kwargs.get("window")
+        win_suffix = ""
+        if window is not None:
+            win_suffix = f"_{utils.get_window_suffix(window, max_extent=self.extent())}"
 
         # Specific if needed
         if dem_name:
