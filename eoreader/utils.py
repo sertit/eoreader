@@ -32,7 +32,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import AnyPath, files, geometry, path, rasters, misc
+from sertit import AnyPath, files, geometry, path, rasters, misc, vectors
 from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
@@ -734,14 +734,14 @@ def get_window_suffix(window, max_extent: gpd.GeoDataFrame = None) -> str:
         # Only add a window suffix in case the window don't correspond to the product extent
         if max_extent is not None:
             if path.is_path(window):
-                win = vectors.read(path).geometry
+                win = vectors.read(window).geometry
             elif isinstance(window, gpd.GeoDataFrame):
                 win = window.geometry
             else:
                 win = window
 
             with contextlib.suppress(Exception):
-                ext = self.extent().geometry
+                ext = max_extent.geometry
                 equals = (
                     win.geom_equals_exact(ext, tolerance=0.1).any()
                     or ext.geometry.within(win).any()
