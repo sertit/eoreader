@@ -1475,7 +1475,7 @@ class Product:
         band_dict = {}
         for idx in index_list:
             idx_path, idx_exists = self._is_existing(
-                self.get_band_file_name(idx, pixel_size, size, **kwargs)
+                self.get_band_file_name(idx, pixel_size=pixel_size, size=size, **kwargs)
             )
             if idx_exists:
                 band_dict[idx] = utils.read(idx_path)
@@ -1924,7 +1924,12 @@ class Product:
             AnyPathType: DEM path (as a VRT)
         """
         dem_name = self.get_band_file_name(
-            DEM, dem_name=path.get_filename(dem_path), suffix="vrt", **kwargs
+            DEM,
+            dem_name=path.get_filename(dem_path),
+            suffix="vrt",
+            pixel_size=pixel_size,
+            size=size,
+            **kwargs,
         )  # VRT here
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
@@ -2159,7 +2164,11 @@ class Product:
 
         # Get slope path
         slope_name = self.get_band_file_name(
-            SLOPE, dem_name=path.get_filename(dem_path), **kwargs
+            SLOPE,
+            dem_name=path.get_filename(dem_path),
+            pixel_size=pixel_size,
+            size=size,
+            **kwargs,
         )
 
         slope_path, slope_exists = self._get_out_path(slope_name)

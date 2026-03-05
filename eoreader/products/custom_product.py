@@ -362,7 +362,7 @@ class CustomProduct(Product):
 
         for band in band_list:
             read_band, exists = self._is_existing(
-                self.get_band_file_name(band, pixel_size, **kwargs)
+                self.get_band_file_name(band, pixel_size=pixel_size, **kwargs)
             )
             if exists:
                 band_paths[band] = read_band
@@ -533,7 +533,11 @@ class CustomProduct(Product):
 
             # Get Hillshade path
             hillshade_name = self.get_band_file_name(
-                HILLSHADE, dem_name=path.get_filename(dem_path), **kwargs
+                HILLSHADE,
+                dem_name=path.get_filename(dem_path),
+                pixel_size=pixel_size,
+                size=size,
+                **kwargs,
             )
 
             hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)

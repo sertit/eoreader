@@ -528,7 +528,11 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_name = self.get_band_file_name(
-            HILLSHADE, dem_name=path.get_filename(dem_path), **kwargs
+            HILLSHADE,
+            dem_name=path.get_filename(dem_path),
+            pixel_size=pixel_size,
+            size=size,
+            **kwargs,
         )
 
         hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
