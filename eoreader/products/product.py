@@ -1858,17 +1858,19 @@ class Product:
     def output(self, value: str):
         """Output directory of the product, to write orthorectified data for example."""
         # Set the new output
-        self._output = AnyPath(value)
-        if not path.is_cloud_path(self._output):
-            self._output = self._output.resolve()
+        new_output = AnyPath(value)
+        if self._output != new_output:
+            self._output = new_output
+            if not path.is_cloud_path(self._output):
+                self._output = self._output.resolve()
 
-        # Move temporary process folder
-        self._move_tmp_process(f"tmp_{self.condensed_name}")
+            # Move temporary process folder
+            self._move_tmp_process(f"tmp_{self.condensed_name}")
 
-        # Remove old output if existing into the new output
-        if self._tmp_output:
-            self._tmp_output.cleanup()
-            self._tmp_output = None
+            # Remove old output if existing into the new output
+            if self._tmp_output:
+                self._tmp_output.cleanup()
+                self._tmp_output = None
 
     def _move_tmp_process(self, new_tmp_name: str):
         """Move temporary process folder"""
