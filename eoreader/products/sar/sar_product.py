@@ -433,14 +433,11 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        if self.is_ortho:
-            return super().extent()
-        else:
-            # Get WGS84 extent
-            extent_wgs84 = self.wgs84_extent()
+        # Get WGS84 extent
+        extent_wgs84 = self.wgs84_extent()
 
-            # Convert to UTM
-            return extent_wgs84.to_crs(self.crs())
+        # Convert to UTM
+        return extent_wgs84.to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:

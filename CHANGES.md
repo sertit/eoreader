@@ -23,6 +23,7 @@
 - FIX: Correctly propagate pixel size into band file names
 - OPTIM: Better management of windows wrt whole files with SAR data
 - OPTIM: Don't set a window name if band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
+- OPTIM: Don't touch the raster (even if ortho) when computing the extent of SAR products
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - DOC: Update copyright to 2026
 
