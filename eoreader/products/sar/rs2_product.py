@@ -425,7 +425,7 @@ class Rs2Product(SarProduct):
                     "Something went wrong when reading the 'product.kml' file"
                 )
 
-        except (IndexError, StopIteration, ValueError):
+        except (IndexError, StopIteration, ValueError, FileNotFoundError):
             # Some RS2 products don't have any product.kml file as it is not a mandatory file!
             extent_wgs84 = self._fallback_wgs84_extent("product.kml")
 
