@@ -508,8 +508,8 @@ class VhrProduct(OpticalProduct):
         def_path = self.get_band_paths(
             [default_band], pixel_size=self.pixel_size, **kwargs
         )[default_band]
-        with rasterio.open(str(def_path)) as dst:
-            return dst.transform, dst.width, dst.height, dst.crs
+
+        return utils.get_default_transform(def_path, **kwargs)
 
     @abstractmethod
     def _get_tile_path(self) -> AnyPathType:

@@ -2417,8 +2417,9 @@ class Product:
             Affine, int, int, CRS: transform, width, height, CRS
 
         """
-        with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
-            return dst.transform, dst.width, dst.height, dst.crs
+        return utils.get_default_transform(
+            self.get_default_band_path(**kwargs), **kwargs
+        )
 
     def _pixel_size_from_img_size(self, size: list | tuple = None, **kwargs) -> tuple:
         """

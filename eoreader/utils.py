@@ -26,6 +26,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import errors
@@ -766,3 +767,20 @@ def get_driver(kwargs: dict) -> str:
     if driver is None:
         driver = os.environ.get(DEFAULT_DRIVER, "COG")
     return driver
+
+
+def get_default_transform(path, **kwargs):
+    """Get data from rasterio dataset: transform, width, height, crs. Manages windows."""
+    with rasterio.open(str(path)) as ds:
+        if "window" in kwargs:
+            from sertit import rasters_rio
+
+            rio_window = rasters_rio.get_window(ds, kwargs["window"])
+            return (
+                ds.window_transform(rio_window),
+                rio_window.width,
+                rio_window.height,
+                ds.crs,
+            )
+        else:
+            return ds.transform, ds.width, ds.height, ds.crs

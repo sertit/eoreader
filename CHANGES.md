@@ -22,6 +22,7 @@
 - FIX: Don't try to hash `default_transform` as kwargs may be unhashable
 - FIX: Correctly propagate pixel size into band file names
 - FIX: Handle correctly missing `product.kml` in RS2 products
+- FIX: Handle windows when loading DEM bands
 - OPTIM: Better management of windows wrt whole files with SAR data
 - OPTIM: Don't set a window name if band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
 - OPTIM: Don't touch the raster (even if ortho) when computing the extent of SAR products

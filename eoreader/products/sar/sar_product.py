@@ -329,8 +329,7 @@ class SarProduct(Product):
         else:
             default_band_path = self.get_default_band_path(**kwargs)
 
-        with rasterio.open(str(default_band_path)) as dst:
-            return dst.transform, dst.width, dst.height, dst.crs
+        return utils.get_default_transform(default_band_path, **kwargs)
 
     def get_default_band(self) -> BandNames:
         """
