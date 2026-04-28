@@ -7,15 +7,9 @@ variables:
   EO_CONTAINER: $REGISTRY_GITLAB/eo-containers
   EOREADER_CHANGES: eoreader/**/[^_]*.{py,xml}
 
-lint:
-  image: python:3.10-buster
-  stage: lint
-  script:
-    - python -m pip install --upgrade pip
-    - pip install ruff
-    - ruff format && ruff check
-  except:
-    - tags
+include:
+  - project: 'sertit/groupware'
+    file: '/ci_templates/lint_3_10.yaml'
 
 # Test with data on local disk
 pytest:
