@@ -743,7 +743,7 @@ def get_window_suffix(window, max_extent: gpd.GeoDataFrame = None) -> str:
 
             with contextlib.suppress(Exception):
                 ext = max_extent.geometry
-                equals = (
+                equals = ext.crs == win.crs and (
                     win.geom_equals_exact(ext, tolerance=0.1).any()
                     or ext.geometry.within(win).any()
                 )
