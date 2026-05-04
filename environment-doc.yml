@@ -1,3 +1,4 @@
+---
 name: eoreader-doc
 channels:
   - conda-forge

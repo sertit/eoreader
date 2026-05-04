@@ -28,6 +28,7 @@
 - OPTIM: Don't set a window name if band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
 - OPTIM: Don't touch the raster (even if ortho) when computing the extent of SAR products
 - SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
+- LINT: Lint YAML files
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)

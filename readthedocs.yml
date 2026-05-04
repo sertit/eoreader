@@ -1,3 +1,4 @@
+---
 version: 2
 
 build:
@@ -13,7 +14,8 @@ build:
     post_install:
       - mkdir -p $READTHEDOCS_OUTPUT
       - cd $READTHEDOCS_OUTPUT
-      # JUPYTER_CACHE_URL does not contain "?dl=1" because readthedocs encloses the variable with "'" when it contains "?"
+      # JUPYTER_CACHE_URL does not contain "?dl=1"
+      # because readthedocs encloses the variable with "'" when it contains "?"
       - wget -O file.zip ${JUPYTER_CACHE_URL}"?dl=1"
       - unzip file.zip -d $READTHEDOCS_OUTPUT
 
@@ -24,6 +26,6 @@ python:
 # Build from the docs/ directory with Sphinx
 sphinx:
   configuration: docs/conf.py
-  # Equivalent to -W and --keep-going => turn warnings into errors, keep going anyway but return an exit code 1
+  # Equivalent to -W and --keep-going
+  # => turn warnings into errors, keep going anyway but return an exit code 1
   fail_on_warning: false
-

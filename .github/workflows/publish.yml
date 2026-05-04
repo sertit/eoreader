@@ -1,11 +1,10 @@
+---
 name: Publish to PyPI
-
 on:
   push:
     tags:
-      - "v*"
-  workflow_dispatch:
-
+      - v*
+  workflow_dispatch: null
 jobs:
   build-n-publish:
     name: Build and publish to PyPI
@@ -13,7 +12,8 @@ jobs:
     environment:
       name: release
     permissions:
-          id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
@@ -24,10 +24,9 @@ jobs:
       - name: Install the latest version of uv with cache enabled
         uses: astral-sh/setup-uv@v7
         with:
-          version: "latest"
+          version: latest
           enable-cache: true
           cache-dependency-glob: ""
-
       - name: Check that the current version isn't already on PyPi
         run: |
           if [ "$(./get_pypi_latest_version.sh)" != "$(git describe --tags)" ]
@@ -37,9 +36,7 @@ jobs:
             echo "Current version is the latest version uploaded to PyPI"
             exit 1
           fi
-
       - name: Build a binary wheel and a source tarball
         run: uvx --from build pyproject-build --sdist --wheel
-
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,28 +1,28 @@
+---
 exclude: |
   (?x)^(
       docs/_.*
   )$
 fail_fast: false
 ci:
-    autoupdate_schedule: monthly
+  autoupdate_schedule: monthly
 repos:
-
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
     hooks:
       - id: check-json
       - id: check-yaml
-        args: [ --allow-multiple-documents, --unsafe ]
+        args:
+          - --allow-multiple-documents
+          - --unsafe
       - id: check-xml
       - id: check-added-large-files
-        args: [ '--maxkb=1600' ]
-
+        args:
+          - --maxkb=1600
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
     rev: v0.15.9
     hooks:
-      # Run the linter.
       - id: ruff
-        args: [ --fix ]
-      # Run the formatter.
+        args:
+          - --fix
       - id: ruff-format
