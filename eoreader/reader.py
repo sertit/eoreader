@@ -605,8 +605,24 @@ class Reader:
         if validators.url(product_path):
             if PYSTAC_INSTALLED:
                 try:
-                    product_path = Item.from_file(product_path)
-                    is_stac = True
+                    import requests
+
+                    request = requests.get(product_path)
+                    if request.status_code == 200:
+                        try:
+                            product_path = Item.from_dict(
+                                request.json(), preserve_dict=False
+                            )
+                        except Exception:
+                            # More protected way of loading STAC item with 'from_file' that to do 'Item.from_dict(request.json())'
+                            # Drawback: requesting the item 2 times
+                            # That's why don't do this directly and keep it as a fallback
+                            product_path = Item.from_file(product_path)
+                        is_stac = True
+                    else:
+                        raise FileNotFoundError(
+                            f"ERROR {request.status_code}: {request.text}"
+                        )
                 except Exception as exc:
                     raise InvalidProductError(
                         f"Cannot convert your URL ({product_path}) to a STAC Item."
