@@ -1,6 +1,6 @@
 # Release History
 
-## 0.24.0 (2026-mm-dd)
+## 0.24.0 (2026-05-05)
 
 - **BREAKING CHANGE**: Using now `dict2xml` rather than `dicttoxml` [#292](https://github.com/sertit/eoreader/issues/292)
 - **ENH: Adding the support of `Satellogic` (`Aleph-1`) constellation** [#229](https://github.com/sertit/eoreader/issues/229)
