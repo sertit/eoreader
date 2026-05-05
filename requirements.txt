@@ -12,7 +12,7 @@ twine
 lxml
 zarr
 h5netcdf
-dicttoxml
+dict2xml
 
 # Paths
 validators

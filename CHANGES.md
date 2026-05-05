@@ -2,6 +2,7 @@
 
 ## 0.24.0 (2026-mm-dd)
 
+- **BREAKING CHANGE**: Using now `dict2xml` rather than `dicttoxml` [#292](https://github.com/sertit/eoreader/issues/292)
 - **ENH: Adding the support of `Satellogic` (`Aleph-1`) constellation** [#229](https://github.com/sertit/eoreader/issues/229)
 - **ENH: Add fallback for TSX/TDX extent when `SUPPORT/GEARTH_POLY.kml` is missing** [#290](https://github.com/sertit/eoreader/issues/290)
 - **ENH: Handle windows when loading DEM bands**

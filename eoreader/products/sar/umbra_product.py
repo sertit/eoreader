@@ -26,7 +26,6 @@ from enum import unique
 import geopandas as gpd
 import numpy as np
 import rasterio
-from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio import crs
 from sertit import files, path, vectors
@@ -428,9 +427,10 @@ class UmbraProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-
         # MTD are JSON
         try:
+            from dict2xml import dict2xml
+
             try:
                 mtd_file = self._get_stac_mtd_path()
                 self._has_stac_mtd = True
@@ -462,7 +462,7 @@ class UmbraProduct(SarProduct):
 
                 data.pop("assets", None)
                 __sanitize_recursive(data)
-            root = etree.fromstring(dicttoxml(data, attr_type=False))
+            root = etree.fromstring(dict2xml(data, wrap="all"))
         except etree.XMLSyntaxError as exc:
             raise InvalidProductError(
                 f"Cannot convert metadata to XML for {self.path}!"
@@ -488,7 +488,7 @@ class UmbraProduct(SarProduct):
 
         # Open polarizations
         # Same for the two MTD
-        pol = root.find(".//polarizations").findtext("item")
+        pol = root.findtext(".//polarizations")
 
         # Convert pol to an EOReader band
         pol = sab.from_value(pol)

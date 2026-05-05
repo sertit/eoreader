@@ -25,7 +25,6 @@ from enum import unique
 
 import geopandas as gpd
 from affine import Affine
-from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio import CRS, transform
 from sertit import files, path, vectors
@@ -409,6 +408,8 @@ class CapellaProduct(SarProduct):
 
         # MTD are JSON
         try:
+            from dict2xml import dict2xml
+
             try:
                 mtd_file = next(self.path.glob(f"{self.name}.json"))
                 self._has_stac_mtd = True
@@ -425,7 +426,17 @@ class CapellaProduct(SarProduct):
                     ) from ex
 
             data = files.read_json(mtd_file, print_file=False)
-            root = etree.fromstring(dicttoxml(data))
+
+            def __sanitize_recursive(d):
+                for key in d.copy():
+                    k = key.split(":")[-1]
+                    d[k] = d.pop(key)
+                    if isinstance(d[k], dict):
+                        __sanitize_recursive(d[k])
+
+            data.pop("assets", None)
+            __sanitize_recursive(data)
+            root = etree.fromstring(dict2xml(data, wrap="all"))
         except etree.XMLSyntaxError as exc:
             raise InvalidProductError(
                 f"Cannot convert metadata to XML for {self.path}!"
@@ -493,7 +504,7 @@ class CapellaProduct(SarProduct):
         if self._has_stac_mtd:
             root, _ = self.read_mtd()
 
-            ob = root.findtext(".//key[@name='sat:orbit_state']")
+            ob = root.findtext(".//orbit_state")
             ob = OrbitDirection.from_value(ob.upper())
 
         if ob is None:

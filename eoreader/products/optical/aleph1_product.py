@@ -24,7 +24,6 @@ from enum import unique
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, path
@@ -525,6 +524,8 @@ class Aleph1Product(VhrProduct):
         """
         # MTD are JSON
         try:
+            from dict2xml import dict2xml
+
             mtd = self._read_mtd_dict()
 
             # Sanitize STAC mtd (remove STAC prefixes with ':' that break XML keys)
@@ -541,7 +542,7 @@ class Aleph1Product(VhrProduct):
             mtd.pop("stac_version", None)
             mtd.pop("type", None)
             __sanitize_recursive(mtd)
-            root = etree.fromstring(dicttoxml(mtd, attr_type=False))
+            root = etree.fromstring(dict2xml(mtd, wrap="all"))
         except etree.XMLSyntaxError as exc:
             raise InvalidProductError(
                 f"Cannot convert metadata to XML for {self.path}!"

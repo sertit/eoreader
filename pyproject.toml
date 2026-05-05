@@ -51,7 +51,7 @@ dependencies = [
     "cloudpathlib[s3]>=0.15.0",
     "validators",
     "methodtools",
-    "dicttoxml",
+    "dict2xml",
     "tifffile",
     "ephem",
 ]
