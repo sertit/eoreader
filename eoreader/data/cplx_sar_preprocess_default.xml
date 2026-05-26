@@ -2,14 +2,10 @@
   <version>1.0</version>
   <node id="Read">
     <operator>Read</operator>
-    <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
-      <useAdvancedOptions>true</useAdvancedOptions>
-      <copyMetadata>true</copyMetadata>
-      <vectorFile>${vector_file}</vectorFile>
-      <pixelRegion>${region}</pixelRegion>
     </parameters>
+    <sources/>
   </node>
   <node id="Calibration">
     <operator>Calibration</operator>
@@ -43,10 +39,27 @@
       <grSquarePixel>true</grSquarePixel>
     </parameters>
   </node>
+  <node id="Subset">
+    <operator>Subset</operator>
+    <sources>
+      <sourceProduct refid="Multilook"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <tiePointGrids/>
+      <referenceBand/>
+      <region>${region}</region>
+      <vectorFile>${vector_file}</vectorFile>
+      <subSamplingX>1</subSamplingX>
+      <subSamplingY>1</subSamplingY>
+      <fullSwath>false</fullSwath>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Multilook"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>

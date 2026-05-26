@@ -1,5 +1,9 @@
 # Release History
 
+## 0.24.1 (2026-mm-dd)
+
+- FIX: Fix subsetting complex SAR data with a window (cannot be done directly in the ESA SNAP Read Operator)
+
 ## 0.24.0 (2026-05-05)
 
 - **BREAKING CHANGE**: Using now `dict2xml` rather than `dicttoxml` [#292](https://github.com/sertit/eoreader/issues/292)
