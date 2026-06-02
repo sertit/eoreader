@@ -784,3 +784,14 @@ def get_default_transform(path, **kwargs):
             )
         else:
             return ds.transform, ds.width, ds.height, ds.crs
+
+
+def get_ext(file_path) -> str:
+    try:
+        return path.get_ext(file_path=file_path, start_with_point=False)
+    except TypeError:
+        ext = path.get_ext(file_path=file_path)
+        if ext.startswith("."):
+            ext = ext[1:]
+
+        return ext

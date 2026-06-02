@@ -24,7 +24,7 @@ import geopandas as gpd
 import shapely
 from lxml import etree
 from rasterio import crs
-from sertit import geometry, path, vectors
+from sertit import geometry, vectors
 from sertit.types import AnyPathStrType
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -163,9 +163,7 @@ class StacProduct(Product):
 
             if quicklook_path is not None:
                 plt.figure(figsize=(6, 6))
-                if path.get_ext(quicklook_path, start_with_point=False).split("?")[
-                    0
-                ].lower() in [
+                if utils.get_ext(quicklook_path).split("?")[0].lower() in [
                     "png",
                     "jpg",
                     "jpeg",
