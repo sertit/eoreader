@@ -43,7 +43,7 @@ dependencies = [
     "rioxarray>=0.15.0",
     "odc-geo[tiff]>=0.5.0",
     "geopandas>=0.14.4",
-    "sertit[full]>=1.50.2",
+    "sertit[full]>=1.54.0",
     "spyndex>=0.7.1",
     "pyresample",
     "zarr",

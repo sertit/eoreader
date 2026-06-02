@@ -163,7 +163,9 @@ class StacProduct(Product):
 
             if quicklook_path is not None:
                 plt.figure(figsize=(6, 6))
-                if path.get_ext(quicklook_path).split("?")[0].lower() in [
+                if path.get_ext(quicklook_path, start_with_point=False).split("?")[
+                    0
+                ].lower() in [
                     "png",
                     "jpg",
                     "jpeg",

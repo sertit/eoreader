@@ -2604,7 +2604,9 @@ class Product:
             quicklook_path = self.get_quicklook_path()
 
             if quicklook_path is not None:
-                is_image = path.get_ext(quicklook_path).lower() in [
+                is_image = path.get_ext(
+                    quicklook_path, start_with_point=False
+                ).lower() in [
                     "png",
                     "jpg",
                     "jpeg",
