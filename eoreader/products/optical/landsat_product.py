@@ -2048,17 +2048,35 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
                 if band is not None and f"B{band.id}" == band_id
             ][0]
             asset_name = EOREADER_STAC_MAP[band_name].value
+            if asset_name not in self.item.assets:
+                # Some collections name the asset differently from the STAC
+                # common name (e.g. Landsat Collection-2 exposes the NIR band
+                # as "nir08" instead of "nir"). Fall back to a fuzzy match
+                # against the actual asset keys (#307).
+                asset_name = self._get_closest_asset(asset_name)
         else:
-            try:
-                asset_name = difflib.get_close_matches(
-                    band_id, self.item.assets.keys(), cutoff=0.5, n=1
-                )[0]
-            except Exception as exc:
-                raise FileNotFoundError(
-                    f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{band_id}'"
-                ) from exc
+            asset_name = self._get_closest_asset(band_id)
 
         return self.sign_url(self.item.assets[asset_name].href)
+
+    def _get_closest_asset(self, name: str) -> str:
+        """
+        Find the STAC asset whose name is closest to the given one.
+
+        Args:
+            name (str): Asset name to look for
+
+        Returns:
+            str: Closest asset name
+        """
+        try:
+            return difflib.get_close_matches(
+                name, self.item.assets.keys(), cutoff=0.5, n=1
+            )[0]
+        except Exception as exc:
+            raise FileNotFoundError(
+                f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{name}'"
+            ) from exc
 
     def _read_mtd(self, force_pd=False) -> (etree._Element, dict):
         """
