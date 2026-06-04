@@ -2048,6 +2048,19 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
                 if band is not None and f"B{band.id}" == band_id
             ][0]
             asset_name = EOREADER_STAC_MAP[band_name].value
+            if asset_name not in self.item.assets:
+                # Some providers expose a band under a versioned STAC name
+                # (e.g. Landsat C2 L2 on Planetary Computer / Element84 serves
+                # the NIR band as "nir08" rather than the generic "nir"), so
+                # fall back to the closest real asset key like the branch below.
+                try:
+                    asset_name = difflib.get_close_matches(
+                        asset_name, self.item.assets.keys(), cutoff=0.5, n=1
+                    )[0]
+                except Exception as exc:
+                    raise FileNotFoundError(
+                        f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{asset_name}'"
+                    ) from exc
         else:
             try:
                 asset_name = difflib.get_close_matches(

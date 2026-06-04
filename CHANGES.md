@@ -3,6 +3,7 @@
 ## 0.24.1 (2026-mm-dd)
 
 - FIX: Fix subsetting complex SAR data with a window (cannot be done directly in the ESA SNAP Read Operator)
+- FIX: Fix `KeyError` when loading a Landsat STAC band exposed under a versioned asset name (e.g. `NIR` served as `nir08` on Planetary Computer / Element84) [#307](https://github.com/sertit/eoreader/issues/307)
 
 ## 0.24.0 (2026-05-05)
 

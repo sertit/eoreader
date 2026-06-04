@@ -117,6 +117,45 @@ def test_alias():
         to_band(["WRONG_BAND"])
 
 
+def test_landsat_stac_versioned_asset_resolution():
+    """LandsatStacProduct._get_path resolves versioned STAC asset names (#307).
+
+    The Landsat C2 L2 items on Planetary Computer / Element84 expose the NIR
+    band as ``nir08`` rather than the generic ``nir`` that EOREADER maps to,
+    which used to raise ``KeyError: 'nir'``. The closest real asset key must be
+    used instead, without disturbing providers that do expose ``nir``.
+    """
+    from types import SimpleNamespace
+
+    from eoreader.products.optical.landsat_product import LandsatStacProduct
+
+    def fake_product(asset_names):
+        return SimpleNamespace(
+            item=SimpleNamespace(
+                assets={
+                    name: SimpleNamespace(href=f"http://test/{name}.tif")
+                    for name in asset_names
+                }
+            ),
+            bands={NIR: SimpleNamespace(id=5)},
+            sign_url=lambda url: url,
+        )
+
+    # Landsat C2 L2 serves NIR as "nir08": resolve to it instead of raising
+    landsat = fake_product(
+        ["coastal", "blue", "green", "red", "nir08", "swir16", "swir22", "lwir11"]
+    )
+    assert LandsatStacProduct._get_path(landsat, "B5").endswith("nir08.tif")
+
+    # A provider that does expose "nir" must keep using it (no fuzzy detour)
+    generic = fake_product(["blue", "green", "red", "nir", "swir16"])
+    assert LandsatStacProduct._get_path(generic, "B5").endswith("/nir.tif")
+
+    # Nothing close enough still fails explicitly
+    with pytest.raises(FileNotFoundError):
+        LandsatStacProduct._get_path(fake_product(["blue", "red"]), "B5")
+
+
 @s3_env
 @dask_env
 def test_products():
