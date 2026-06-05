@@ -8,6 +8,7 @@ from sertit import s3
 from tempenv import tempenv
 
 from ci.scripts_utils import READER, compare, reduce_verbosity
+from eoreader.bands import NIR
 from eoreader.products import Product
 from eoreader.reader import Constellation
 
@@ -94,6 +95,24 @@ def test_l5_mpc():
         "https://planetarycomputer.microsoft.com/api/stac/v1/collections/landsat-c2-l1/items/LM05_L1GS_039039_20130107_02_T2",
         Constellation.L5,
     )
+
+
+def test_l9_l2_mpc_nir_asset():
+    """Resolving the NIR band of a Landsat C2 L2 MPC item must not raise (#307).
+
+    These items expose the NIR band under the versioned STAC asset name
+    ``nir08`` rather than the generic ``nir``, which used to raise
+    ``KeyError: 'nir'`` when getting the band path.
+    """
+    prod = READER.open(
+        "https://planetarycomputer.microsoft.com/api/stac/v1/collections/landsat-c2-l2/items/LC09_L2SP_095022_20231119_02_T2",
+        remove_tmp=True,
+    )
+    assert prod is not None
+
+    band_paths = prod.get_band_paths([NIR])
+    # NIR is band 5 on Landsat-8/9: the resolved asset is the SR_B5 file
+    assert "B5" in str(band_paths[NIR])
 
 
 def test_s2_mpc():
