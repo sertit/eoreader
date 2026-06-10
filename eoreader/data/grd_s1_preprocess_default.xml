@@ -6,10 +6,6 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
       <formatName>SENTINEL-1</formatName>
-      <useAdvancedOptions>true</useAdvancedOptions>
-      <copyMetadata>true</copyMetadata>
-      <vectorFile>${vector_file}</vectorFile>
-      <pixelRegion>${region}</pixelRegion>
     </parameters>
   </node>
   <node id="Apply-Orbit-File">
@@ -65,10 +61,27 @@
       <outputBetaBand>false</outputBetaBand>
     </parameters>
   </node>
+  <node id="Subset">
+    <operator>Subset</operator>
+    <sources>
+      <sourceProduct refid="Calibration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <tiePointGrids/>
+      <referenceBand/>
+      <region>${region}</region>
+      <vectorFile>${vector_file}</vectorFile>
+      <subSamplingX>1</subSamplingX>
+      <subSamplingY>1</subSamplingY>
+      <fullSwath>false</fullSwath>
+      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Calibration"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>

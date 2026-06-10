@@ -5,16 +5,29 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
-      <useAdvancedOptions>true</useAdvancedOptions>
-      <copyMetadata>true</copyMetadata>
+    </parameters>
+  </node>
+  <node id="Subset">
+    <operator>Subset</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <tiePointGrids/>
+      <referenceBand/>
+      <region>${region}</region>
       <vectorFile>${vector_file}</vectorFile>
-      <pixelRegion>${region}</pixelRegion>
+      <subSamplingX>1</subSamplingX>
+      <subSamplingY>1</subSamplingY>
+      <fullSwath>false</fullSwath>
+      <copyMetadata>true</copyMetadata>
     </parameters>
   </node>
   <node id="Calibration">
     <operator>Calibration</operator>
     <sources>
-      <sourceProduct refid="Read"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
