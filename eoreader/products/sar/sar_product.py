@@ -951,11 +951,18 @@ class SarProduct(Product):
             try:
                 # geo_region = window
                 # Take a buffer to prevent border effects from terrain correction
-                geo_region = os.path.join(self.output, "geo_region.shp")
-                geo_region_gdf = geometry.buffer(
-                    geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
+                win_suffix = utils.get_window_suffix(window)
+                if win_suffix:
+                    win_suffix = f"_{win_suffix}"
+
+                geo_region, exists = self._get_out_path(
+                    f"{self.condensed_name}{win_suffix}_snap_geo_region.shp"
                 )
-                geo_region_gdf.to_crs(WGS84).to_file(geo_region)
+                if not exists:
+                    geo_region_gdf = geometry.buffer(
+                        geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
+                    )
+                    vectors.write(geo_region_gdf.to_crs(WGS84), path=geo_region)
             except Exception as exc:
                 raise NotImplementedError(
                     "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."

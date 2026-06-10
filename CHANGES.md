@@ -2,6 +2,7 @@
 
 ## 0.24.1 (2026-mm-dd)
 
+- FIX: Better SNAP geo_region name to disambiguate between products
 - FIX: Fix subsetting complex SAR data with a window (cannot be done directly in the ESA SNAP Read Operator)
 - FIX: Fix `KeyError` when loading a Landsat Collection-2 band from a STAC item whose asset name differs from the STAC common name (e.g. `nir08` instead of `nir`) [#307](https://github.com/sertit/eoreader/issues/307)
 
