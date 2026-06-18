@@ -81,6 +81,19 @@ def test_utils():
     assert utils.get_data_dir() == data_dir
 
 
+def test_prune_resampling_keyword():
+    # Masks are always read with nearest resampling, so a user-supplied
+    # resampling must be pruned before being forwarded to utils.read,
+    # otherwise it collides with the hardcoded value (see issue #313).
+    pruned = utils._prune_keywords(
+        additional_keywords=["resampling"],
+        resampling=Resampling.bilinear,
+        indexes=1,
+    )
+    assert "resampling" not in pruned
+    assert pruned["indexes"] == 1
+
+
 def test_alias():
     # DEM
     assert not is_dem(NDVI)
