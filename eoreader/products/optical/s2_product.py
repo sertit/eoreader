@@ -1008,7 +1008,7 @@ class S2Product(OpticalProduct):
                 resampling=Resampling.nearest,
                 as_type=np.uint8,
                 masked=False,
-                **kwargs,
+                **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
             )
         else:
             if self._processing_baseline < 4.0:
@@ -1157,7 +1157,7 @@ class S2Product(OpticalProduct):
             resampling=Resampling.nearest,
             as_type=np.uint8,
             masked=False,
-            **kwargs,
+            **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
         )
 
         return mask
