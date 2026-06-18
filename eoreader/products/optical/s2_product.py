@@ -894,7 +894,8 @@ class S2Product(OpticalProduct):
                     if mask_path.is_file():
                         band_dict[key] = utils.read(mask_path)
                     else:
-                        bands_to_load.append(band)
+                        if band not in bands_to_load:
+                            bands_to_load.append(band)
                         associated_bands_to_load[band].append(associated_band)
 
             # Then load other bands that haven't been loaded before

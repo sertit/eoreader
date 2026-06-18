@@ -6,6 +6,7 @@
 - FIX: Fix subsetting SAR data with a window (cannot be done directly in the ESA SNAP Read Operator)
 - FIX: Fix `KeyError` when loading a Landsat Collection-2 band from a STAC item whose asset name differs from the STAC common name (e.g. `nir08` instead of `nir`) [#307](https://github.com/sertit/eoreader/issues/307) - by @gaoflow
 - FIX: Handle `TypeError` when passing `resampling` to `load()` on Sentinel-2 - by @SAY-5
+- FIX: Fix masks loaded N times when N associated bands are requested [#314](https://github.com/sertit/eoreader/issues/314) by @cmayet
 
 ## 0.24.0 (2026-05-05)
 
