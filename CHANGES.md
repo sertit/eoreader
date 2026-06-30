@@ -1,6 +1,6 @@
 # Release History
 
-## 0.24.1 (2026-mm-dd)
+## 0.24.1 (2026-06-30)
 
 - FIX: Better SNAP geo_region name to disambiguate between products
 - FIX: Fix subsetting SAR data with a window (cannot be done directly in the ESA SNAP Read Operator)
