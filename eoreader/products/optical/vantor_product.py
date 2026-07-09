@@ -1233,11 +1233,11 @@ class VantorProduct(VhrProduct):
                 }
             else:
                 band_map = {
-                    NIR: nir.update(id=1, gsd=self.pixel_size),
-                    NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
-                    RED: red.update(id=2, gsd=self.pixel_size),
-                    GREEN: green.update(id=3, gsd=self.pixel_size),
-                    BLUE: blue.update(id=4, gsd=self.pixel_size),
+                    BLUE: blue.update(id=1, gsd=self.pixel_size),
+                    GREEN: green.update(id=2, gsd=self.pixel_size),
+                    RED: red.update(id=3, gsd=self.pixel_size),
+                    NIR: nir.update(id=4, gsd=self.pixel_size),
+                    NARROW_NIR: nir.update(id=4, gsd=self.pixel_size),
                 }
         else:
             raise InvalidProductError(

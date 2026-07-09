@@ -1,5 +1,9 @@
 # Release History
 
+## 0.24.2 (2026-mm-dd)
+
+- FIX: Fix 4-bands `VantorBandId.Multi`'s band order (BGRN instead of NRGB)
+
 ## 0.24.1 (2026-06-30)
 
 - FIX: Better SNAP geo_region name to disambiguate between products
