@@ -1516,21 +1516,21 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    dem_path = self._warp_dem(
+                    band_path = self._warp_dem(
                         kwargs.get(DEM_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
                         **kwargs,
                     )
                 elif band == SLOPE:
-                    dem_path = self._compute_slope(
+                    band_path = self._compute_slope(
                         kwargs.get(SLOPE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
                         **kwargs,
                     )
                 elif band == HILLSHADE:
-                    dem_path = self._compute_hillshade(
+                    band_path = self._compute_hillshade(
                         kwargs.get(HILLSHADE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
@@ -1541,7 +1541,7 @@ class Product:
 
                 dem_name = to_str(band)[0]
                 dem_arr = utils.read(
-                    dem_path, pixel_size=pixel_size, size=size, as_type=np.float32
+                    band_path, pixel_size=pixel_size, size=size, as_type=np.float32
                 ).rename(dem_name)
                 dem_arr.attrs["long_name"] = dem_name
                 dem_bands[band] = dem_arr
