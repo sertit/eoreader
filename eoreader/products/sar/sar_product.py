@@ -818,17 +818,11 @@ class SarProduct(Product):
                 sat = "sar"
             spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
 
-            # Remove LIA nodes from graph
-            # This is buggy right now with SNAP 13, merge this once new version is released
-            # if not write_lia:
-            #     pp_graph = self._prepare_graph_no_lia(tmp_dir, pp_graph)
+            pp_graph = utils.get_data_dir() / f"{spt}_{sat}_preprocess_default.xml"
 
-            if write_lia:
-                pp_graph = (
-                    utils.get_data_dir() / "lia" / f"{spt}_{sat}_preprocess_default.xml"
-                )
-            else:
-                pp_graph = utils.get_data_dir() / f"{spt}_{sat}_preprocess_default.xml"
+            # Remove LIA nodes from graph
+            if not write_lia:
+                pp_graph = self._prepare_graph_no_lia(tmp_dir, str(pp_graph))
 
         else:
             pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
@@ -1446,7 +1440,7 @@ class SarProduct(Product):
 
         for img in imgs:
             base_name = out_path.stem
-            lia_out_path = out_path.parent / f"{base_name}_localIncidenceAngle.tif"
+            lia_out_path = out_path.parent / f"{base_name}_LIA.tif"
 
             # Open Local Incidence Angle image and convert it to a clean geotiff
             with rioxarray.open_rasterio(img) as arr:

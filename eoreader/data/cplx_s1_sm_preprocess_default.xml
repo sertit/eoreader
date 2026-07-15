@@ -89,7 +89,7 @@
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
       <saveLayoverShadowMask>false</saveLayoverShadowMask>
@@ -104,10 +104,38 @@
       <externalAuxFile/>
     </parameters>
   </node>
+  <node id="BandSelect_LIA">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*Incidence.*</bandNamePattern>
+    </parameters>
+  </node>
+  <node id="Write_LIA">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect_LIA"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${out}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <node id="BandSelect">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*^(?!.*Incidence).*$.*</bandNamePattern>
+    </parameters>
+  </node>
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="BandSelect"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -126,25 +154,37 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-      <displayPosition x="33.0" y="2.0"/>
+      <displayPosition x="45.0" y="3.0"/>
     </node>
     <node id="ThermalNoiseRemoval">
-      <displayPosition x="13.0" y="118.0"/>
+      <displayPosition x="6.0" y="70.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="70.0" y="164.0"/>
+      <displayPosition x="7.0" y="142.0"/>
     </node>
     <node id="Multilook">
-      <displayPosition x="91.0" y="213.0"/>
+      <displayPosition x="5.0" y="209.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="6.0" y="291.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="133.0" y="261.0"/>
+      <displayPosition x="187.0" y="294.0"/>
+    </node>
+    <node id="BandSelect_LIA">
+      <displayPosition x="198.0" y="199.0"/>
+    </node>
+    <node id="Write_LIA">
+      <displayPosition x="211.0" y="75.0"/>
+    </node>
+    <node id="BandSelect">
+      <displayPosition x="346.0" y="293.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="256.0" y="299.0"/>
+      <displayPosition x="462.0" y="302.0"/>
     </node>
     <node id="Write">
-      <displayPosition x="461.0" y="307.0"/>
+      <displayPosition x="590.0" y="304.0"/>
     </node>
   </applicationData>
 </graph>

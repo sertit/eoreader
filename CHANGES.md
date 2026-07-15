@@ -3,6 +3,7 @@
 ## 0.24.2 (2026-mm-dd)
 
 - FIX: Fix 4-bands `VantorBandId.Multi`'s band order (BGRN instead of NRGB)
+- FIX: Set back LIA (SAR local incidence angles) computation in default pipeline since SNAP 13 has been fixed [#276](https://github.com/sertit/eoreader/issues/276)
 
 ## 0.24.1 (2026-06-30)
 
