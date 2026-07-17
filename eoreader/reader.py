@@ -383,9 +383,6 @@ _SPOT45_MTD_REGEX = [
 
 
 MTD_REGEX = {
-    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
-    # Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9-]+",
-    # Constellation.VENUS: rf"{CONSTELLATION_REGEX[Constellation.VENUS]}_MTD_ALL\.xml",
     Constellation.S1: {
         "nested": 1,
         # File that can be found at first level (product/*/file)
@@ -467,6 +464,9 @@ MTD_REGEX = {
     Constellation.S1_RTC_ASF: rf"{CONSTELLATION_REGEX[Constellation.S1_RTC_ASF]}\.kmz",
     Constellation.ALEPH1: _ALEPH1_MTD_REGEX,
     Constellation.SATELLOGIC: _ALEPH1_MTD_REGEX,
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
+    # Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9-]+",
+    # Constellation.VENUS: rf"{CONSTELLATION_REGEX[Constellation.VENUS]}_MTD_ALL\.xml",
 }
 
 
@@ -481,6 +481,7 @@ class Reader:
         self._constellation_regex = {}
         self._mtd_regex = {}
         self._mtd_nested = {}
+        self._prod_files = {}
 
         # Register constellations
         for constellation, regex in CONSTELLATION_REGEX.items():
@@ -906,6 +907,9 @@ class Reader:
             bool: True if valid name
 
         """
+        if product_path not in self._prod_files:
+            self._prod_files[product_path] = {}
+
         # Convert constellation if needed
         constellation = Constellation.convert_from(constellation)[0]
 
@@ -923,33 +927,47 @@ class Reader:
 
         # Folder
         if product_path.is_dir():
-            if nested < 0:
-                prod_files = list(product_path.glob("**/*.*"))
-            elif nested == 0:
-                prod_files = list(
-                    prod_path
-                    for prod_path in product_path.iterdir()
-                    if prod_path.is_file()
-                )
-            else:
-                nested_wildcard = "/".join(["*" for _ in range(nested)])
-                prod_files = list(product_path.glob(f"{nested_wildcard}/*.*"))
-
+            curr_key = nested
+            if nested not in self._prod_files[product_path]:
+                if nested < 0:
+                    nested_files = list(product_path.glob("**/*.*"))
+                elif nested == 0:
+                    nested_files = list(
+                        prod_path
+                        for prod_path in product_path.iterdir()
+                        if prod_path.is_file()
+                    )
+                else:
+                    nested_wildcard = "/".join(["*" for _ in range(nested)])
+                    nested_files = list(product_path.glob(f"{nested_wildcard}/*.*"))
+                self._prod_files[product_path][curr_key] = nested_files
         # Archive
         else:
-            try:
-                prod_files = utils.get_archived_file_list(product_path)
-            except BadZipFile as exc:
-                raise BadZipFile(f"{product_path} is not a zip file") from exc
+            curr_key = "archived"
+            if curr_key not in self._prod_files[product_path]:
+                try:
+                    self._prod_files[product_path][curr_key] = (
+                        utils.get_archived_file_list(product_path)
+                    )
+                except BadZipFile as exc:
+                    raise BadZipFile(f"{product_path} is not a zip file") from exc
 
         # Check
+        prod_files = self._prod_files[product_path][curr_key]
         for idx, regex in enumerate(regex_list):
             for prod_file in prod_files:
                 if regex.match(str(prod_file)):
                     is_valid[idx] = True
                     break
 
-        return all(is_valid)
+        # Is valid
+        is_valid = all(is_valid)
+
+        # If is valid, the product is found, we can clear the files saved in the reader to avoid overflowing the memory
+        if is_valid:
+            self._prod_files.pop(product_path)
+
+        return is_valid
 
 
 def is_filename_valid(product_path: AnyPathStrType, regex: list | re.Pattern) -> bool:
