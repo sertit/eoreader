@@ -257,6 +257,11 @@ class LandsatProduct(OpticalProduct):
 
         return prod_path
 
+    def _get_constellation(self) -> Constellation:
+        """Getter of the constellation"""
+        landsat_id = self.split_name[0][-1]
+        return getattr(Constellation, f"L{landsat_id}")
+
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)

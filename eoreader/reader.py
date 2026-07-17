@@ -256,8 +256,14 @@ class Constellation(ListEnum):
     Not a real constellation, only used for regex.
     """
 
+    LANDSAT = "Landsat"
+    """Landsat (not a real constellation, but used for template for Landsat products)"""
+
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
+
+    SPOT67 = "Spot-6/7"
+    """SPOT-6/7 (not a real constellation, but used as a template for SPOT6/7 products)"""
 
     VANTOR = "Vantor"
     """Vantor (not a real constellation, but used as a template for every Vantor products)"""
@@ -280,9 +286,11 @@ class Constellation(ListEnum):
             cls.S2_SIN,
             cls.S1_RTC_ASF,
             cls.S1_RTC_MPC,
+            cls.LANDSAT,
             cls.VANTOR,
             cls.MAXAR,
             cls.SPOT45,
+            cls.SPOT67,
             cls.CUSTOM,
             cls.SATELLOGIC,
         ]
@@ -306,7 +314,6 @@ _VANTOR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
 _ALEPH1_REGEX = r"\d{8}_\d{6}_\w{3,}_L(0|1[ABCD])(_SR|)(_MS|)_\d{6,}"
 
 CONSTELLATION_REGEX = {
-    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
     Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
     Constellation.S2: r"S2[ABCD]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     # Element84 : S2A_31UDQ_20230714_0_L2A, Sinergise: 0 or 1...
@@ -314,6 +321,7 @@ CONSTELLATION_REGEX = {
     Constellation.S2_THEIA: r"SENTINEL2[ABCD]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
     Constellation.S3_OLCI: r"S3[ABCD]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Constellation.S3_SLSTR: r"S3[ABCD]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Constellation.LANDSAT: r"L[OTCEM]0[1-9]_(L1(GT|TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L9: r"L[OTC]09_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L8: r"L[OTC]08_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L7: r"LE07_(L1(GT|TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
@@ -342,6 +350,7 @@ CONSTELLATION_REGEX = {
     r"(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)(_\d{6}_\d{4}_\d{8}|)",
     Constellation.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Constellation.PNEO: r"IMG_\d+_PNEO\d_(PMS-FS|MS-FS|PMS|MS|P)",
+    Constellation.SPOT67: r"IMG_SPOT[67]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT45: r"SPVIEW_.+",
@@ -372,6 +381,7 @@ CONSTELLATION_REGEX = {
     Constellation.S1_RTC_ASF: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
     Constellation.ALEPH1: _ALEPH1_REGEX,
     Constellation.SATELLOGIC: _ALEPH1_REGEX,
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
 }
 
 _VANTOR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
@@ -393,6 +403,7 @@ MTD_REGEX = {
     Constellation.S2_THEIA: rf"{CONSTELLATION_REGEX[Constellation.S2_THEIA]}_MTD_ALL\.xml",
     Constellation.S3_OLCI: r"Oa\d{2}_radiance.nc",
     Constellation.S3_SLSTR: r"S\d_radiance_an.nc",
+    Constellation.LANDSAT: rf"{CONSTELLATION_REGEX[Constellation.LANDSAT]}_MTL\.txt",
     Constellation.L9: rf"{CONSTELLATION_REGEX[Constellation.L9]}_MTL\.txt",
     Constellation.L8: rf"{CONSTELLATION_REGEX[Constellation.L8]}_MTL\.txt",
     Constellation.L7: rf"{CONSTELLATION_REGEX[Constellation.L7]}_MTL\.txt",
@@ -425,6 +436,7 @@ MTD_REGEX = {
     },
     Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.PNEO: r"DIM_PNEO\d_(\w+_|)\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
+    Constellation.SPOT67: r"DIM_SPOT[67]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
@@ -784,7 +796,7 @@ class Reader:
         else:
             prod = None
             if constellation is None:
-                const_list = CONSTELLATION_REGEX.keys()
+                const_list = unique_constellations()
             else:
                 # Manage other products which have the same constellation in them
                 if constellation == Constellation.S2:
@@ -1024,6 +1036,75 @@ def is_filename_valid(product_path: AnyPathStrType, regex: list | re.Pattern) ->
     return is_valid
 
 
+def _is_vantor(constellation: Constellation) -> bool:
+    return constellation in [
+        Constellation.QB02,
+        Constellation.GE01,
+        Constellation.WV01,
+        Constellation.WV02,
+        Constellation.WV03,
+        Constellation.WV04,
+        Constellation.WVLG,
+        Constellation.VANTOR,
+        Constellation.MAXAR,
+    ]
+
+
+def _is_landsat(constellation: Constellation) -> bool:
+    return constellation in [
+        Constellation.L1,
+        Constellation.L2,
+        Constellation.L3,
+        Constellation.L4,
+        Constellation.L5,
+        Constellation.L7,
+        Constellation.L8,
+        Constellation.L9,
+    ]
+
+
+def _is_spot67(constellation: Constellation) -> bool:
+    return constellation in [
+        Constellation.SPOT6,
+        Constellation.SPOT7,
+    ]
+
+
+def _is_spot45(constellation: Constellation) -> bool:
+    return constellation in [
+        Constellation.SPOT4,
+        Constellation.SPOT5,
+        Constellation.SPOT45,
+    ]
+
+
+def _is_aleph1(constellation: Constellation) -> bool:
+    return constellation in [
+        Constellation.SATELLOGIC,
+        Constellation.ALEPH1,
+    ]
+
+
+def unique_constellations() -> list:
+    unique_const = []
+    for const in CONSTELLATION_REGEX:
+        if _is_vantor(const) and Constellation.VANTOR not in unique_const:
+            unique_const.append(Constellation.VANTOR)
+        # Lansat constellations
+        elif _is_landsat(const) and Constellation.LANDSAT not in unique_const:
+            unique_const.append(Constellation.LANDSAT)
+        # SPOT-6/7 constellations
+        elif _is_spot67(const) and Constellation.SPOT67 not in unique_const:
+            unique_const.append(Constellation.SPOT67)
+        # SPOT-4/5 constellations
+        elif _is_spot45(const) and Constellation.SPOT45 not in unique_const:
+            unique_const.append(Constellation.SPOT45)
+        elif _is_aleph1(const) and Constellation.ALEPH1 not in unique_const:
+            unique_const.append(Constellation.ALEPH1)
+
+    return unique_const
+
+
 def create_product(
     product_path: AnyPathStrType,
     archive_path: AnyPathStrType,
@@ -1050,40 +1131,23 @@ def create_product(
 
     # Channel correctly the constellations to their generic files (just in case)
     # Vantor-like constellations
-    if constellation in [
-        Constellation.QB02,
-        Constellation.GE01,
-        Constellation.WV01,
-        Constellation.WV02,
-        Constellation.WV03,
-        Constellation.WV04,
-        Constellation.WVLG,
-    ]:
+    if _is_vantor(constellation):
         sat_class = "vantor_product"
         constellation = None  # All product names are the same, so assess it with MTD
     # Lansat constellations
-    elif constellation in [
-        Constellation.L1,
-        Constellation.L2,
-        Constellation.L3,
-        Constellation.L4,
-        Constellation.L5,
-        Constellation.L7,
-        Constellation.L8,
-        Constellation.L9,
-    ]:
+    elif _is_landsat(constellation):
         sat_class = "landsat_product"
     # SPOT-6/7 constellations
-    elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
+    elif _is_spot67(constellation):
         sat_class = "spot67_product"
     # SPOT-4/5 constellations
-    elif constellation in [Constellation.SPOT4, Constellation.SPOT5]:
+    elif _is_spot45(constellation):
         sat_class = "spot45_product"
+    elif _is_aleph1(constellation):
+        sat_class = "aleph1_product"
     elif constellation in [Constellation.S2_SIN]:
         sat_class = "s2_product"
         kwargs["is_sinergise"] = True
-    elif constellation in [Constellation.SATELLOGIC]:
-        sat_class = "aleph1_product"
 
     # Manage both optical and SAR
     try:
