@@ -707,7 +707,18 @@ class VantorProduct(VhrProduct):
                 self._platform = LegionPlatform.LG01
             elif "LG02" in self.name:
                 self._platform = LegionPlatform.LG02
-            # TODO
+            elif "LG03" in self.name:
+                self._platform = LegionPlatform.LG03
+            elif "LG04" in self.name:
+                self._platform = LegionPlatform.LG04
+            elif "LG05" in self.name:
+                self._platform = LegionPlatform.LG05
+            elif "LG06" in self.name:
+                self._platform = LegionPlatform.LG06
+            elif "LG07" in self.name:
+                self._platform = LegionPlatform.LG07
+            elif "LG08" in self.name:
+                self._platform = LegionPlatform.LG08
         else:
             self._platform = self.constellation
 
