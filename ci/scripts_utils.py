@@ -204,6 +204,19 @@ def broken_s2_path():
     return get_ci_db_dir().joinpath("broken_s2")
 
 
+def get_gdal_cachemax_mo(gdal_cachemax_pct: int):
+    """Returns GDAL CACHEMAX in Mo"""
+    import psutil
+
+    gdal_cachemax_bytes = int(
+        gdal_cachemax_pct / 100 * psutil.virtual_memory().available
+    )
+    LOGGER.debug(
+        f"GDAL CACHEMAX[{gdal_cachemax_pct}%] = {gdal_cachemax_bytes / 1024 / 1024:.2f} Mo"
+    )
+    return gdal_cachemax_bytes
+
+
 def s3_env(*args, **kwargs):
     # See https://developmentseed.org/titiler/advanced/performance_tuning/#recommended-configuration-for-dynamic-tiling
     # And https://gdalcubes.github.io/source/concepts/config.html#recommended-settings-for-cloud-access
@@ -214,17 +227,7 @@ def s3_env(*args, **kwargs):
     def mo_to_bytes(value):
         return int(value * 1e6)
 
-    import psutil
     import rasterio
-
-    # Defaults to 5%
-    gdal_cachemax_pct = 10
-    gdal_cachemax_bytes = int(
-        gdal_cachemax_pct / 100 * psutil.virtual_memory().available
-    )
-    LOGGER.debug(
-        f"GDAL CACHEMAX[{gdal_cachemax_pct}%] = {gdal_cachemax_bytes / 1024 / 1024:.2f} Mo"
-    )
 
     def decorator(function):
         @wraps(function)
@@ -250,12 +253,14 @@ def s3_env(*args, **kwargs):
                 GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
                 #
                 # -- useless by experience --
-                # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
-                # GDAL_CACHEMAX=gdal_cachemax_bytes, # => doesn't seem to improve anything, in fact slows down things a bit
+                # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory (5% by default).
+                # GDAL_CACHEMAX=get_gdal_cachemax_mo(gdal_cachemax_pct=10), # => doesn't seem to improve anything, in fact slows down things a bit
                 # Number of threads GDAL can use for block reads and (de)compression, set to ALL_CPUS to use all available cores.
                 # GDAL_NUM_THREADS="ALL_CPUS", #  => doesn't seem to improve anything, in fact slows down things
                 # Set to TRUE or EMPTY_DIR to avoid listing all files in the directory once a single file is opened (this is highly recommended).
                 # GDAL_DISABLE_READDIR_ON_OPEN=True, #  => seems to have drawbacks especially for s2
+                # Defaults to 1000. Sets the maximum number of files to scan when searching for sidecar files in GDALOpen().
+                # GDAL_READDIR_LIMIT_ON_OPEN=100,
             ):
                 return unistra.s3_env(
                     function(*args, **kwargs), use_s3_env_var=CI_EOREADER_S3
