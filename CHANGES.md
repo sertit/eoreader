@@ -3,6 +3,7 @@
 ## 0.24.3 (2026-mm-dd)
 
 - FIX: Add platform name for every existing WorldView Legion
+- OPTIM: Don't use `rasters.read` when computing the default extent, use the `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
 
 ## 0.24.2 (2026-07-15)
 
