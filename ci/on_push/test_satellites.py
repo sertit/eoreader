@@ -163,8 +163,8 @@ def check_prod(pattern_path: str, debug: bool = WRITE_ON_DISK) -> Product:
 
     # Log product and bands
     assert prod.name is not None
-    LOGGER.info(prod)
-    LOGGER.info(prod.bands)
+    LOGGER.debug(prod)
+    LOGGER.debug(prod.bands)
 
     # Instrument
     assert prod.instrument is not None
