@@ -658,6 +658,8 @@ class DimapV2Product(VhrProduct):
                 [DimapV2MaskBandNames.ROI],
                 size=[width, height],
                 pixel_size=pixel_size,
+                # Do not recompute the UTM band, use directly the band_arr
+                utm_xarr=band_arr,
                 **kwargs,
             )[DimapV2MaskBandNames.ROI]
 
@@ -671,6 +673,8 @@ class DimapV2Product(VhrProduct):
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
                     pixel_size=pixel_size,
                     size=[width, height],
+                    # Do not recompute the UTM band, use directly the band_arr
+                    utm_xarr=band_arr,
                     **kwargs,
                 )
 
@@ -765,6 +769,8 @@ class DimapV2Product(VhrProduct):
             [DimapV2MaskBandNames.ROI],
             pixel_size=pixel_size,
             size=[band_arr.rio.width, band_arr.rio.height],
+            # Do not recompute the UTM band, use directly the band_arr
+            utm_xarr=band_arr,
             **kwargs,
         )[DimapV2MaskBandNames.ROI]
 
@@ -964,11 +970,9 @@ class DimapV2Product(VhrProduct):
         """
         band_dict = {}
 
-        for band in bands:
-            # Load cloud vector
-            mask_vec = self._open_mask_as_vec(band.name, **kwargs)
-            has_vec = len(mask_vec) > 0
-
+        if "utm_xarr" in kwargs:
+            def_xarr = kwargs.pop("utm_xarr")
+        else:
             # Load default xarray as a template
             def_utm_path = self._get_default_utm_band(pixel_size=pixel_size, size=size)
 
@@ -986,12 +990,17 @@ class DimapV2Product(VhrProduct):
                         ds, pixel_size=pixel_size, size=size, **kwargs
                     )
 
-            # Load nodata
-            width = def_xarr.rio.width
-            height = def_xarr.rio.height
-            vec_tr = transform.from_bounds(
-                *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
-            )
+        # Load nodata
+        width = def_xarr.rio.width
+        height = def_xarr.rio.height
+        vec_tr = transform.from_bounds(
+            *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+        )
+
+        for band in bands:
+            # Load cloud vector
+            mask_vec = self._open_mask_as_vec(band.name, **kwargs)
+            has_vec = len(mask_vec) > 0
 
             # Rasterize features if existing vector
             if has_vec:
@@ -1016,9 +1025,7 @@ class DimapV2Product(VhrProduct):
                 # Rasterize gives a 2D array, we want a 3D array
                 mask_arr = np.expand_dims(mask_arr, axis=0)
             else:
-                mask_arr = np.zeros(
-                    (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
-                )
+                mask_arr = np.zeros((1, height, width), dtype=np.uint8)
 
             # Create mask xarray
             mask = (

@@ -260,14 +260,14 @@ class VhrProduct(OpticalProduct):
         """
         resampling = kwargs.pop("resampling", self.band_resampling)
 
-        with rasterio.open(str(band_path)) as dst:
-            dst_crs = dst.crs
+        with rasterio.open(str(band_path)) as ds:
+            ds_crs = ds.crs
 
             # Reproj path in case
             reproj_path = self._get_utm_band_path(band=band.name, pixel_size=pixel_size)
 
             # Manage the case if we got a LAT LON product
-            if not dst_crs.is_projected:
+            if not ds_crs.is_projected:
                 if not reproj_path.is_file():
                     # Here we are warping the whole stack, not only one band
                     reproj_path = self._get_utm_band_path(
@@ -292,7 +292,7 @@ class VhrProduct(OpticalProduct):
                 )
 
             # Manage the case if we open a simple band (EOReader processed bands)
-            elif dst.count == 1:
+            elif ds.count == 1:
                 # Read band
                 band_arr = utils.read(
                     band_path,
