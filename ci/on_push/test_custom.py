@@ -42,7 +42,7 @@ def test_custom_optical():
         sensor_type=SensorType.OPTICAL,
         constellation="WV02",
         instrument="WW110",
-        pixel_size=2.0,
+        pixel_size=8.0,
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
         remove_tmp=True,
