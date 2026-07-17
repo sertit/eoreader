@@ -1088,19 +1088,23 @@ def _is_aleph1(constellation: Constellation) -> bool:
 def unique_constellations() -> list:
     unique_const = []
     for const in CONSTELLATION_REGEX:
+        # Append only Vantor constellation
         if _is_vantor(const) and Constellation.VANTOR not in unique_const:
             unique_const.append(Constellation.VANTOR)
-        # Lansat constellations
+        # Append only Landsat constellation
         elif _is_landsat(const) and Constellation.LANDSAT not in unique_const:
             unique_const.append(Constellation.LANDSAT)
-        # SPOT-6/7 constellations
+        # Append only SPOT-6/7 constellation
         elif _is_spot67(const) and Constellation.SPOT67 not in unique_const:
             unique_const.append(Constellation.SPOT67)
-        # SPOT-4/5 constellations
+        # Append only SPOT-4/5 constellation
         elif _is_spot45(const) and Constellation.SPOT45 not in unique_const:
             unique_const.append(Constellation.SPOT45)
+        # Append only Aleph-1 constellation
         elif _is_aleph1(const) and Constellation.ALEPH1 not in unique_const:
             unique_const.append(Constellation.ALEPH1)
+        else:
+            unique_const.append(const)
 
     return unique_const
 
@@ -1134,7 +1138,7 @@ def create_product(
     if _is_vantor(constellation):
         sat_class = "vantor_product"
         constellation = None  # All product names are the same, so assess it with MTD
-    # Lansat constellations
+    # Landsat constellations
     elif _is_landsat(constellation):
         sat_class = "landsat_product"
     # SPOT-6/7 constellations
