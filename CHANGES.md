@@ -6,7 +6,7 @@
 - OPTIM: Don't use `rasters.read` when computing the default extent, use the `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
 - OPTIM: Save in memory the files path listed in the Reader to avoid relisting them for every constellation check
 - CI: Remove duplicated test
-- CI: Use native resolution in `test_custom_optical` to speed up computation for `20200310T030415_WV02_Ortho` custom stack
+- CI: Several speed-ups
 
 ## 0.24.2 (2026-07-15)
 

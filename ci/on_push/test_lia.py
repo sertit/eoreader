@@ -13,6 +13,7 @@ from ci.scripts_utils import (
     s3_env,
 )
 from eoreader.keywords import WRITE_LIA_KW
+from eoreader.reader import Constellation
 
 WRITE_ON_DISK = False
 
@@ -33,7 +34,9 @@ def test_lia(tmp_path):
 
     # Open SAR product
     iceye_path = next(get_ci_db_dir().joinpath("all_sar").glob("*SLH_*"))
-    prod = READER.open(iceye_path, remove_tmp=not WRITE_ON_DISK)
+    prod = READER.open(
+        iceye_path, remove_tmp=not WRITE_ON_DISK, constellation=Constellation.ICEYE
+    )
     prod.output = os.path.join(tmp_path, prod.condensed_name)
 
     # Load LIA band (right now, loading another band is mandatory)

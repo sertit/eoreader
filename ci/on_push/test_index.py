@@ -17,6 +17,7 @@ from ci.scripts_utils import (
 )
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import NBR, NDVI, NDWI, WDRVI
+from eoreader.reader import Constellation
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -35,7 +36,7 @@ def test_index(tmp_path):
     s2_path = opt_path().joinpath(
         r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
     )
-    prod = READER.open(s2_path, remove_tmp=True)
+    prod = READER.open(s2_path, remove_tmp=True, constellation=Constellation.S2)
     failed_idx = []
     if WRITE_ON_DISK:
         tmp_path = "/home/data/ci/indices"
