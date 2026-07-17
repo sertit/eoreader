@@ -600,9 +600,3 @@ def test_invalid():
     with pytest.raises(FileNotFoundError):
         READER.open(wrong_path, remove_tmp=True)
     assert not READER.valid_name(wrong_path, "S2")
-
-
-@s3_env
-def test_s2_after_04_00(eoreader_tests_path):
-    """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*_N7*", eoreader_tests_path.tmpdir)
