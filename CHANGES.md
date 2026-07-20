@@ -3,6 +3,7 @@
 ## 0.24.3 (2026-mm-dd)
 
 - FIX: Add platform name for every existing WorldView Legion
+- FIX: Dissolve extents when creating window suffix
 - OPTIM: Don't use `rasters.read` when computing the default extent, use the `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
 - OPTIM: Save in memory the files path listed in the Reader to avoid relisting them for every constellation check
 - OPTIM: Don't compute several times the UTM bands when loading masks if the band is already available

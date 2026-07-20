@@ -735,14 +735,14 @@ def get_window_suffix(window, max_extent: gpd.GeoDataFrame = None) -> str:
         # Only add a window suffix in case the window don't correspond to the product extent
         if max_extent is not None:
             if path.is_path(window):
-                win = vectors.read(window).geometry
+                win = vectors.read(window).dissolve().geometry
             elif isinstance(window, gpd.GeoDataFrame):
-                win = window.geometry
+                win = window.dissolve().geometry
             else:
                 win = window
 
             with contextlib.suppress(Exception):
-                ext = max_extent.geometry
+                ext = max_extent.dissolve().geometry
                 equals = ext.crs == win.crs and (
                     win.geom_equals_exact(ext, tolerance=0.1).any()
                     or ext.geometry.within(win).any()
