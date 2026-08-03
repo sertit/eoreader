@@ -541,7 +541,7 @@ class UmbraProduct(SarProduct):
                 elif not ds.crs.is_projected:
                     # Warp band if needed
                     LOGGER.info(
-                        f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in montaineous areas!"
+                        f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in mountainous areas!"
                     )
                     self._warp_band(
                         raw_band_path,
