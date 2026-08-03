@@ -2589,57 +2589,59 @@ class Product:
             nodata (float): Nodata value
             **kwargs: Other arguments that can be passed to :code:`xarray.plot.plot` or :code:`xarray.plot.imshow`
         """
-        cmap = kwargs.pop("cmap", "mako")
         robust = kwargs.pop("robust", True)
 
         try:
             import matplotlib.pyplot as plt
+
+            default_cmap = "mako" if "mako" in plt.colormaps else "cividis"
+            cmap = kwargs.pop("cmap", default_cmap)
         except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
                 "You need to install 'matplotlib' to plot the product."
             ) from exc
-        else:
-            quicklook_path = self.get_quicklook_path()
 
-            if quicklook_path is not None:
-                is_image = utils.get_ext(quicklook_path).lower() in [
-                    "png",
-                    "jpg",
-                    "jpeg",
-                ]
-                if is_image:
-                    if self.is_archived:
-                        quicklook_path = self._get_archived_rio_path(
-                            f".*{os.path.basename(quicklook_path)}"
-                        )
-                    else:
-                        if path.is_cloud_path(quicklook_path):
-                            quicklook_path = AnyPath(quicklook_path).fspath
+        quicklook_path = self.get_quicklook_path()
 
-                # Read quicklook
-                qck = utils.read(quicklook_path)
-
-                # Sanitize quicklook (nodata, correct orientation)
-                if nodata is not None:
-                    qck = qck.where(qck != nodata)
-
-                if is_image:
-                    # Make the y negative coordinates positive for images (rasters are fine like that).
-                    qck = qck.assign_coords({"y": qck.y * -1})
-
-                # Plot quicklook according to the number of bands
-                plt.figure(figsize=(6, 6))
-                if qck.rio.count == 3:
-                    qck.plot.imshow(robust=robust)
-                elif qck.rio.count == 1:
-                    qck.plot(cmap=cmap, robust=robust)
-                else:
-                    LOGGER.warning(
-                        f"Your quicklook has an invalid number of bands (accepted number is 1 or 3): {qck.rio.count}"
+        if quicklook_path is not None:
+            is_image = utils.get_ext(quicklook_path).lower() in [
+                "png",
+                "jpg",
+                "jpeg",
+            ]
+            if is_image:
+                if self.is_archived:
+                    quicklook_path = self._get_archived_rio_path(
+                        f".*{os.path.basename(quicklook_path)}"
                     )
-                    pass
+                else:
+                    if path.is_cloud_path(quicklook_path):
+                        quicklook_path = AnyPath(quicklook_path).fspath
 
-                plt.title(f"Quicklook of {self.condensed_name}")
+            # Read quicklook
+            qck = utils.read(quicklook_path)
+
+            # Sanitize quicklook (nodata, correct orientation)
+            if nodata is not None:
+                qck = qck.where(qck != nodata)
+
+            if is_image:
+                # Make the y negative coordinates positive for images (rasters are fine like that).
+                qck = qck.assign_coords({"y": qck.y * -1})
+
+            # Plot quicklook according to the number of bands
+            plt.figure(figsize=(6, 6))
+            if qck.rio.count == 3:
+                qck.plot.imshow(robust=robust)
+            elif qck.rio.count == 1:
+                qck.plot(cmap=cmap, robust=robust)
+            else:
+                LOGGER.warning(
+                    f"Your quicklook has an invalid number of bands (accepted number is 1 or 3): {qck.rio.count}"
+                )
+                pass
+
+            plt.title(f"Quicklook of {self.condensed_name}")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
