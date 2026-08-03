@@ -1050,7 +1050,7 @@ class SarProduct(Product):
                     split_name = filename.split("_")
                     if pixel_size is not None:
                         res_fragment = list(
-                            filter(re.compile(".*\dm\.").match, split_name)
+                            filter(re.compile(r".*\dm\.").match, split_name)
                         )
                         if res_fragment:
                             # Check if resolution is better than the one asked
