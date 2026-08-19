@@ -31,18 +31,14 @@ from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
-    ALL_CLOUDS,
     BLUE,
     CA,
-    CIRRUS,
-    CLOUDS,
     EOREADER_STAC_MAP,
     GREEN,
     NARROW_NIR,
     NIR,
     RAW_CLOUDS,
     RED,
-    SHADOWS,
     SWIR_1,
     SWIR_2,
     SWIR_CIRRUS,
@@ -54,9 +50,10 @@ from eoreader.bands import (
     SpectralBand,
     to_str,
 )
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.exceptions import InvalidProductError
 from eoreader.products import S2ProductType
 from eoreader.products.optical.optical_product import OpticalProduct, RawUnits
+from eoreader.products.optical.s2_product import scl_cloud_conditions
 from eoreader.products.stac_product import StacProduct
 from eoreader.reader import Constellation
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
@@ -667,14 +664,12 @@ class S2E84Product(OpticalProduct):
         """
         Load cloud files as xarrays.
 
-        Values:
-        - 0 : NO_DATA
-        - 3 : CLOUD_SHADOWS
-        - 8 : CLOUD_MEDIUM_PROBABILITY
-        - 9 : CLOUD_HIGH_PROBABILITY
-        - 10 : THIN_CIRRUS
-
-        Only open clouds with high proba.
+        Derived from the Scene Classification Layer (SCL) mask:
+        - CLOUDS: class 9 (cloud high probability)
+        - SHADOWS: class 3 (cloud shadows)
+        - CIRRUS: class 10 (thin cirrus)
+        - ALL_CLOUDS: classes 3, 9 and 10
+        - RAW_CLOUDS: raw SCL class codes
 
         Args:
             bands (list): List of the wanted bands
@@ -690,31 +685,15 @@ class S2E84Product(OpticalProduct):
             # Open Mask
             mask = self.open_mask(pixel_size, size, **kwargs)
 
-            # Don't use load_nodata in order not to load a 2nd time mask
-            nodata_id = self.raw_no_data
-            shadow_id = 3
-            cloud_id = 9
-            cirrus_id = 10
-
-            nodata = np.where(mask == nodata_id, 1, 0).astype(np.uint8)
+            # Derive per-band cloud conditions and nodata from the SCL classes
+            # (don't use load_nodata in order not to load a 2nd time the mask)
+            conditions, nodata = scl_cloud_conditions(mask, bands)
 
             for band in bands:
-                if band == ALL_CLOUDS:
-                    cloud = self._create_mask(
-                        mask, np.isin(mask, [cirrus_id, cloud_id, shadow_id]), nodata
-                    )
-                elif band == SHADOWS:
-                    cloud = self._create_mask(mask, mask == shadow_id, nodata)
-                elif band == CLOUDS:
-                    cloud = self._create_mask(mask, mask == cloud_id, nodata)
-                elif band == CIRRUS:
-                    cloud = self._create_mask(mask, mask == cirrus_id, nodata)
-                elif band == RAW_CLOUDS:
+                if band == RAW_CLOUDS:
                     cloud = mask
                 else:
-                    raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value} constellations: {band}"
-                    )
+                    cloud = self._create_mask(mask, conditions[band], nodata)
 
                 # Rename
                 band_name = to_str(band)[0]

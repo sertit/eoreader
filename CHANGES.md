@@ -2,6 +2,10 @@
 
 ## 0.24.3 (2026-mm-dd)
 
+- **BREAKING CHANGE**: Derive Sentinel-2 SAFE L2A cloud bands from the Scene Classification Layer (SCL) instead of the
+  cloud probability mask, for consistency with Sentinel-2 E84 products: `SHADOWS` band now available, `RAW_CLOUDS` now
+  returns the SCL class codes [#325](https://github.com/sertit/eoreader/issues/325).
+  Set `EOREADER_S2_CLOUD_SOURCE=CLDPRB` to restore the legacy behavior.
 - FIX: Add platform name for every existing WorldView Legion
 - FIX: Dissolve extents when creating window suffix
 - FIX: Don't try to use `mako` as default colormap if seaborn is not installed
