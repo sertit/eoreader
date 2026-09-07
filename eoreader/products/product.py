@@ -2876,6 +2876,8 @@ class Product:
             # https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-with-other-georeferencing-metadata
             src_xda.rio.write_crs(vectors.EPSG_4326, inplace=True)
 
+        dst_nodata = kwargs.pop("nodata", self._raw_nodata)
+
         out_xda = rasters.reproject(
             src_xda,
             rpcs=rpcs,
@@ -2884,7 +2886,7 @@ class Product:
             pixel_size=pixel_size,
             dst_crs=self.crs(),
             resampling=resampling,
-            nodata=self._raw_nodata,
+            nodata=dst_nodata,
             num_threads=utils.get_max_cores(),
             extent=self.extent(),
             vcrs=vcrs,
@@ -2902,7 +2904,7 @@ class Product:
             out_xda,
             ortho_path,
             dtype=np.float32,
-            nodata=self._raw_nodata,
+            nodata=dst_nodata,
             tags=kw.get("tags"),
             predictor=kw.get("predictor"),
         )
