@@ -1,6 +1,6 @@
 # Release History
 
-## 0.24.3 (2026-mm-dd)
+## 0.24.3 (2026-09-07)
 
 - FIX: Add platform name for every existing WorldView Legion
 - FIX: Dissolve extents when creating window suffix
