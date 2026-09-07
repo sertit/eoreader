@@ -31,6 +31,7 @@ from eoreader import EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import Product
 from eoreader.stac import PROJ_CODE
+from eoreader.stac._stac_keywords import PROJ_EPSG
 from eoreader.utils import simplify
 
 try:
@@ -133,7 +134,7 @@ class StacProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        epsg = self.item.properties.get(PROJ_CODE)
+        epsg = self.item.properties.get(PROJ_CODE, self.item.properties.get(PROJ_EPSG))
 
         if epsg is None:
             def_crs = gpd.GeoDataFrame(

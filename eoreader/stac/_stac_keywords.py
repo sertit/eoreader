@@ -133,6 +133,7 @@ COHERENCE = "coherence"
 
 # https://github.com/stac-extensions/projection/
 PROJ_CODE = "proj:code"
+PROJ_EPSG = "proj:epsg"
 PROJ_WKT = "proj:wkt2"
 PROJ_GEOMETRY = "proj:geometry"
 PROJ_BBOX = "proj:bbox"

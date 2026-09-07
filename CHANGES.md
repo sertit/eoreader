@@ -6,6 +6,7 @@
 - FIX: Dissolve extents when creating window suffix
 - FIX: Don't try to use `mako` as default colormap if seaborn is not installed
 - FIX: Manage multiple values for keyword `nodata` in _`orthorectify`.
+- FIX: Allow EPSG retrieval from `proj:epsg` (in addition to `proj:code`) from STAC properties, even if deprecated  (see the warning [here](https://github.com/stac-extensions/projection/blob/a623c66acf5fc97bf93dd1cce7ef28ac74e8faeb/README.md?plain=1#L59))
 - OPTIM: Don't use `rasters.read` when computing the default extent, use the `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
 - OPTIM: Save in memory the files path listed in the Reader to avoid relisting them for every constellation check
 - OPTIM: Don't compute several times the UTM bands when loading masks if the band is already available
