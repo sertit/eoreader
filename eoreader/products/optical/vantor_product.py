@@ -28,6 +28,7 @@ from enum import unique
 
 import geopandas as gpd
 import numpy as np
+import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
@@ -157,7 +158,7 @@ _VANTOR_GAIN_OFFSET = {
         NIR: GainOffset(gain=1.0, offset=0.0),
         NARROW_NIR: GainOffset(gain=1.0, offset=0.0),
         WV: GainOffset(gain=1.0, offset=0.0),
-    },  # https://vantor.com/resources/calibration-worldview-legion-radiometric-parameters/
+    },  # In WorldView_Legion_Radiometric_Use_RevD: Note that for the WorldView Legion instruments, we will no longer be providing separate GAINS and OFFSETS
     Constellation.GE01: {
         PAN: GainOffset(gain=1.001, offset=0.0),
         BLUE: GainOffset(gain=1.041, offset=0.0),
@@ -611,6 +612,7 @@ class VantorProduct(VhrProduct):
     ) -> None:
         self._version = None
         self._platform = None
+        self._is_corrupted = False
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -698,8 +700,8 @@ class VantorProduct(VhrProduct):
             raise InvalidProductError("Cannot find BANDID in the metadata file")
         self.band_combi = getattr(VantorBandId, band_combi)
 
-        # Fix shapes
-        self._fix_shapes(root)
+        # Fix corrupted products #242
+        self._fix_corrupted_products(root)
 
         # Platform
         if self.constellation == Constellation.WVLG:
@@ -725,8 +727,7 @@ class VantorProduct(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _fix_shapes(self, root):
-        """"""
+    def __compare_num_rows_cols(self, root):
 
         # BUGGED TIL with GDAL
         # Sometimes, TIL driver fails to open correctly the different tiles
@@ -752,55 +753,115 @@ class VantorProduct(VhrProduct):
         )
 
         # Sometimes it's LLROWOFFSET and URCOLOFFSET, sometimes it's LLROWOFFSET + 1 and URCOLOFFSET + 1...
-        if abs(imd_rows - til_rows) > 1 or abs(imd_cols - til_cols) > 1:
-            if os.environ.get(FIX_VANTOR, os.environ.get(FIX_MAXAR, "1")) != "0":
-                LOGGER.warning(
-                    f"Your Vantor product is probably corrupted. "
-                    f"Shapes retrieved from metadata are incoherent: {imd_rows}x{imd_cols} in .IMD vs {til_rows}x{til_cols} in .TIL. (see https://github.com/sertit/eoreader/issues/242) "
-                    "WORKAROUND: The IMD file of this product will be fixed inside the raw product and the old one copied into the working directory. "
-                    "Please double-check the outputs for this product."
+        corrupted_rows_cols = (
+            abs(imd_rows - til_rows) > 1 or abs(imd_cols - til_cols) > 1
+        )
+
+        return corrupted_rows_cols, imd_rows, imd_cols, til_rows, til_cols
+
+    def __compare_ul(self, root):
+
+        # Seems only to happen for tiled products (with R1C1, R1C2... files) -> but unsure
+
+        # To check that, it can be useful to ensure that the default width and height corresponds to the tiles aggregated width and height
+        # Shape from IMD
+        imd_ulx = float(root.findtext(".//IMD/MAP_PROJECTED_PRODUCT/ULX"))
+        imd_uly = float(root.findtext(".//IMD/MAP_PROJECTED_PRODUCT/ULY"))
+
+        # Get TIF file
+        try:
+            tif_file = self._glob("*R1C1*.TIF", as_rio_path=True)
+        except FileNotFoundError:
+            tif_file = self._glob("*.TIF", as_rio_path=True)
+
+        with rasterio.open(tif_file) as ds:
+            tif_ulx = ds.transform.c
+            tif_uly = ds.transform.f
+
+        # Check difference for ulx/uly
+        corrupted_ul = abs(imd_ulx - tif_ulx) > 1 or abs(imd_uly - tif_uly) > 1
+
+        return corrupted_ul, imd_ulx, imd_uly, tif_ulx, tif_uly
+
+    def _fix_corrupted_products(self, root):
+
+        fix_corrupted_products = (
+            os.environ.get(FIX_VANTOR, os.environ.get(FIX_MAXAR, "1")) != "0"
+        )
+        corrupted_rows_cols, imd_rows, imd_cols, ok_rows, ok_cols = (
+            self.__compare_num_rows_cols(root)
+        )
+        corrupted_ul, imd_ulx, imd_uly, ok_ulx, ok_uly = self.__compare_ul(root)
+
+        if corrupted_rows_cols or corrupted_ul:
+            self._is_corrupted = True
+
+            if not fix_corrupted_products:
+                reason = (
+                    "The shapes from the metadata are incoherent between .TIL and .IMD files."
+                    if corrupted_rows_cols
+                    else "Upper-left corner retrieved from metadata and image are incoherent"
                 )
-                # Copy .IMD file
-                if self.is_archived:
-                    imd_file = self._read_archived_file(".*IMD")
-                else:
-                    imd_fn = next(self.path.glob("*.IMD"))
-                    with open(imd_fn) as f:
-                        imd_file = f.read()
-
-                # Copy old file
-                imd_copy, _ = self._get_out_path(f"{self.name}.IMD")
-                with open(str(imd_copy), "w") as f:
-                    f.write(imd_file)
-
-                # Update to create new IMD file
-                imd_file = imd_file.replace(
-                    f"numRows = {imd_rows};", f"numRows = {til_rows};"
-                ).replace(f"numColumns = {imd_cols};", f"numColumns = {til_cols};")
-
-                # Don't try to fix it if cloud-based or archived
-                if self.is_archived:
-                    raise NotImplementedError(
-                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
-                        f"into your archived product ({self.path}) and re-run the job. "
-                        f"(there is currently no optimized way for overwriting zip files in Python)"
-                    )
-                elif path.is_path(path):
-                    raise NotImplementedError(
-                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
-                        f"into your cloud-stored product ({self.path}) and re-run the job."
-                    )
-
-                # Replace file
-                with open(str(imd_fn), "w") as f:
-                    f.write(imd_file)
-            else:
                 raise InvalidProductError(
-                    f"This product ({self.name}) is corrupted."
-                    "\nThe shapes from the metadata are incoherent between .TIL and .IMD files. "
+                    f"!!! This product ({self.name}) is corrupted. !!!\n"
+                    f"\n{reason}.\n"
                     "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
                     "\nIf you want to have a stack in reflectance, remember to apply the corrections on each subproduct separately before creating the mosaic."
                 )
+
+            LOGGER.warning(
+                "!!! Your Vantor product is probably corrupted. !!!\n"
+                "(see https://github.com/sertit/eoreader/issues/242)\n"
+                "WORKAROUND: The IMD file of this product will be fixed inside the raw product and the old one copied into the working directory. "
+                "Please double-check the outputs for this product."
+            )
+
+            # Copy .IMD file
+            if self.is_archived:
+                imd_file = self._read_archived_file(".*IMD")
+            else:
+                imd_fn = next(self.path.glob("*.IMD"))
+                with open(imd_fn) as f:
+                    imd_file = f.read()
+
+            # Copy old file
+            imd_copy, _ = self._get_out_path(f"{self.name}.IMD")
+            with open(str(imd_copy), "w") as f:
+                f.write(imd_file)
+
+            if corrupted_rows_cols:
+                LOGGER.warning(
+                    f"Shapes retrieved from metadata are incoherent: {imd_rows}x{imd_cols} in .IMD vs {ok_rows}x{ok_cols} in .TIL."
+                )
+
+                # Update to create new IMD file
+                imd_file = imd_file.replace(
+                    f"numRows = {imd_rows};", f"numRows = {ok_rows};"
+                ).replace(f"numColumns = {imd_cols};", f"numColumns = {ok_cols};")
+            if corrupted_ul:
+                LOGGER.warning(
+                    f"Upper-left corner retrieved from metadata and image are incoherent: UL = ({imd_ulx} ; {imd_uly}) in .IMD vs UL = ({ok_ulx} ; {ok_uly}) in .TIF."
+                )
+                imd_file = imd_file.replace(
+                    f"ULX = {imd_ulx:.8f};", f"ULX = {ok_ulx};"
+                ).replace(f"ULY = {imd_uly:.8f};", f"ULY = {ok_uly};")
+
+            # Don't try to fix it if cloud-based or archived
+            if self.is_archived:
+                raise NotImplementedError(
+                    f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                    f"into your archived product ({self.path}) and re-run the job. "
+                    f"(there is currently no optimized way for overwriting zip files in Python)"
+                )
+            elif path.is_path(path):
+                raise NotImplementedError(
+                    f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                    f"into your cloud-stored product ({self.path}) and re-run the job."
+                )
+
+            # Replace file
+            with open(str(imd_fn), "w") as f:
+                f.write(imd_file)
 
     @abstractmethod
     def _set_pixel_size(self) -> None:
@@ -1405,35 +1466,38 @@ class VantorProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self._is_corrupted:
+            return super().extent()
+        else:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Compute extent corners
-        default_extent = root.find(".//MAP_PROJECTED_PRODUCT")
-        ul_corner = (
-            float(default_extent.findtext("ULX")),
-            float(default_extent.findtext("ULY")),
-        )
-        ur_corner = (
-            float(default_extent.findtext("URX")),
-            float(default_extent.findtext("URY")),
-        )
-        lr_corner = (
-            float(default_extent.findtext("LRX")),
-            float(default_extent.findtext("LRY")),
-        )
-        ll_corner = (
-            float(default_extent.findtext("LLX")),
-            float(default_extent.findtext("LLY")),
-        )
-        corners = [ul_corner, ur_corner, lr_corner, ll_corner]
+            # Compute extent corners
+            default_extent = root.find(".//MAP_PROJECTED_PRODUCT")
+            ul_corner = (
+                float(default_extent.findtext("ULX")),
+                float(default_extent.findtext("ULY")),
+            )
+            ur_corner = (
+                float(default_extent.findtext("URX")),
+                float(default_extent.findtext("URY")),
+            )
+            lr_corner = (
+                float(default_extent.findtext("LRX")),
+                float(default_extent.findtext("LRY")),
+            )
+            ll_corner = (
+                float(default_extent.findtext("LLX")),
+                float(default_extent.findtext("LLY")),
+            )
+            corners = [ul_corner, ur_corner, lr_corner, ll_corner]
 
-        raw_extent = gpd.GeoDataFrame(
-            geometry=[Polygon(corners)],
-            crs=self._get_raw_crs(),
-        )
+            raw_extent = gpd.GeoDataFrame(
+                geometry=[Polygon(corners)],
+                crs=self._get_raw_crs(),
+            )
 
-        return raw_extent.to_crs(self.crs())
+            return raw_extent.to_crs(self.crs())
 
     def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
@@ -1665,6 +1729,8 @@ class VantorProduct(VhrProduct):
         See
         `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
         for more information.
+
+        L = GAIN*DN(abs_factor/effective_bandwidth) + OFFSET
 
         Args:
             dn_arr (xr.DataArray): DN array

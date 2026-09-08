@@ -200,8 +200,8 @@ def others_path():
     return get_ci_db_dir().joinpath("others")
 
 
-def broken_s2_path():
-    return get_ci_db_dir().joinpath("broken_s2")
+def broken_prods_path():
+    return get_ci_db_dir().joinpath("broken_products")
 
 
 def get_gdal_cachemax_mo(gdal_cachemax_pct: int):

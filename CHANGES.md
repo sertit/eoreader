@@ -1,5 +1,9 @@
 # Release History
 
+## 0.24.4 (2026-mm-dd)
+
+- FIX: Add a workaround for EUSI's broken georef [#242](https://github.com/sertit/eoreader/issues/242)
+
 ## 0.24.3 (2026-09-07)
 
 - FIX: Add platform name for every existing WorldView Legion
