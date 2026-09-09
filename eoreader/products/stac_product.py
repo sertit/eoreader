@@ -134,11 +134,13 @@ class StacProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        epsg = self.item.properties.get(PROJ_CODE, self.item.properties.get(PROJ_EPSG))
+        epsg = self.item.properties.get(PROJ_CODE)
+        if epsg is None:
+            epsg = self.item.properties.get(PROJ_EPSG)
 
         if epsg is None:
             def_crs = gpd.GeoDataFrame(
-                geometry=geometry.from_bounds_to_polygon(*self.item.bbox),
+                geometry=[geometry.from_bounds_to_polygon(*self.item.bbox)],
                 crs=vectors.EPSG_4326,
             ).estimate_utm_crs()
         else:

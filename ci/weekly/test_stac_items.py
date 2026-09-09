@@ -41,6 +41,9 @@ def _test_core(
         # Check the product is found
         assert prod is not None
 
+        # Assert it doesn't fail
+        prod.crs()
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             prod.output = tmp_dir
 
