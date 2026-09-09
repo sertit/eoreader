@@ -27,8 +27,10 @@ from ci.scripts_utils import (
 )
 from eoreader import utils
 from eoreader.bands import (
+    ALL_CLOUDS,
     BLUE,
     CA,
+    CIRRUS,
     CLOUDS,
     DEM,
     GREEN,
@@ -40,7 +42,9 @@ from eoreader.bands import (
     NARROW_NIR,
     NDVI,
     NIR,
+    RAW_CLOUDS,
     RED,
+    SHADOWS,
     SLOPE,
     SWIR_1,
     SWIR_2,
@@ -61,9 +65,13 @@ from eoreader.bands import (
     is_sat_band,
     to_band,
 )
-from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
+from eoreader.env_vars import DEM_PATH, S2_CLOUD_SOURCE, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import OpticalProduct, SensorType
+from eoreader.products.optical.s2_product import (
+    get_s2_cloud_source,
+    scl_cloud_conditions,
+)
 from eoreader.reader import Constellation
 from eoreader.utils import convert_glob_to_regex
 
@@ -92,6 +100,74 @@ def test_prune_resampling_keyword():
     )
     assert "resampling" not in pruned
     assert pruned["indexes"] == 1
+
+
+def test_scl_cloud_conditions():
+    """Test the SCL class to cloud band mapping (see issue #325)"""
+    # Synthetic SCL array gathering all the existing classes
+    scl_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], dtype=np.uint8)
+    scl = xr.DataArray(scl_data, dims=["band", "x"])
+
+    bands = [CLOUDS, SHADOWS, CIRRUS, ALL_CLOUDS, RAW_CLOUDS]
+    conditions, nodata = scl_cloud_conditions(scl, bands)
+
+    # Check the class mapping
+    np.testing.assert_array_equal(conditions[CLOUDS], scl_data == 9)
+    np.testing.assert_array_equal(conditions[SHADOWS], scl_data == 3)
+    np.testing.assert_array_equal(conditions[CIRRUS], scl_data == 10)
+    np.testing.assert_array_equal(conditions[ALL_CLOUDS], np.isin(scl_data, [3, 9, 10]))
+
+    # RAW_CLOUDS gives the raw SCL class codes
+    np.testing.assert_array_equal(conditions[RAW_CLOUDS], scl_data)
+
+    # Nodata condition is the class 0
+    np.testing.assert_array_equal(nodata, scl_data == 0)
+
+    # Classes 2 (cast shadows) and 8 (medium probability) are in no cloud mask
+    for band in [CLOUDS, SHADOWS, CIRRUS, ALL_CLOUDS]:
+        assert not conditions[band][0, 2]
+        assert not conditions[band][0, 8]
+
+    # ALL_CLOUDS is the union of CLOUDS, SHADOWS and CIRRUS
+    union = conditions[CLOUDS] | conditions[SHADOWS] | conditions[CIRRUS]
+    np.testing.assert_array_equal(conditions[ALL_CLOUDS], union)
+
+    # Unknown bands are rejected
+    with pytest.raises(InvalidTypeError):
+        scl_cloud_conditions(scl, [GREEN])
+
+
+def test_s2_cloud_source_env_var():
+    """Test the EOREADER_S2_CLOUD_SOURCE environment variable resolver"""
+    # Unset -> default SCL source, not explicitly set
+    saved_source = os.environ.pop(S2_CLOUD_SOURCE, None)
+    try:
+        source, explicit = get_s2_cloud_source()
+        assert source == "SCL"
+        assert not explicit
+    finally:
+        if saved_source is not None:
+            os.environ[S2_CLOUD_SOURCE] = saved_source
+
+    # Explicitly set -> taken into account (case-insensitive)
+    for value in ["SCL", "scl"]:
+        with tempenv.TemporaryEnvironment({S2_CLOUD_SOURCE: value}):
+            source, explicit = get_s2_cloud_source()
+            assert source == "SCL"
+            assert explicit
+
+    for value in ["CLDPRB", "cldprb"]:
+        with tempenv.TemporaryEnvironment({S2_CLOUD_SOURCE: value}):
+            source, explicit = get_s2_cloud_source()
+            assert source == "CLDPRB"
+            assert explicit
+
+    # Invalid values are rejected
+    with (
+        tempenv.TemporaryEnvironment({S2_CLOUD_SOURCE: "FOO"}),
+        pytest.raises(ValueError),
+    ):
+        get_s2_cloud_source()
 
 
 def test_alias():
