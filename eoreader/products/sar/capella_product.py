@@ -209,13 +209,17 @@ class CapellaProduct(SarProduct):
         try:
             self._raw_band_regex = str(next(self.path.glob(f"{name}.tif")).name)
         except StopIteration:
-            # For SICD and SIDD
             try:
-                self._raw_band_regex = str(next(self.path.glob(f"{name}.ntf")).name)
-            except StopIteration as exc:
-                raise FileNotFoundError(
-                    f"Non existing file {name}.tif or {name}.ntf in {self.path}"
-                ) from exc
+                # Sometimes with double fs
+                self._raw_band_regex = str(next(self.path.glob(f"{name}.tiff")).name)
+            except StopIteration:
+                # For SICD and SIDD
+                try:
+                    self._raw_band_regex = str(next(self.path.glob(f"{name}.ntf")).name)
+                except StopIteration as exc:
+                    raise FileNotFoundError(
+                        f"Non existing file {name}.tif or {name}.ntf in {self.path}"
+                    ) from exc
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
