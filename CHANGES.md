@@ -5,7 +5,7 @@
 - FIX: Add a workaround for EUSI's broken georef [#242](https://github.com/sertit/eoreader/issues/242)
 - FIX: Better EPSG retrieval from `proj:epsg` (in addition to `proj:code`) from STAC properties, even if deprecated (see the warning [here](https://github.com/stac-extensions/projection/blob/a623c66acf5fc97bf93dd1cce7ef28ac74e8faeb/README.md?plain=1#L59))
 - FIX: Handle Capella products with `.tiff` raster files (instead of `.tif`)
-- FIX: Fix when trying to load a despeckle band when the speckle already exists (and is stored on the cloud)
+- FIX: Fix when trying to load a despeckle band when the speckle already exists (and is stored on the cloud or with a window)
 - FIX: Don't fail when trying to load DEM bands if `window=None`
 
 ## 0.24.3 (2026-09-07)
