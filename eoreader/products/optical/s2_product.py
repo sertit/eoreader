@@ -19,6 +19,7 @@ import contextlib
 import difflib
 import json
 import logging
+import os
 from collections import defaultdict, namedtuple
 from datetime import datetime
 from enum import unique
@@ -70,6 +71,7 @@ from eoreader.bands import (
     to_band,
     to_str,
 )
+from eoreader.env_vars import S2_CLOUD_SOURCE
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ASSOCIATED_BANDS
 from eoreader.products import OpticalProduct, StacProduct
@@ -168,6 +170,89 @@ MASK_MAPPING_PB_0400 = {
     S2MaskBandNames.CIRRUS: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=2),
     S2MaskBandNames.SNOW_ICE: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=3),
 }
+
+SCL_NODATA = 0
+"""SCL class: no data"""
+
+SCL_CLOUD_SHADOWS = 3
+"""SCL class: cloud shadows"""
+
+SCL_CLOUD_HIGH_PROBABILITY = 9
+"""SCL class: cloud high probability"""
+
+SCL_THIN_CIRRUS = 10
+"""SCL class: thin cirrus"""
+
+SCL_ALL_CLOUD_CLASSES = [
+    SCL_CLOUD_SHADOWS,
+    SCL_CLOUD_HIGH_PROBABILITY,
+    SCL_THIN_CIRRUS,
+]
+"""SCL classes mapped into ALL_CLOUDS"""
+
+
+def get_s2_cloud_source() -> tuple[str, bool]:
+    """
+    Resolve the Sentinel-2 cloud source from the :code:`EOREADER_S2_CLOUD_SOURCE` environment variable.
+
+    Returns:
+        (str, bool): Cloud source (:code:`SCL` or :code:`CLDPRB`),
+        and whether the source was explicitly set by the user
+    """
+    source = os.environ.get(S2_CLOUD_SOURCE)
+    if source is None:
+        # Default cloud source for Sentinel-2 L2A products
+        return "SCL", False
+
+    source = source.upper()
+    if source not in ["SCL", "CLDPRB"]:
+        raise ValueError(
+            f"Invalid value for the {S2_CLOUD_SOURCE} environment variable: '{source}'. "
+            "Should be chosen between 'SCL' and 'CLDPRB'."
+        )
+
+    return source, True
+
+
+def scl_cloud_conditions(scl: xr.DataArray, bands: list) -> tuple[dict, np.ndarray]:
+    """
+    Derive per-band cloud conditions and the nodata condition from a raw SCL array.
+
+    SCL class mapping:
+
+    - :code:`CLOUDS`: class 9 (cloud high probability)
+    - :code:`SHADOWS`: class 3 (cloud shadows)
+    - :code:`CIRRUS`: class 10 (thin cirrus)
+    - :code:`ALL_CLOUDS`: classes 3, 9 and 10
+    - :code:`RAW_CLOUDS`: raw SCL class codes
+
+    Args:
+        scl (xr.DataArray): Raw SCL array
+        bands (list): Wanted cloud bands
+
+    Returns:
+        (dict, np.ndarray): Dictionary of per-band boolean conditions
+        (:code:`RAW_CLOUDS` mapped to the raw SCL array),
+        and nodata condition (1 where SCL == 0, 0 elsewhere)
+    """
+    conditions = {}
+    for band in bands:
+        if band == ALL_CLOUDS:
+            conditions[band] = np.isin(scl, SCL_ALL_CLOUD_CLASSES)
+        elif band == CLOUDS:
+            conditions[band] = scl == SCL_CLOUD_HIGH_PROBABILITY
+        elif band == SHADOWS:
+            conditions[band] = scl == SCL_CLOUD_SHADOWS
+        elif band == CIRRUS:
+            conditions[band] = scl == SCL_THIN_CIRRUS
+        elif band == RAW_CLOUDS:
+            conditions[band] = scl
+        else:
+            raise InvalidTypeError(f"Non existing cloud band for Sentinel-2: {band}")
+
+    nodata = np.where(scl == SCL_NODATA, 1, 0).astype(np.uint8)
+
+    return conditions, nodata
 
 
 class S2Product(OpticalProduct):
@@ -1651,8 +1736,16 @@ class S2Product(OpticalProduct):
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
         Does this product has the specified cloud band?
+
+        L2A products provide all cloud bands (including :code:`SHADOWS`)
+        if the cloud source is the SCL (default, see the :code:`EOREADER_S2_CLOUD_SOURCE` environment variable).
+        With the :code:`CLDPRB` cloud source or at L1C level, the :code:`SHADOWS` band is unavailable.
+
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
+        if self.product_type == S2ProductType.L2A and get_s2_cloud_source()[0] == "SCL":
+            return True
+
         return band != SHADOWS
 
     def _open_clouds_lt_4_0(
@@ -1866,6 +1959,82 @@ class S2Product(OpticalProduct):
 
         return band_dict
 
+    def _open_clouds_l2a_scl(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: list | tuple = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load L2A cloud bands as xarrays derived from the Scene Classification Layer (SCL),
+        falling back to the cloud probability mask when SCL is missing
+        (unless the SCL cloud source was explicitly requested).
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+
+        if bands:
+            _, explicit = get_s2_cloud_source()
+            try:
+                # Resolve the SCL path only to decide the fallback
+                # (works for SAFE on disk, zips and STAC asset lookup)
+                self.get_band_paths([SCL], pixel_size=pixel_size, **kwargs)
+            except (FileNotFoundError, InvalidProductError) as ex:
+                if explicit:
+                    raise InvalidProductError(
+                        f"SCL band not found for {self.path}, although explicitly "
+                        f"requested with the {S2_CLOUD_SOURCE} environment variable"
+                    ) from ex
+
+                LOGGER.warning(
+                    f"SCL band not found for {self.path}, "
+                    f"falling back to the cloud probability mask: {ex}"
+                )
+                return self._open_clouds_l2a(bands, pixel_size, size, **kwargs)
+
+            # Load SCL through the standard cached pipeline
+            # (read + resample once, write the intermediate to the band cache)
+            scl = self._load_s2_l2a_bands(
+                [SCL],
+                pixel_size,
+                size,
+                **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
+            )[SCL]
+
+            # Cache reads are masked (NaN at class 0): restore the raw class codes
+            scl = scl.fillna(SCL_NODATA).astype(np.uint8)
+
+            # Derive per-band cloud conditions and nodata from the SCL classes
+            conditions, nodata = scl_cloud_conditions(scl, bands)
+
+            for band in bands:
+                if band == RAW_CLOUDS:
+                    cloud = scl
+                else:
+                    cloud = self._create_mask(scl, conditions[band], nodata)
+
+                if len(cloud.shape) == 2:
+                    cloud = cloud.expand_dims(dim="band", axis=0)
+
+                # Rename
+                band_name = to_str(band)[0]
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
+
+        return band_dict
+
     def _open_clouds(
         self,
         bands: list,
@@ -1876,8 +2045,11 @@ class S2Product(OpticalProduct):
         """
         Load cloud files as xarrays.
 
-        L2A data (except for CIRRUS):
-        Read S2 MSK_CLDPRB_20m .JP2 file
+        L2A data:
+        By default, cloud bands are derived from the Scene Classification Layer (SCL),
+        with the same class mapping as Sentinel-2 E84 products.
+        Set the :code:`EOREADER_S2_CLOUD_SOURCE` environment variable to :code:`CLDPRB`
+        to read instead the S2 MSK_CLDPRB_20m .JP2 file (legacy behavior).
 
         L1C data with baseline > 4.0
         Read S2 cloud mask .JP2 files (both valid for L2A and L1C products).
@@ -1896,7 +2068,11 @@ class S2Product(OpticalProduct):
             dict: Dictionary {band_name, band_xarray}
         """
         if self.product_type == S2ProductType.L2A:
-            clouds = self._open_clouds_l2a(bands, pixel_size, size, **kwargs)
+            cloud_source, _ = get_s2_cloud_source()
+            if cloud_source == "SCL":
+                clouds = self._open_clouds_l2a_scl(bands, pixel_size, size, **kwargs)
+            else:
+                clouds = self._open_clouds_l2a(bands, pixel_size, size, **kwargs)
         else:
             if self._processing_baseline < 4.0:
                 clouds = self._open_clouds_lt_4_0(bands, pixel_size, size, **kwargs)
