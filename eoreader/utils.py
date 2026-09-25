@@ -772,18 +772,20 @@ def get_driver(kwargs: dict) -> str:
 def get_default_transform(path, **kwargs):
     """Get data from rasterio dataset: transform, width, height, crs. Manages windows."""
     with rasterio.open(str(path)) as ds:
-        if "window" in kwargs:
+        if kwargs.get("window") is not None:
             from sertit import rasters_rio
 
             rio_window = rasters_rio.get_window(ds, kwargs["window"])
-            return (
-                ds.window_transform(rio_window),
-                rio_window.width,
-                rio_window.height,
-                ds.crs,
-            )
-        else:
-            return ds.transform, ds.width, ds.height, ds.crs
+
+            if rio_window is not None:
+                return (
+                    ds.window_transform(rio_window),
+                    rio_window.width,
+                    rio_window.height,
+                    ds.crs,
+                )
+
+        return ds.transform, ds.width, ds.height, ds.crs
 
 
 def get_ext(file_path) -> str:

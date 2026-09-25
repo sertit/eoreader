@@ -249,6 +249,7 @@ def _test_core(
                 band_arr = prod.load(  # noqa
                     first_band,
                     size=(stack.rio.width, stack.rio.height),
+                    window=None,
                     clean_optical="clean",
                     **kwargs,
                 )[first_band]
