@@ -2,7 +2,6 @@
 
 import os
 import sys
-import tempfile
 
 import numpy as np
 import pytest
@@ -132,7 +131,7 @@ def test_alias():
 
 @s3_env
 @dask_env
-def test_products():
+def test_products(tmp_path):
     # Get paths
     prod1_path = opt_path().joinpath(
         "LC08_L1GT_023030_20200518_20200527_01_T2"
@@ -185,40 +184,40 @@ def test_products():
         prod1.load("TEST")
 
     # Test stack as int
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        stack_path = os.path.join(tmp_dir, "stack.tif")
-        stack = prod1.stack(
-            [BLUE, RED],
-            window=Window(col_off=0, row_off=0, width=100, height=100),
-            save_as_int=True,
-            stack_path=stack_path,
-        )
-        with rasterio.open(str(stack_path)) as ds:
-            assert ds.dtypes[0] == "uint16"
-            assert stack.dtype == "float32"
+    stack_path = os.path.join(tmp_path, "stack.tif")
+    stack = prod1.stack(
+        [BLUE, RED],
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+        save_as_int=True,
+        stack_path=stack_path,
+    )
+    with rasterio.open(str(stack_path)) as ds:
+        assert ds.dtypes[0] == "uint16"
+        assert stack.dtype == "float32"
 
-        # Test with already existing stack
-        stack_2 = prod1.stack(
-            [BLUE, RED],
-            window=Window(col_off=0, row_off=0, width=100, height=100),
-            save_as_int=True,
-            stack_path=stack_path,
-        )
-        with rasterio.open(str(stack_path)) as ds:
-            assert ds.dtypes[0] == "uint16"
-            assert stack_2.dtype == "float32"
+    # Test with already existing stack
+    stack_2 = prod1.stack(
+        [BLUE, RED],
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+        save_as_int=True,
+        stack_path=stack_path,
+    )
+    with rasterio.open(str(stack_path)) as ds:
+        assert ds.dtypes[0] == "uint16"
+        assert stack_2.dtype == "float32"
 
-    # SAR
-    sar = sar_path().joinpath("SC_124020")
-    with pytest.raises(AssertionError):
-        sar_prod = READER.open(sar, remove_tmp=True)
-        if sar_prod.sensor_type == SensorType.SAR:
-            sar_prod.load(HILLSHADE)
+
+# SAR
+sar = sar_path().joinpath("SC_124020")
+with pytest.raises(AssertionError):
+    sar_prod = READER.open(sar, remove_tmp=True)
+    if sar_prod.sensor_type == SensorType.SAR:
+        sar_prod.load(HILLSHADE)
 
 
 @s3_env
 @dask_env
-def test_dems():
+def test_dems(tmp_path):
     # Get paths
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
@@ -247,41 +246,38 @@ def test_dems():
         )
     )
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        # Open prods
-        prod = READER.open(prod_path, output_path=tmp_dir)
+    # Open prods
+    prod = READER.open(prod_path, output_path=tmp_path)
 
-        with tempenv.TemporaryEnvironment({DEM_PATH: dem}):
-            prod.output = os.path.join(tmp_dir, prod.condensed_name)
-            prod.load(
-                [DEM, SLOPE, HILLSHADE],
-                size=(100, 100),
-                window=Window(col_off=0, row_off=0, width=100, height=100),
-                **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
-            )
+    with tempenv.TemporaryEnvironment({DEM_PATH: dem}):
+        prod.output = tmp_path / prod.condensed_name
+        prod.load(
+            [DEM, SLOPE, HILLSHADE],
+            size=(100, 100),
+            window=Window(col_off=0, row_off=0, width=100, height=100),
+            **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
+        )
 
-        assert next(
-            prod.output.glob(f"**/*DEM_{path.get_filename(dem)}*.vrt")
-        ).is_file()
-        assert next(
-            prod.output.glob(f"**/*DEM_{path.get_filename(slope_dem)}*.vrt")
-        ).is_file()
-        assert next(
-            prod.output.glob(f"**/*DEM_{path.get_filename(hillshade_dem)}*.vrt")
-        ).is_file()
-        assert next(
-            prod.output.glob(f"**/*SLOPE_{path.get_filename(slope_dem)}*.tif")
-        ).is_file()
-        assert next(
-            prod.output.glob(f"**/*HILLSHADE_{path.get_filename(hillshade_dem)}*.tif")
-        ).is_file()
+    assert next(prod.output.glob(f"**/*DEM_{path.get_filename(dem)}*.vrt")).is_file()
+    assert next(
+        prod.output.glob(f"**/*DEM_{path.get_filename(slope_dem)}*.vrt")
+    ).is_file()
+    assert next(
+        prod.output.glob(f"**/*DEM_{path.get_filename(hillshade_dem)}*.vrt")
+    ).is_file()
+    assert next(
+        prod.output.glob(f"**/*SLOPE_{path.get_filename(slope_dem)}*.tif")
+    ).is_file()
+    assert next(
+        prod.output.glob(f"**/*HILLSHADE_{path.get_filename(hillshade_dem)}*.tif")
+    ).is_file()
 
-        with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*SLOPE_{path.get_filename(hillshade_dem)}*.tif"))
-        with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(slope_dem)}*.tif"))
-        with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(dem)}*.tif"))
+    with pytest.raises(StopIteration):
+        next(prod.output.glob(f"**/*SLOPE_{path.get_filename(hillshade_dem)}*.tif"))
+    with pytest.raises(StopIteration):
+        next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(slope_dem)}*.tif"))
+    with pytest.raises(StopIteration):
+        next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(dem)}*.tif"))
 
 
 @pytest.mark.skipif(

@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import tempenv
 import xarray as xr
 from geopandas import gpd
 from matplotlib import pyplot as plt
@@ -459,43 +460,42 @@ def core(prod_path, possible_bands, tmpdir, **kwargs):
         prod.output = tmp_dir
 
         # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
-        os.environ[CI_EOREADER_BAND_FOLDER] = str(
-            get_ci_data_dir().joinpath(prod.condensed_name)
-        )
+        with tempenv.TemporaryEnvironment(
+            {CI_EOREADER_BAND_FOLDER: str(get_ci_data_dir() / prod.condensed_name)}
+        ):
+            # Get the pixel size
+            pixel_size = get_pixel_size(prod)
 
-        # Get the pixel size
-        pixel_size = get_pixel_size(prod)
+            # Check extent and footprint
+            check_geometry(prod, "extent", tmp_dir)
+            check_geometry(prod, "footprint", tmp_dir)
 
-        # Check extent and footprint
-        check_geometry(prod, "extent", tmp_dir)
-        check_geometry(prod, "footprint", tmp_dir)
+            if hasattr(prod, "wgs84_extent"):
+                with contextlib.suppress(NotImplementedError):
+                    LOGGER.info("Check WGS84 extent")
+                    prod.wgs84_extent()
 
-        if hasattr(prod, "wgs84_extent"):
-            with contextlib.suppress(NotImplementedError):
-                LOGGER.info("Check WGS84 extent")
-                prod.wgs84_extent()
+            if hasattr(prod, "_fallback_wgs84_extent"):
+                with contextlib.suppress(NotImplementedError):
+                    LOGGER.info("Check WGS84 extent (fallback)")
+                    prod._fallback_wgs84_extent()
 
-        if hasattr(prod, "_fallback_wgs84_extent"):
-            with contextlib.suppress(NotImplementedError):
-                LOGGER.info("Check WGS84 extent (fallback)")
-                prod._fallback_wgs84_extent()
+            # Get the bands we want to stack / load
+            LOGGER.debug("Selecting bands for stacking")
+            stack_bands = [band for band in possible_bands if prod.has_band(band)]
+            first_band = stack_bands[0]
 
-        # Get the bands we want to stack / load
-        LOGGER.debug("Selecting bands for stacking")
-        stack_bands = [band for band in possible_bands if prod.has_band(band)]
-        first_band = stack_bands[0]
+            # Check stack
+            check_stack(prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs)
 
-        # Check stack
-        check_stack(prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs)
+            # Check quicklook and plot
+            check_plot(prod)
 
-        # Check quicklook and plot
-        check_plot(prod)
+            # Clean temp
+            if not WRITE_ON_DISK:
+                check_clean(prod)
 
-        # Clean temp
-        if not WRITE_ON_DISK:
-            check_clean(prod)
-
-        prod.clear()
+            prod.clear()
 
 
 test_optical_constellations_cases = [
