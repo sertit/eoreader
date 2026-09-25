@@ -509,7 +509,7 @@ class SarProduct(Product):
         for band in band_list:
             if self.bands[band] is None:
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) for {self.name}"
+                    f"Non-existing band ({band.name}) for {self.name}"
                 )
 
             ortho_band, ortho_exists = self._is_existing(
@@ -975,7 +975,6 @@ class SarProduct(Product):
         self,
         band: sab,
         pixel_size: float = None,
-        use_no_window_path: bool = True,
         **kwargs,
     ) -> AnyPathType:
         """
@@ -1035,8 +1034,11 @@ class SarProduct(Product):
             # If so, use it instead of re-orthorectifying bands
             no_res_name = f"{self.condensed_name}_{self.bands[band].id}*"
             no_res_files = list(
-                self._get_band_folder(writable=True).glob(no_res_name)
-            ) + list(self._get_band_folder(writable=False).glob(no_res_name))
+                set(
+                    list(self._get_band_folder(writable=True).glob(no_res_name))
+                    + list(self._get_band_folder(writable=False).glob(no_res_name))
+                )
+            )
 
             if len(no_res_files) > 0:
                 for no_res_file in no_res_files:
@@ -1050,7 +1052,7 @@ class SarProduct(Product):
                     split_name = filename.split("_")
                     if pixel_size is not None:
                         res_fragment = list(
-                            filter(re.compile(r".*\dm\.").match, split_name)
+                            filter(re.compile(r".*\d+m(\.|$)").match, split_name)
                         )
                         if res_fragment:
                             # Check if resolution is better than the one asked
@@ -1282,6 +1284,9 @@ class SarProduct(Product):
                 spk_path = self._already_processed_path(
                     band, pixel_size=pixel_size, **kwargs
                 )
+
+                if path.is_cloud_path(spk_path):
+                    spk_path = spk_path.download_to(tmp_dir)
 
                 cmd_list = snap.get_gpt_cli(
                     str(dspk_graph),
