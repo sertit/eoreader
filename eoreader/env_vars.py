@@ -117,6 +117,25 @@ Examples:
     >>> os.environ["EOREADER_BAND_RESAMPLING"] = str(Resampling.cubic)
 """
 
+S2_CLOUD_SOURCE = "EOREADER_S2_CLOUD_SOURCE"
+"""
+Environment variable for selecting the cloud source of Sentinel-2 SAFE L2A products.
+
+Available values (case-insensitive):
+
+- :code:`SCL` (default): cloud bands derived from the Scene Classification Layer
+  (:code:`CLOUDS` = class 9, :code:`SHADOWS` = class 3, :code:`CIRRUS` = class 10,
+  :code:`ALL_CLOUDS` = classes 3, 9 and 10, :code:`RAW_CLOUDS` = raw SCL class codes).
+  If the SCL band cannot be found, fall back to the :code:`CLDPRB` source.
+- :code:`CLDPRB`: legacy behavior, cloud bands derived from the cloud probability mask
+  (:code:`CLOUDS` and :code:`ALL_CLOUDS` thresholded at 66%, :code:`RAW_CLOUDS` = cloud probability,
+  :code:`SHADOWS` unavailable).
+
+Only concerns Sentinel-2 SAFE-format L2A products (:code:`S2Product`, :code:`S2StacProduct`).
+No effect on :code:`S2E84Product` or :code:`S2MpcStacProduct` (SCL is their only cloud source),
+nor on L1C products.
+"""
+
 DEFAULT_DRIVER = "EOREADER_DEFAULT_DRIVER"
 """
 Default driver for writing files on disk. 

@@ -188,7 +188,7 @@ The only difference with the other bands is that the cloud bands are provided in
 
 | Sensors                       | Cloud files | Clouds Bands                                              |
 |-------------------------------|-------------|-----------------------------------------------------------|
-| Sentinel-2                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
+| Sentinel-2**                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Sentinel-2 Theia              | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Vénµs                         | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Sentinel-3 OLCI               | ❌           |                                                           |
@@ -212,6 +212,14 @@ The only difference with the other bands is that the cloud bands are provided in
 | Aleph-1 (Satellogic)*         | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 
 * Only true for products generated after 17/11/2025. Before, the cloud bands varied between product types.
+
+** For Sentinel-2, `SHADOWS` is only available for L2A products.
+The cloud bands of L2A products are derived from the Scene Classification Layer (`SCL`),
+with the same class mapping as Sentinel-2 E84 products:
+`CLOUDS` = class 9, `SHADOWS` = class 3, `CIRRUS` = class 10, `ALL_CLOUDS` = classes 3, 9 and 10.
+`RAW_CLOUDS` then gives the raw `SCL` class codes.
+Set `EOREADER_S2_CLOUD_SOURCE=CLDPRB` to restore the legacy behavior based on the cloud probability mask
+(in this case, `SHADOWS` is unavailable and `RAW_CLOUDS` gives the cloud probabilities).
 
 ### DEM bands
 
