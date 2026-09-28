@@ -1,6 +1,6 @@
 # Release History
 
-## 0.24.4 (2026-mm-dd)
+## 0.24.4 (2026-09-28)
 
 - FIX: Add a workaround for EUSI's broken georef [#242](https://github.com/sertit/eoreader/issues/242)
 - FIX: Better EPSG retrieval from `proj:epsg` (in addition to `proj:code`) from STAC properties, even if deprecated (see the warning [here](https://github.com/stac-extensions/projection/blob/a623c66acf5fc97bf93dd1cce7ef28ac74e8faeb/README.md?plain=1#L59))
