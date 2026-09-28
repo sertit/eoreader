@@ -3,7 +3,7 @@ name: eoreader-doc
 channels:
   - conda-forge
 dependencies:         # everything under this, installed by conda
-  - python=3.9
+  - python=3.10
   - pip
   - pip:                # everything under this, installed by pip
       - -r ./requirements-doc.txt

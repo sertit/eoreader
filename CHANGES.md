@@ -8,6 +8,7 @@
 - FIX: Fix when trying to load a despeckle band when the speckle already exists (and is stored on the cloud or with a window)
 - FIX: Don't fail when trying to load DEM bands if `window=None`
 - FIX: Band naming with bands that are not enums (i.e. spectral indices) with `Sentinel-3 SLSTR`
+- DEPS: Drop Python 3.10 support
 
 ## 0.24.3 (2026-09-07)
 
