@@ -1152,5 +1152,5 @@ class S3SlstrProduct(S3Product):
         )
 
         suffix = self._get_suffix(band, **kwargs)
-
-        return AnyPath(str(clean_band_path).replace(band.name, f"{band.name}_{suffix}"))
+        band_str = to_str(band, as_list=False)
+        return AnyPath(str(clean_band_path).replace(band_str, f"{band_str}_{suffix}"))

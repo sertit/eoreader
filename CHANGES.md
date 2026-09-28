@@ -7,6 +7,7 @@
 - FIX: Handle Capella products with `.tiff` raster files (instead of `.tif`)
 - FIX: Fix when trying to load a despeckle band when the speckle already exists (and is stored on the cloud or with a window)
 - FIX: Don't fail when trying to load DEM bands if `window=None`
+- FIX: Band naming with bands that are not enums (i.e. spectral indices) with `Sentinel-3 SLSTR`
 
 ## 0.24.3 (2026-09-07)
 
