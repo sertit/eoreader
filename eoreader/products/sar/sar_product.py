@@ -37,7 +37,8 @@ from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types,
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import WGS84
-from shapely.geometry.polygon import Polygon
+from shapely.geometry import MultiPoint, Point, Polygon
+from shapely.ops import unary_union
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SarBand, SarBandMap
@@ -58,6 +59,68 @@ from eoreader.stac import INTENSITY
 from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+SNAP_SUBSET_MARGIN = 100
+"""
+Inner margin (in meters) keeping the subset polygon away from the image border.
+SNAP can place the right and bottom borders almost 100 m inside the ones given by the GCPs.
+"""
+
+
+def _snap_subset_polygon(
+    aoi: gpd.GeoDataFrame, footprint: gpd.GeoDataFrame, margin: float
+) -> gpd.GeoDataFrame:
+    """
+    Polygon given to SNAP's Subset: the AOI clipped by the scene footprint shrunk by a margin.
+
+    SNAP reads only the first polygon of the vector file, without its holes,
+    and moves the vertices outside the image to the pixel (0, 0).
+
+    Args:
+        aoi (gpd.GeoDataFrame): AOI, in a metric CRS
+        footprint (gpd.GeoDataFrame): Scene footprint
+        margin (float): Inner margin, in meters
+
+    Returns:
+        gpd.GeoDataFrame: Single polygon without hole, in the AOI CRS
+    """
+    footprint = unary_union(footprint.to_crs(aoi.crs).buffer(-margin))
+    polygon = unary_union(aoi.geometry).intersection(footprint)
+
+    if polygon.is_empty:
+        raise ValueError("The window does not intersect the product.")
+
+    if polygon.geom_type != "Polygon" or len(polygon.interiors) > 0:
+        polygon = polygon.convex_hull
+
+    return gpd.GeoDataFrame(geometry=[polygon], crs=aoi.crs)
+
+
+def _gcp_border_polygon(gcps: list) -> Polygon:
+    """
+    Polygon of the GCPs lying on the border of the GCP grid, in their order along it.
+    It follows the dips of the border, as each GCP is located at its own height.
+
+    Args:
+        gcps (list): GCPs of the raster
+
+    Returns:
+        Polygon: Polygon in the GCPs CRS, empty if the GCPs don't cover an area
+    """
+    pixels = [Point(gcp.col, gcp.row) for gcp in gcps]
+    hull = MultiPoint(pixels).convex_hull
+
+    if hull.geom_type != "Polygon":
+        return Polygon()
+
+    border = hull.exterior
+    on_border = sorted(
+        (border.project(pixel), gcp.x, gcp.y)
+        for pixel, gcp in zip(pixels, gcps, strict=True)
+        if border.distance(pixel) < 1
+    )
+
+    return Polygon([(x, y) for _, x, y in on_border])
 
 
 @unique
@@ -413,6 +476,13 @@ class SarProduct(Product):
 
         """
         raise NotImplementedError
+
+    def _wgs84_footprint(self) -> gpd.GeoDataFrame:
+        """
+        Scene footprint in WGS84, read from the metadata (without orthorectification).
+        Defaults to the WGS84 extent, overridden when the extent is a bounding box.
+        """
+        return self.wgs84_extent()
 
     @cache
     def extent(self) -> gpd.GeoDataFrame:
@@ -950,17 +1020,22 @@ class SarProduct(Product):
                     win_suffix = f"_{win_suffix}"
 
                 geo_region, exists = self._get_out_path(
-                    f"{self.condensed_name}{win_suffix}_snap_geo_region.shp"
+                    f"{self.condensed_name}{win_suffix}_snap_subset.shp"
                 )
                 if not exists:
                     geo_region_gdf = geometry.buffer(
                         geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
                     )
-                    vectors.write(geo_region_gdf.to_crs(WGS84), path=geo_region)
             except Exception as exc:
                 raise NotImplementedError(
                     "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."
                 ) from exc
+
+            if not exists:
+                geo_region_gdf = _snap_subset_polygon(
+                    geo_region_gdf, self._wgs84_footprint(), SNAP_SUBSET_MARGIN
+                )
+                vectors.write(geo_region_gdf.to_crs(WGS84), path=geo_region)
 
         return geo_region, region, window_to_crop
 
@@ -1571,11 +1646,9 @@ class SarProduct(Product):
                 )
             elif ds.gcps is not None:
                 gcps, crs = ds.gcps
-                corners = geometry.from_bounds_to_polygon(*ds.bounds).exterior.coords
-                extent_poly = Polygon(
-                    [rasterio.transform.from_gcps(gcps) * corner for corner in corners]
+                extent_wgs84 = gpd.GeoDataFrame(
+                    geometry=[_gcp_border_polygon(gcps)], crs=crs
                 )
-                extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
             else:
                 name = f"({extent_file_name}) " if extent_file_name else ""
 

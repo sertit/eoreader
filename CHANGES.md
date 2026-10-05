@@ -1,5 +1,10 @@
 # Release History
 
+## 0.24.5 (2026-mm-dd)
+
+- FIX: Clip the AOI by the scene footprint before SNAP's `Subset`, as SNAP moves the vertices outside the image to its first pixel and the orthorectified bands end up cut or empty [#331](https://github.com/sertit/eoreader/issues/331)
+- FIX: Use the GCPs of the image border instead of an affine fit for the extent of SAR products without extent file
+
 ## 0.24.4 (2026-09-28)
 
 - FIX: Add a workaround for EUSI's broken georef [#242](https://github.com/sertit/eoreader/issues/242)

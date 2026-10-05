@@ -346,6 +346,18 @@ class TsxProduct(SarProduct):
         super()._post_init(**kwargs)
 
     @cache
+    def _wgs84_footprint(self) -> gpd.GeoDataFrame:
+        """Scene footprint in WGS84, read from GEARTH_POLY.kml"""
+        try:
+            extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
+            footprint = vectors.read(extent_file)
+        except (IndexError, StopIteration):
+            # Sometimes, GEARTH_POLY.kml cannot be read properly (or is missing)
+            footprint = self._fallback_wgs84_extent("preview/map-overlay.kml")
+
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
+
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -364,15 +376,9 @@ class TsxProduct(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        # Open extent KML file
-        try:
-            extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
-            extent_wgs84 = vectors.read(extent_file).envelope
-        except (IndexError, StopIteration):
-            # Sometimes, GEARTH_POLY.kml cannot be read properly (or is missing)
-            extent_wgs84 = self._fallback_wgs84_extent("preview/map-overlay.kml")
+        footprint = self._wgs84_footprint()
 
-        return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
+        return gpd.GeoDataFrame(geometry=footprint.envelope, crs=footprint.crs)
 
     def _set_product_type(self) -> None:
         """Set products type"""
