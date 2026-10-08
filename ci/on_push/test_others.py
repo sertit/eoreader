@@ -14,7 +14,6 @@ from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, ci, path, unistra
 from shapely.geometry import MultiPoint, Polygon, box
-from shapely.ops import unary_union
 
 from ci.scripts_utils import (
     READER,
@@ -645,7 +644,7 @@ def test_snap_subset_polygon():
     pieces = [box(1000, 1000, 2000, 2000), box(3000, 3000, 4000, 4000)]
     aoi = gpd.GeoDataFrame(geometry=pieces, crs=32631)
     polygon = _snap_subset_polygon(aoi, footprint, 100).geometry.iloc[0]
-    assert polygon.equals(unary_union(pieces).convex_hull)
+    assert polygon.equals(aoi.union_all().convex_hull)
 
     holed = box(1000, 1000, 5000, 5000).difference(box(2000, 2000, 3000, 3000))
     aoi = gpd.GeoDataFrame(geometry=[holed], crs=32631)

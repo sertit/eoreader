@@ -38,7 +38,6 @@ from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import WGS84
 from shapely.geometry import MultiPoint, Point, Polygon
-from shapely.ops import unary_union
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SarBand, SarBandMap
@@ -84,8 +83,8 @@ def _snap_subset_polygon(
     Returns:
         gpd.GeoDataFrame: Single polygon without hole, in the AOI CRS
     """
-    footprint = unary_union(footprint.to_crs(aoi.crs).buffer(-margin))
-    polygon = unary_union(aoi.geometry).intersection(footprint)
+    footprint = footprint.to_crs(aoi.crs).buffer(-margin).union_all()
+    polygon = aoi.union_all().intersection(footprint)
 
     if polygon.is_empty:
         raise ValueError("The window does not intersect the product.")
