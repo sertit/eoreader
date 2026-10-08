@@ -186,6 +186,28 @@ class RcmProduct(SarProduct):
         super()._pre_init(**kwargs)
 
     @cache
+    def _wgs84_footprint(self) -> gpd.GeoDataFrame:
+        """Scene footprint in WGS84, read from mapOverlay.kml"""
+        try:
+            extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
+            product_kml = vectors.read(extent_file)
+
+            footprint = product_kml[product_kml.Name == "Polygon Outline"]
+
+            if footprint.empty:
+                raise ValueError(
+                    "Something went wrong when reading the 'mapOverlay.kml' file"
+                )
+        except (IndexError, StopIteration, ValueError):
+            # Some RCM products don't have any mapOverlay.kml file as it is not a mandatory file!
+            footprint = self._fallback_wgs84_extent("preview/mapOverlay.kml")
+
+        # Reproject to be sure
+        footprint = footprint.to_crs(WGS84)
+
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
+
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -204,25 +226,9 @@ class RcmProduct(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        # Open extent KML file
-        try:
-            extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
-            product_kml = vectors.read(extent_file)
+        footprint = self._wgs84_footprint()
 
-            extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
-
-            if extent_wgs84.empty:
-                raise ValueError(
-                    "Something went wrong when reading the 'mapOverlay.kml' file"
-                )
-        except (IndexError, StopIteration, ValueError):
-            # Some RCM products don't have any mapOverlay.kml file as it is not a mandatory file!
-            extent_wgs84 = self._fallback_wgs84_extent("preview/mapOverlay.kml")
-
-        # Reproject to be sure
-        extent_wgs84 = extent_wgs84.to_crs(WGS84)
-
-        return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
+        return gpd.GeoDataFrame(geometry=footprint.envelope, crs=footprint.crs)
 
     def _set_instrument(self) -> None:
         """

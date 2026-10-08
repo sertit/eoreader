@@ -154,6 +154,37 @@ class IceyeProduct(SarProduct):
         super()._pre_init(**kwargs)
 
     @cache
+    def _wgs84_footprint(self) -> gpd.GeoDataFrame:
+        """Scene footprint in WGS84, read from QUICKLOOK.kml or from the metadata corners"""
+        try:
+            extent_file = next(self.path.glob("*ICEYE*QUICKLOOK*.kml"))
+            footprint = vectors.read(extent_file)
+        except StopIteration:
+            # Some ICEYE products don't have any QUICKLOOK.kml file as it is not a mandatory file!
+            footprint = self._fallback_wgs84_extent("QUICKLOOK.kml")
+
+        # Other fallback
+        if footprint.crs is None:
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
+
+            # Get lat lon of extent coordinates
+            fn = root.findtext(f".//{namespace}coord_first_near").split(" ")[2:]
+            ln = root.findtext(f".//{namespace}coord_last_near").split(" ")[2:]
+            lf = root.findtext(f".//{namespace}coord_last_far").split(" ")[2:]
+            ff = root.findtext(f".//{namespace}coord_first_far").split(" ")[2:]
+
+            footprint = gpd.GeoDataFrame(
+                geometry=[Polygon([fn[::-1], ln[::-1], lf[::-1], ff[::-1]])],
+                crs=vectors.WGS84,
+            )
+
+        # Drop all columns except important ones
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
+
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -172,38 +203,9 @@ class IceyeProduct(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        # Open extent KML file
-        try:
-            extent_file = next(self.path.glob("*ICEYE*QUICKLOOK*.kml"))
-            extent_wgs84 = vectors.read(extent_file).envelope
-        except StopIteration:
-            # Some ICEYE products don't have any QUICKLOOK.kml file as it is not a mandatory file!
-            extent_wgs84 = self._fallback_wgs84_extent("QUICKLOOK.kml")
+        footprint = self._wgs84_footprint()
 
-        # Other fallback
-        if extent_wgs84.crs is None:
-            root, nsmap = self.read_mtd()
-
-            # Some ICEYE product metadata has a namespace some don't
-            namespace = nsmap.get(None, "")
-
-            # Get lat lon of extent coordinates
-            fn = root.findtext(f".//{namespace}coord_first_near").split(" ")[2:]
-            ln = root.findtext(f".//{namespace}coord_last_near").split(" ")[2:]
-            lf = root.findtext(f".//{namespace}coord_last_far").split(" ")[2:]
-            ff = root.findtext(f".//{namespace}coord_first_far").split(" ")[2:]
-
-            extent_wgs84 = gpd.GeoDataFrame(
-                geometry=[Polygon([fn[::-1], ln[::-1], lf[::-1], ff[::-1]])],
-                crs=vectors.WGS84,
-            ).envelope
-
-        # Drop all columns except important ones
-        extent_wgs84 = gpd.GeoDataFrame(
-            geometry=extent_wgs84.geometry, crs=extent_wgs84.crs
-        )
-
-        return extent_wgs84
+        return gpd.GeoDataFrame(geometry=footprint.envelope, crs=footprint.crs)
 
     def _set_product_type(self) -> None:
         """Set products type"""
