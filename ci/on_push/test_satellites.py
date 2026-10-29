@@ -361,8 +361,8 @@ def check_stack(
         try:
             ci.assert_raster_almost_equal_magnitude(curr_path, ci_stack, decimal=1)
         except AssertionError as ex:
-            # Allow DEM-related bands to fails with the current changes in sertit-utils
-            # TODO: recompute the stacks when these DEM-related function will be stabilized in sertit-utils (with 'xdem')
+            # Allow DEM-related bands to fail with the current changes in sertit-utils
+            # TODO: recompute the stacks when these DEM-related functions will be stabilized in sertit-utils (with 'xdem')
             if "failed" in str(ex).replace("SLOPE failed", "").replace(
                 "HILLSHADE failed", ""
             ):
@@ -373,7 +373,7 @@ def check_stack(
 
 def check_plot(prod: Product):
     """
-    Check if the products can display their quiclook properly
+    Check if the product can display its quicklook properly
     Args:
         prod (Product): Tested product
     """
@@ -574,7 +574,7 @@ test_sar_constellations_cases = [
     pytest.param("*csk_*", {}, id="csk"),
     pytest.param("*CSG_*", {}, id="csg"),
     pytest.param("*TSX*", {}, id="tsx"),
-    pytest.param("*TDX*", {}, id="tdx"),  # Assume that tests PAZ and TDX
+    pytest.param("*TDX*", {}, id="tdx"),  # Also tests PAZ and TDX
     pytest.param("*RS2_*", {}, id="rs2"),
     pytest.param("*RCM*", {}, id="rcm"),
     pytest.param("*SC_*", {}, id="iceye"),

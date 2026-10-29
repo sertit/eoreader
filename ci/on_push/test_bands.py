@@ -40,7 +40,7 @@ def test_bands_l8():
 
 @s3_env
 def test_dspk_with_existing_spk(tmp_path):
-    """Test loading despeckle band if already existing speckle"""
+    """Test loading the despeckle band if an existing speckle is already present"""
     pixel_size = 1000.0
     prod_path = sar_path().joinpath(
         "CAPELLA_C02_SS_GEC_HH_20210926061004_20210926061020"

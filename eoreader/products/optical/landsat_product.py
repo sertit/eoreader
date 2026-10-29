@@ -114,22 +114,22 @@ class LandsatInstrument(ListEnum):
     """Landsat instruments"""
 
     OLI_TIRS = "OLI-TIRS"
-    """OLI-TIRS instruments combined, for Landsat-8 and 9 constellation"""
+    """OLI-TIRS instruments combined, for Landsat-8 and 9 constellations"""
 
     OLI = "OLI"
-    """OLI Instrument, for Landsat-8 and 9 constellation"""
+    """OLI Instrument, for Landsat-8 and 9 constellations"""
 
     TIRS = "TIRS"
-    """TIRS Instrument, for Landsat-8 and 9 constellation"""
+    """TIRS Instrument, for Landsat-8 and 9 constellations"""
 
     ETM = "ETM+"
     """ETM+ Instrument, for Landsat-7 constellation"""
 
     TM = "TM"
-    """TM Instrument, for Landsat-5 and 4 constellation"""
+    """TM Instrument, for Landsat-5 and 4 constellations"""
 
     MSS = "MSS"
-    """MSS Instrument, for Landsat-5, 4, 3, 2, 1 constellation"""
+    """MSS Instrument, for Landsat-5, 4, 3, 2, 1 constellations"""
 
 
 _LETTER_TO_INSTRUMENT = {
@@ -206,7 +206,7 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
         self._collection = LandsatCollection.from_value(col_nb)
 
-        # Collection 2 do not need to be extracted. Set True by default
+        # Collection 2 products do not need to be extracted. Set True by default
         if utils.get_split_name(name)[-2] == "02":
             self.needs_extraction = False  # Fine to read .tar files
         else:
@@ -284,7 +284,7 @@ class LandsatProduct(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -295,7 +295,7 @@ class LandsatProduct(OpticalProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -701,7 +701,7 @@ class LandsatProduct(OpticalProduct):
             # TODO: better manage L-7 TIR bands?
             # The band 61 (low gain mode) is used when surface brightness is high (e.g., desert, or less vegetated areas),
             # and band 62 (high gain mode) when surface brightness is lower (e.g., vegetated areas)
-            # (According to the gain setting rule of Landsat Project Science Ofﬁce (2001)).
+            # (According to the gain setting rule of Landsat Project Science Office (2001)).
             TIR_1: SpectralBand(
                 eoreader_name=TIR_1,
                 **{
@@ -933,7 +933,7 @@ class LandsatProduct(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -1203,12 +1203,12 @@ class LandsatProduct(OpticalProduct):
         Open a list of mask files as xarrays.
 
         Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
         Returns:
-            xr.DataArray: Cleaned band array
+            dict: Dictionary {band_name, band_xarray}
         """
         band_dict = {}
 
@@ -1237,7 +1237,7 @@ class LandsatProduct(OpticalProduct):
         **kwargs,
     ) -> xr.DataArray:
         """
-        Open one mask files as xarrays.
+        Open one mask file as xarrays.
 
         Args:
             bands (BandNames): Wanted mask band
@@ -1530,7 +1530,7 @@ class LandsatProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1582,7 +1582,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -1637,7 +1637,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
@@ -1660,14 +1660,14 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]
 
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]
 
@@ -2032,7 +2032,7 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
 
     def _get_path(self, band_id: str) -> str:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             band_id (str): Band ID

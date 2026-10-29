@@ -212,7 +212,7 @@ class Gs2Product(DimapV1Product):
 
     def _set_product_type(self) -> None:
         """
-        Set products type
+        Set product type
         """
         # Get MTD XML file
         prod_type = self.split_name[2]
@@ -416,7 +416,7 @@ class Gs2Product(DimapV1Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict

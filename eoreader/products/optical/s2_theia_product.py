@@ -127,7 +127,7 @@ class S2TheiaProduct(OpticalProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open identifier
+        # Get identifier
         tile = root.findtext(".//GEOGRAPHICAL_ZONE")
         if not tile:
             raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata!")
@@ -135,7 +135,7 @@ class S2TheiaProduct(OpticalProduct):
         return tile
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         self.product_type = S2ProductType.L2A
 
     def _set_instrument(self) -> None:
@@ -202,7 +202,7 @@ class S2TheiaProduct(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. WARNING::
             As Landsat 7 is broken (with nodata stripes all over the bands),
@@ -217,7 +217,7 @@ class S2TheiaProduct(OpticalProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -263,7 +263,7 @@ class S2TheiaProduct(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_mtd()
 
-            # Open identifier
+            # Get identifier
             acq_date = root.findtext(".//ACQUISITION_DATE")
             if not acq_date:
                 raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
@@ -283,12 +283,12 @@ class S2TheiaProduct(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open identifier
+        # Get identifier
         name = path.get_filename(root.findtext(".//IDENTIFIER"))
         if not name:
             raise InvalidProductError("IDENTIFIER not found in metadata!")
@@ -301,8 +301,8 @@ class S2TheiaProduct(OpticalProduct):
         """
         Return the paths of required bands.
 
-        For Theia products, FRE bands are given because, it is written in the <documentation `https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/`>_
-        that "After having compiled the user feedback, it is likely that we will only distribute « FRE » files to reduce the data volume."
+        For Theia products, FRE bands are given because it is written in the `documentation <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_
+        that "After having compiled the user feedback, it is likely that we will only distribute FRE files to reduce the data volume."
 
         .. code-block:: python
 
@@ -415,7 +415,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -610,7 +610,7 @@ class S2TheiaProduct(OpticalProduct):
         **kwargs,
     ) -> dict:
         """
-        Load cloud files as xarrays. Overload to manage associated bands.
+        Load cloud files as xarrays. Override to manage associated bands.
 
         Args:
             bands (list): List of the wanted bands
@@ -726,14 +726,14 @@ class S2TheiaProduct(OpticalProduct):
         **kwargs,
     ) -> xr.DataArray:
         """
-        Open one mask files as xarrays.
-        Use the GREEN band if associated_band is not given, so R1 file by default (10m resolution), downsampled if needed.
+        Open one mask file as an xarray.
+        Use the GREEN band if associated_band is not given, so the R1 file is used by default (10m resolution), downsampled if needed.
 
         See https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
 
         Args:
             bands (BandNames): Wanted mask band
-            associated_band (BandNames): Associated spectral band to the wanted mask,v to determine the bit ID of some masks. Using the GREEN band if not given.
+            associated_band (BandNames): Associated spectral band to the wanted mask, to determine the bit ID of some masks. Using the GREEN band if not given.
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
@@ -769,7 +769,7 @@ class S2TheiaProduct(OpticalProduct):
 
         mask_path = self._get_mask_path(band.name, res_id)
 
-        # Open SAT band
+        # Open mask
         mask = utils.read(
             mask_path,
             pixel_size=pixel_size,
@@ -805,7 +805,7 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -821,7 +821,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get S2THEIA condensed name ({date}_S2THEIA_{tile]_{product_type}).
+        Get S2THEIA condensed name ({date}_S2THEIA_{tile}_{product_type}).
 
         Returns:
             str: Condensed name
@@ -863,7 +863,7 @@ class S2TheiaProduct(OpticalProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -883,7 +883,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return True
 
@@ -900,7 +900,7 @@ class S2TheiaProduct(OpticalProduct):
         Read S2 Theia cloud mask:
         https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
 
-        > A cloud mask for each resolution (CLM_R1.tif ou CLM_R2.tif):
+        > A cloud mask for each resolution (CLM_R1.tif or CLM_R2.tif):
             - bit 0 (1) : all clouds except the thinnest and all shadows
             - bit 1 (2) : all clouds (except the thinnest)
             - bit 2 (4) : clouds detected via mono-temporal thresholds

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Vantor satellites (GeoEye, WorldViews...) class.
+Vantor satellites (GeoEye, WorldViews...) products.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
@@ -142,7 +142,7 @@ LegionPlatformTuple = namedtuple(
     ["LG01", "LG02", "LG03", "LG04", "LG05", "LG06", "LG07", "LG08"],
     defaults=[np.nan, np.nan],
 )
-# Updated the 24/12/2025, legion 07 and 08 weren't available, default them to nans
+# Updated on 24/12/2025: legion 07 and 08 weren't available, so they default to nans
 
 _VANTOR_GAIN_OFFSET = {
     Constellation.WVLG: {
@@ -219,9 +219,9 @@ _VANTOR_GAIN_OFFSET = {
 The TDI specific abscalfactor and effectiveBandwidth are delivered with the imagery in the metadata file. The
 digital number, DN, is the pixel value found in the imagery. The Gain and Offset are the absolute radiometric
 calibration band dependent adjustment factors that are given in Table 1. Note that these are not necessarily
-stagnant values and they are revisited annually.
+static values and they are revisited annually.
 
-Only using last calibration as the Vantor sensors have been found to be very stable throughout their lifetime.
+Only the last calibration is used, as the Vantor sensors have been found to be very stable throughout their lifetime.
 
 See `here <https://resources.maxar.com/white-papers/absolute-radiometric-calibration-white-paper>`_ for the values.
 """
@@ -229,7 +229,7 @@ See `here <https://resources.maxar.com/white-papers/absolute-radiometric-calibra
 
 def __convert_calib_json_to_e0(radiometric_params_json_path):
     """
-    Converts the calibration JSON retrieved from Vantor resources into following _VANTOR_E0.
+    Converts the calibration JSON retrieved from Vantor resources into the following _VANTOR_E0.
     Download the json here: https://vantor.com/resources/calibration-worldview-legion-radiometric-parameters/
     Typical name: Legion_Radiometric_Parameters_20251007 3.json
 
@@ -478,7 +478,7 @@ class VantorBandId(ListEnum):
 
     Multi = "Multi Spectral"
     """
-    All VNIR Multi-spectral bands (4 for QB02,GE01 and 8 for WV02, WV03)
+    All VNIR Multi-spectral bands (4 for QB02, GE01 and 8 for WV02, WV03)
     """
 
     N = "NIR"
@@ -527,7 +527,7 @@ class VantorBandId(ListEnum):
 
     RE = "Red-Edge"
     """
-    NIR2
+    Red-Edge
     """
 
     Y = "Yellow"
@@ -733,7 +733,7 @@ class VantorProduct(VhrProduct):
         # Sometimes, TIL driver fails to open correctly the different tiles
         # See https://github.com/sertit/eoreader/issues/242
 
-        # To check that, it can be useful to ensure that the default width and height corresponds to the tiles aggregated width and height
+        # To check that, it can be useful to ensure that the default width and height correspond to the tiles aggregated width and height
         # Shape from IMD
         imd_rows = int(root.findtext(".//IMD/NUMROWS"))
         imd_cols = int(root.findtext(".//IMD/NUMCOLUMNS"))
@@ -763,7 +763,7 @@ class VantorProduct(VhrProduct):
 
         # Seems only to happen for tiled products (with R1C1, R1C2... files) -> but unsure
 
-        # To check that, it can be useful to ensure that the default width and height corresponds to the tiles aggregated width and height
+        # To check that, it can be useful to ensure that the default width and height correspond to the tiles aggregated width and height
         # Shape from IMD
         imd_ulx = float(root.findtext(".//IMD/MAP_PROJECTED_PRODUCT/ULX"))
         imd_uly = float(root.findtext(".//IMD/MAP_PROJECTED_PRODUCT/ULY"))
@@ -1325,7 +1325,7 @@ class VantorProduct(VhrProduct):
         self.bands.map_bands(self._get_band_map(**self._get_spectral_bands()))
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         # Get MTD XML file
         root, _ = self.read_mtd()
         prod_type = root.findtext(".//IMD/PRODUCTTYPE")
@@ -1422,7 +1422,7 @@ class VantorProduct(VhrProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -1548,7 +1548,7 @@ class VantorProduct(VhrProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         return path.get_filename(self._get_tile_path())
 
@@ -1618,7 +1618,7 @@ class VantorProduct(VhrProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -1668,7 +1668,7 @@ class VantorProduct(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return False
 

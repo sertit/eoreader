@@ -105,14 +105,14 @@ class VenusProduct(OpticalProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open identifier
+        # Get identifier
         tile = root.findtext(".//GEOGRAPHICAL_ZONE")
         if not tile:
             raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata!")
         return tile
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         self.product_type = VenusProductType.L2A
 
     def _set_instrument(self) -> None:
@@ -187,7 +187,7 @@ class VenusProduct(OpticalProduct):
         """
         edg_path = self._get_mask_path(
             VenusMaskBandNames.EDG.name
-        )  # there is no additional parameters
+        )  # there is no additional parameter
         mask = utils.read(edg_path, masked=False)
 
         # Vectorize the nodata band
@@ -205,7 +205,7 @@ class VenusProduct(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_mtd()
 
-            # Open identifier
+            # Get identifier
             acq_date = root.findtext(".//ACQUISITION_DATE")
             if not acq_date:
                 raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
@@ -225,7 +225,7 @@ class VenusProduct(OpticalProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open identifier
+        # Get identifier
         name = path.get_filename(root.findtext(".//IDENTIFIER"))
         if not name:
             raise InvalidProductError("IDENTIFIER not found in metadata!")
@@ -237,7 +237,7 @@ class VenusProduct(OpticalProduct):
     ) -> dict:
         """
         TODO : same as s2_theia
-        TODO : FRE vs SRE, optionnal ?
+        TODO : FRE vs SRE, optional ?
         TODO : not mandatory ?
         """
         band_paths = {}
@@ -305,8 +305,8 @@ class VenusProduct(OpticalProduct):
         TODO : Almost the same as s2_theia_product
         TODO : EDG, SAT and invalid pixels as parameters ?
         """
-        # -- Manage nodata from Theia band array
-        # Theia nodata is already processed
+        # -- Manage nodata from Venus band array
+        # Venus nodata is already processed
         no_data_mask = np.where(
             band_arr.data == self._raw_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
@@ -345,7 +345,7 @@ class VenusProduct(OpticalProduct):
         # -- Merge masks
         mask = np.all(mask, axis=0)[
             np.newaxis, :, :
-        ]  # Actually venus invalid pixels has 12 bands.
+        ]  # Actually Venus invalid pixels have 12 bands.
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
@@ -358,8 +358,8 @@ class VenusProduct(OpticalProduct):
         """
         TODO : Same as s2_theia_product
         """
-        # -- Manage nodata from Theia band array
-        # Theia nodata is already processed
+        # -- Manage nodata from Venus band array
+        # Venus nodata is already processed
         no_data_mask = np.where(
             band_arr.data == self._raw_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
@@ -556,7 +556,7 @@ class VenusProduct(OpticalProduct):
 
         mask_path = self._get_mask_path(band.name)
 
-        # Open SAT band
+        # Open mask
         mask = utils.read(
             mask_path,
             pixel_size=pixel_size,
@@ -584,7 +584,7 @@ class VenusProduct(OpticalProduct):
         """
         TODO : same as s2_theia_product
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -629,7 +629,7 @@ class VenusProduct(OpticalProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -651,7 +651,7 @@ class VenusProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return True
 

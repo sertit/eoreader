@@ -336,7 +336,7 @@ class S3SlstrProduct(S3Product):
         self.pixel_size = 500.0
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -551,7 +551,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band (BandNames | str): Band to preprocess (quality flags or others are accepted)
-            pixel_size (float): Pixl size
+            pixel_size (float): Pixel size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
             kwargs: Other arguments used to load bands
@@ -682,7 +682,7 @@ class S3SlstrProduct(S3Product):
 
     def _tie_to_img(self, tie_arr: np.ndarray, suffix: str) -> np.ndarray:
         """
-        Convert an image sampled on the tie point grid (tx) to the wanted gris, given by the suffix
+        Convert an image sampled on the tie point grid (tx) to the wanted grid, given by the suffix
 
         Args:
             tie_arr (xr.Dataset): Image sampled on the tie point grid (tx)
@@ -804,13 +804,13 @@ class S3SlstrProduct(S3Product):
         Applying the radiance adjustment as recommended in the product notice:
         S3.PN-SLSTR-L1.08 (https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf):
 
-        SLSTR-A/B: All solar channels (S1-S6) have been undergoing a vicarious calibration assessment to
+        SLSTR-A/B: All solar channels (S1-S6) have undergone a vicarious calibration assessment to
         quantify their radiometric calibration adjustment. Recent analysis of vicarious calibration results
         over desert sites performed by RAL, CNES, Rayference and University of Arizona have determined
         new and consistent radiometric deviations wrt. common reference sensors (MERIS, MODIS)
-        [S3MPC.RAL.TN.010]. Consequently, these have been used to provide a first-order radiometric
+        [S3MPC.RAL.TN.010]. Consequently, these have been used to provide first-order radiometric
         corrections which are provided in the below tables with more detail at the following link
-        [S3MPC.RAL.TN.020]. Current radiances in the L1B product remain uncorrected of these
+        [S3MPC.RAL.TN.020]. Current radiances in the L1B product remain uncorrected for these
         radiometric calibration adjustments. Hence, these multiplicative coefficients are strongly
         recommended to be used by all users.
 
@@ -846,7 +846,7 @@ class S3SlstrProduct(S3Product):
                 rad_coeff = getattr(rad_adjust_tuple, f"{band_id}_{view}")
                 band_arr *= rad_coeff
         except KeyError:
-            # Not a band (ie Quality Flags) or Brightness temperature: no adjust needed
+            # Not a band (ie Quality Flags) or Brightness temperature: no adjustment needed
             pass
 
         return band_arr
@@ -953,12 +953,12 @@ class S3SlstrProduct(S3Product):
         # Combine masks
         mask = no_data | exception
 
-        # DO not set 0 to epsilons as they are a part of the
+        # Do not set 0 to epsilons as they are a part of the data
         return self._set_nodata_mask(band_arr, mask)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         -> SLSTR does
         """
         return band in [RAW_CLOUDS, ALL_CLOUDS, CLOUDS, CIRRUS]
@@ -1088,7 +1088,7 @@ class S3SlstrProduct(S3Product):
         try:
             cond_arr = features.sieve(cond_arr, size=10, connectivity=4)
         except TypeError:
-            # Manage dask arrays that fails with rasterio sieve
+            # Manage dask arrays that fail with rasterio sieve
             cond_arr = features.sieve(cond_arr.compute(), size=10, connectivity=4)
         cond_arr = np.expand_dims(cond_arr, axis=0)
 

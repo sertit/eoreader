@@ -271,7 +271,7 @@ class PlanetProduct(OpticalProduct):
 
     def _merge_subdatasets(self) -> tuple[AnyPathType, bool]:
         """
-        Merge subdataset, when several Planet products avec been ordered together
+        Merge subdatasets, when several Planet products have been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT.
 
         Returns:
@@ -346,7 +346,7 @@ class PlanetProduct(OpticalProduct):
     @abstractmethod
     def _merge_subdatasets_mtd(self) -> None:
         """
-        Merge subdataset, when several Planet products avec been ordered together
+        Merge subdatasets, when several Planet products have been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
 
         Constellation specific
@@ -357,7 +357,7 @@ class PlanetProduct(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -368,7 +368,7 @@ class PlanetProduct(OpticalProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -590,14 +590,14 @@ class PlanetProduct(OpticalProduct):
         Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
-            bands list: List of the wanted bands
+            bands (list): List of the wanted bands
             pixel_size (float): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -613,7 +613,7 @@ class PlanetProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         # NOTE: CIRRUS == HEAVY HAZE
 
@@ -895,7 +895,7 @@ class PlanetProduct(OpticalProduct):
         **kwargs,
     ) -> xr.DataArray:
         """
-        Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
+        Open a Planet UDM2 (Usable Data Mask) mask, band by band, as an xarray.
         Returns None if the mask is not available.
 
         Do not open cloud mask with this function. Use :code:`load` instead.
@@ -964,7 +964,7 @@ class PlanetProduct(OpticalProduct):
         self, pixel_size: float = None, size: list | tuple = None, **kwargs
     ) -> xr.DataArray:
         """
-        Open a Planet UDM (Unusable Data Mask) mask as a xarray.
+        Open a Planet UDM (Unusable Data Mask) mask as an xarray.
         For RapidEye, the mask is subsampled to 50m, so this function will interpolate to make it to the correct pixel size
         Returns None if the mask is not available.
 
@@ -1026,12 +1026,12 @@ class PlanetProduct(OpticalProduct):
         as_list=False,
     ) -> list | str:
         """
-        Get either the archived path of the normal path of an asset
+        Get either the archived or the normal path of an asset
 
         Args:
             filename (str): Filename with wildcards
             extension (str): Extension
-            invalid_lookahead (str | list): Invalid lookahed (string that cannot be placed after the filename)
+            invalid_lookahead (str | list): Invalid lookahead (string that cannot be placed after the filename)
 
         Returns:
             list | str: Paths(s)
@@ -1125,7 +1125,7 @@ class PlanetProduct(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, nsmap = self.read_mtd()
@@ -1193,7 +1193,7 @@ class PlanetProduct(OpticalProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -1219,7 +1219,7 @@ class PlanetProduct(OpticalProduct):
 
             return self._read_mtd_xml(mtd_from_path, mtd_archived)
         except InvalidProductError:
-            # Some RapidEye old product don't have the correct nomenclature
+            # Some RapidEye old products don't have the correct nomenclature
             return self._read_mtd_xml("xml", "xml")
 
     @cache
@@ -1269,7 +1269,7 @@ class PlanetProduct(OpticalProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

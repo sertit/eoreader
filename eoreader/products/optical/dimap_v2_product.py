@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 DIMAP V2 super class.
-See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
 
@@ -98,7 +98,7 @@ class DimapV2ProductType(ListEnum):
     """
     DIMAP V2 product types (processing level).
 
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
     (A.1.1.2 Variable Key Information) for more information.
     """
 
@@ -222,20 +222,20 @@ class DimapV2BandCombination(ListEnum):
     PMS = "Pansharpened Multi Spectral"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
-    provided by of the Panchromatic data, resulting in a higher resolution 0.5 m colour product (4 bands)
+    provided by the Panchromatic data, resulting in a higher resolution 0.5 m colour product (4 bands)
     """
 
     PMS_N = "Pansharpened Multi Spectral in natural color"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
-    provided by of the Panchromatic data, resulting in a higher resolution 0.5 m colour product
+    provided by the Panchromatic data, resulting in a higher resolution 0.5 m colour product
     (3 bands: BLUE GREEN RED)
     """
 
     PMS_X = "Pansharpened Multi Spectral in false color"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
-    provided by of the Panchromatic data, resulting in a higher resolution 0.5 m colour product
+    provided by the Panchromatic data, resulting in a higher resolution 0.5 m colour product
     (3 bands: GREEN RED NIR)
     """
 
@@ -438,7 +438,7 @@ class DimapV2Product(VhrProduct):
             )
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
 
         # Get product type
         try:
@@ -544,7 +544,7 @@ class DimapV2Product(VhrProduct):
     @simplify
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -624,7 +624,7 @@ class DimapV2Product(VhrProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         return path.get_filename(self._get_tile_path()).replace("DIM_", "")
 
@@ -757,7 +757,7 @@ class DimapV2Product(VhrProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -869,7 +869,7 @@ class DimapV2Product(VhrProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -881,7 +881,7 @@ class DimapV2Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return band not in [CIRRUS, SHADOWS]
 
@@ -1049,7 +1049,7 @@ class DimapV2Product(VhrProduct):
         """
         Open DIMAP V2 mask (GML files stored in MASKS) as :code:`gpd.GeoDataFrame`.
 
-        Masks than can be called that way are:
+        Masks that can be called that way are:
 
         - :code:`CLD`: Cloud vector mask
         - :code:`DET`: Out of order detectors vector mask

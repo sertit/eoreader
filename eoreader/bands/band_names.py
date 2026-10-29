@@ -71,13 +71,13 @@ class BandNames(misc.ListEnum):
 
     def __gt__(self, other) -> bool:
         """
-        Overload greater than for BandNames -> compare the names in string.
+        Overload greater than for BandNames -> compare the names as strings.
 
         Args:
-            other (BandNames): Other products to be compared with this one
+            other (BandNames): Other band name to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired after the other
+            bool: True if this band name is greater than the other one
 
         """
         try:
@@ -87,13 +87,13 @@ class BandNames(misc.ListEnum):
 
     def __ge__(self, other) -> bool:
         """
-        Overload greater than for BandNames -> compare the names in string.
+        Overload greater than or equal to for BandNames -> compare the names as strings.
 
         Args:
-            other (Product): Other products to be compared with this one
+            other (BandNames): Other band name to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired after or in the same time as the other
+            bool: True if this band name is greater than or equal to the other one
 
         """
         try:
@@ -103,13 +103,13 @@ class BandNames(misc.ListEnum):
 
     def __le__(self, other) -> bool:
         """
-        Overload greater than for BandNames -> compare the names in string.
+        Overload less than or equal to for BandNames -> compare the names as strings.
 
         Args:
-            other (BandNames): Other products to be compared with this one
+            other (BandNames): Other band name to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired before or in the same time as the other
+            bool: True if this band name is less than or equal to the other one
 
         """
         try:
@@ -119,13 +119,13 @@ class BandNames(misc.ListEnum):
 
     def __lt__(self, other) -> bool:
         """
-        Overload greater than for BandNames -> compare the names in string.
+        Overload less than for BandNames -> compare the names as strings.
 
         Args:
-            other (BandNames): Other products to be compared with this one
+            other (BandNames): Other band name to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired before the other
+            bool: True if this band name is less than the other one
 
         """
         try:
@@ -154,7 +154,7 @@ class SpectralBandNames(BandNames):
     - `S3 SLSTR <https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png>`_
     - `Index consistency <https://www.indexdatabase.de/>`_
 
-    This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
+    This classification allows index computation and algorithms to run without knowing the band number of every satellite.
     If None, then the band does not exist for the satellite.
     """
 
@@ -268,12 +268,12 @@ class SpectralBandNames(BandNames):
 
     Oa19 = "Oa19"
     """
-    Oa01
+    Oa19
     """
 
     Oa21 = "Oa21"
     """
-    Oa01
+    Oa21
     """
 
     # -- PlanetScope PSB.SD instrument additional band --
@@ -418,10 +418,10 @@ class SarBandNames(BandNames):
     """ Compact polarization: right circular transmit, horizontal receive """
 
     RV = "RV"
-    """ Compact polarization: right circular transmit, vertical receive (Despeckled) """
+    """ Compact polarization: right circular transmit, vertical receive """
 
     RV_DSPK = "RV_DSPK"
-    """ Compact polarization: right circular transmit, horizontal receive (Despeckled) """
+    """ Compact polarization: right circular transmit, vertical receive (Despeckled) """
 
     @classmethod
     def corresponding_despeckle(cls, band: "SarBandNames"):
@@ -459,7 +459,7 @@ class SarBandNames(BandNames):
             band (SarBandNames): Noisy (speckle) band
 
         Returns:
-            SarBandNames: Despeckled band
+            SarBandNames: Speckle band
         """
         return cls.from_value(f"{band.name[:2]}")
 
@@ -479,7 +479,7 @@ class SarBandNames(BandNames):
             band (SarBandNames): Band to test
 
         Returns:
-            SarBandNames: Despeckled band
+            bool: True if the band is a despeckled band
         """
         return "DSPK" in band.name
 
@@ -499,7 +499,7 @@ class SarBandNames(BandNames):
             band (SarBandNames): Band to test
 
         Returns:
-            SarBandNames: Despeckled band
+            bool: True if the band is a speckle band
         """
         return not cls.is_despeckle(band)
 

@@ -276,7 +276,7 @@ BandsType = list | BandType
 
 def is_spectral_band(band: BandType) -> bool:
     """
-    Returns True if is a spectral band (from :code:`SpectralBandNames`)
+    Returns True if it is a spectral band (from :code:`SpectralBandNames`)
 
     Args:
         band (BandType): Anything that could be an optical band
@@ -310,7 +310,7 @@ def is_spectral_band(band: BandType) -> bool:
 
 def is_thermal_band(band: BandType) -> bool:
     """
-    Returns True if is a spectral and a thermal band (from :code:`SpectralBandNames`)
+    Returns True if it is a spectral and a thermal band (from :code:`SpectralBandNames`)
 
     Args:
         band (BandType): Anything that could be an optical band
@@ -341,7 +341,7 @@ def is_thermal_band(band: BandType) -> bool:
 
 def is_sar_band(band: BandType) -> bool:
     """
-    Returns True if is a SAR band (from :code:`SarBandNames`)
+    Returns True if it is a SAR band (from :code:`SarBandNames`)
 
     Args:
         band (BandType): Anything that could be a SAR band
@@ -375,7 +375,7 @@ def is_sar_band(band: BandType) -> bool:
 
 def is_sat_band(band: BandType) -> bool:
     """
-    Returns True if is a satellite band (from both :code:`SarBandNames` or :code:`SpectralBandNames`)
+    Returns True if it is a satellite band (from both :code:`SarBandNames` or :code:`SpectralBandNames`)
 
     Args:
         band (BandType): Anything that could be a band
@@ -404,7 +404,7 @@ def is_sat_band(band: BandType) -> bool:
 
 def is_clouds(clouds: BandType) -> bool:
     """
-    Returns True if is a cloud band (from :code:`CloudBandNames`)
+    Returns True if it is a cloud band (from :code:`CloudsBandNames`)
 
     Args:
         clouds (BandType): Anything that could be a cloud band
@@ -438,7 +438,7 @@ def is_clouds(clouds: BandType) -> bool:
 
 def is_dem(dem: BandType) -> bool:
     """
-    Returns True if is a DEM band (from :code:`DemBandNames`)
+    Returns True if it is a DEM band (from :code:`DemBandNames`)
 
     Args:
         clouds (BandType): Anything that could be a DEM band
@@ -471,7 +471,7 @@ def is_dem(dem: BandType) -> bool:
 
 def is_mask(mask: BandType) -> bool:
     """
-    Returns True if is a Mask band (from :code:`MaskBandNames`)
+    Returns True if it is a Mask band (from :code:`MaskBandNames`)
 
     Args:
         mask (BandType): Anything that could be a Mask band
@@ -520,13 +520,13 @@ def is_mask(mask: BandType) -> bool:
 
 def is_s2_l2a_specific_band(band: BandType) -> bool:
     """
-    Returns True if is a S2 L2A specific band (from :code:`Sentinel2L2ABands`)
+    Returns True if it is a S2 L2A specific band (from :code:`Sentinel2L2ABands`)
 
     Args:
         band (BandType): Anything that could be a S2 L2A specific band
 
     Returns:
-        bool: True if the band asked is a Mask band
+        bool: True if the band asked is an S2 L2A specific band
 
     Examples:
 

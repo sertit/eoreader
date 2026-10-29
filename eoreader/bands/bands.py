@@ -85,10 +85,10 @@ class Band:
 
     def _to_repr(self) -> list:
         """
-        Returns a representation of the product as a list
+        Returns a representation of the band as a list
 
         Returns:
-            list: Representation of the product
+            list: Representation of the band
         """
         # Mandatory fields
         repr_str = [

@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Pleiades-Neo products.
-See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
 
@@ -42,7 +42,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class PneoProduct(DimapV2Product):
     """
     Class of Pleiades-Neo products.
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
     for more information.
     """
 
@@ -59,7 +59,7 @@ class PneoProduct(DimapV2Product):
         super()._pre_init(**kwargs)
 
     def _map_bands(self) -> None:
-        """Set products type"""
+        """Map bands"""
         # Create spectral bands
         ca = SpectralBand(
             eoreader_name=CA,

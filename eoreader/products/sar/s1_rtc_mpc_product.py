@@ -177,7 +177,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
              str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
+            # Sentinel-1 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[4]
 
             # Convert to datetime
@@ -212,7 +212,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -240,7 +240,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

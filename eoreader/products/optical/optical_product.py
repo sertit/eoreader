@@ -195,7 +195,7 @@ class OpticalProduct(Product):
 
     def get_existing_bands(self) -> list:
         """
-        Return the existing band.
+        Return the existing bands.
 
         .. code-block:: python
 
@@ -391,7 +391,7 @@ class OpticalProduct(Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             pixel_size (float): Pixel size
             kwargs: Other arguments used to load bands
 
@@ -414,7 +414,7 @@ class OpticalProduct(Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             pixel_size (float): Pixel size
             kwargs: Other arguments used to load bands
 
@@ -804,8 +804,8 @@ class OpticalProduct(Product):
 
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
-            band (BandNames): Band
             e0 (float): Solar spectral irradiance for the current band
+            dt (float): Earth-Sun distance
 
         Returns:
             xr.DataArray: TOA Reflectance array
@@ -855,7 +855,7 @@ class OpticalProduct(Product):
         """
         has_spectral_bands = [is_spectral_band(band) for band in bands]
 
-        # Do not add this if one non-spectral bands exists
+        # Do not add this if any non-spectral band exists
         if all(has_spectral_bands):
             if kwargs.get(TO_REFLECTANCE, True):
                 has_thermal = [is_thermal_band(band) for band in bands]
@@ -868,7 +868,7 @@ class OpticalProduct(Product):
             else:
                 xarr.attrs["radiometry"] = "as is"
 
-        # Add this if at least one spectral bands exists
+        # Add this if at least one spectral band exists
         if any(has_spectral_bands) and self._has_cloud_cover:
             xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
@@ -877,7 +877,7 @@ class OpticalProduct(Product):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

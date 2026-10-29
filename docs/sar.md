@@ -6,7 +6,7 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/latest/noteb
 
 ![sar_sensors](_static/sar_sensors.png)
 
-| Constellations                      | Class                                                         | Use archive                                 |
+| Constellations                      | Class                                                         | Use archive                                |
 |-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
 | `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                           |
 | `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                           |
@@ -20,8 +20,8 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/latest/noteb
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                           |
 
 ```{warning}
-Satellites products that cannot be used as archived have to be extracted before use, 
-mostly because SNAP doesn't handle them.
+Satellite products that cannot be used as archives must be extracted before use, 
+mostly because SNAP does not handle them.
 ```
 
 ## Product type handling
@@ -60,14 +60,14 @@ mostly because SNAP doesn't handle them.
 | `UMBRA`                             | SICD, SIDD, CPHD, NITF, CSI                                                                                                                                     | ❌                    |
 | `UMBRA`                             | SLC                                                                                                                                                             | ❌ (waiting for SNAP) |
 
-✅: Tested   
-⚠: Never tested, **use it at your own risk!**  
-❌: Not handled   
-💤: Waiting for the release  
+✅: Tested
+⚠: Never tested, **use at your own risk!**
+❌: Not handled
+💤: Waiting for release
 
 The goal of **EOReader** is to implement every constellation that can be used in
 the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
-The constellations that can be used during CEMS activations are (as of 09/2021):  
+The constellations that can be used during CEMS activations are (as of 09/2021):
 ![cems_constellations](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 [Sentinel-1 COGS](https://dataspace.copernicus.eu/news/2023-6-6-sentinel-1-grd-cloud-optimized-geotiff-now-available) provided by the Copernicus Dataspace are handled if you are using SNAP 10 or higher.
@@ -75,14 +75,14 @@ The constellations that can be used during CEMS activations are (as of 09/2021):
 ## SAR Bands
 
 ```{warning}
-- **EOReader** always loads SAR bands in a GRD format. This library is not (yet?) meant to manage inSAR or other complex processes.
+- **EOReader** always loads SAR bands in GRD format. This library is not (yet?) meant to manage InSAR or other complex processes.
 - Only the `Intensity` bands are used (not the `I`, `Q` for complex data or `Amplitude` for ground range data)
-- Some SAR band may contain null pixels that are not really nodata (COSMO for example).  
-    In this case, the Terrain Correction step applied by SNAP can create large nodata area.  
+- Some SAR bands may contain null pixels that are not actually nodata (e.g., COSMO).  
+    In this case, the Terrain Correction step applied by SNAP can create large nodata areas.  
     If this is the case, you can set the keyword {meth}`~eoreader.keywords.SAR_INTERP_NA` to True when loading or stacking SAR data
 ```
 
-According to what contains the products, allowed SAR bands are:
+Depending on what the products contain, the allowed SAR bands are:
 
 - {meth}`~eoreader.bands.band_names.SarBandNames.VV`
 - {meth}`~eoreader.bands.band_names.SarBandNames.VH`
@@ -91,7 +91,7 @@ According to what contains the products, allowed SAR bands are:
 - {meth}`~eoreader.bands.band_names.SarBandNames.RH` (only for RADARSAT-Constellation)
 - {meth}`~eoreader.bands.band_names.SarBandNames.RV` (only for RADARSAT-Constellation)
 
-You also can load despeckled bands:
+You can also load despeckled bands:
 
 - {meth}`~eoreader.bands.band_names.SarBandNames.VV_DSPK`
 - {meth}`~eoreader.bands.band_names.SarBandNames.VH_DSPK`
@@ -109,42 +109,44 @@ ASI implements SAR indices, with the list available [here](https://awesome-ee-sp
 
 ## DEM bands
 
-These bands need a valid worldwide DEM path positioned thanks to the environment variable `EOREADER_SAR_DEFAULT_RES`
+These bands need a valid worldwide DEM path, specified by the `EOREADER_DEM_PATH` environment variable.
 
 - `DEM`
 - `SLOPE`
 
 SAR constellations can only load {meth}`~eoreader.bands.band_names.DemBandNames.DEM` and {meth}`~eoreader.bands.band_names.DemBandNames.SLOPE`
-bands as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please post an issue if you
+bands, as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please open an issue if you
 need this band in `percent`.
 
-These bands need a valid worldwide DEM path positioned thanks to the environment variable `EOREADER_DEM_PATH`.
-You can use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
-a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
-`https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
+These bands require a valid worldwide DEM path, specified via the `EOREADER_DEM_PATH` environment variable.
+You can use either:
+- A local path (e.g., `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt`)
+- A URL pointing to a web resource hosted on S3-compatible storage (e.g., `https://s3.storage.com/dem-bucket/srtm_cog.tif`)
+
+Note: S3-compatible storage URLs are not yet available on Windows.
 
 ## Local Incidence Angles
 
-Thanks to the keyword {meth}`~eoreader.keywords.WRITE_LIA_KW` or `write_lia`, it is possible to load the local incidence angles of any SAR products.
+Thanks to the keyword {meth}`~eoreader.keywords.WRITE_LIA_KW` (or `write_lia`), it is possible to load the local incidence angles of any SAR product.
 
 ## Default pixel size and resolution
 
-The default resolution of SAR products is the one given in 
-[Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+(10).pdf). 
-For resolutions not available in this document, we are using the pixel spacing given by the constellation's provider.
+The default resolution of SAR products corresponds to that given in 
+[Data Access Portfolio (2014-2024, section 6.2)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf). 
+For resolutions not available in this document, we use the pixel spacing provided by the constellation.
 Complex data are **always** converted back to ground range to be used, so the complex resolution is **never** used by EOReader.
 
-The default pixel size of GRD bands is different from the product resolution! (i.e. pixel size of 10 m with a resolution of 20 m for Sentinel-1 IW data)
+Note: The default pixel size of GRD bands differs from the product resolution (e.g., pixel size of 10 m with a resolution of 20 m for Sentinel-1 IW data)
 
 ```{warning}
-⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved!
-As this may be counter-intuitive, it is recommended to **always** specify the pixel size when loading SAR data.
+⚠️ Note that for a pixel spacing of 10 meters and a range x azimuth resolution of 23 m, objects under 23 m will not be resolved!
+As this may be counterintuitive, it is recommended to **always** specify the pixel size when loading SAR data.
 ```
 
 ```{note}
-Resolution is not used in EOReader, only the pixel_size. Resolution is juste specified as an information.
-For now, resolutions are stored with only one number in EOReader (not rg x az, only one of the two, which will be in bold here after). 
-If this needs change, don't hesitate to write an issue :) 
+Resolution is not used in EOReader; only `pixel_size` is used. Resolution is only specified as information.
+Currently, resolutions are stored with only one number in EOReader (not range x azimuth, only one of the two, which will be in **bold** below).
+If this needs to change, do not hesitate to open an issue. 
 ```
 
 
@@ -198,13 +200,13 @@ If this needs change, don't hesitate to write an issue :)
 ```{note}
 All product types are used in high resolution (SE), as the high radiometry products are not used in Copernicus Emergency Management Service. 
 This is not the case for ScanSAR products, always delivered in RE.
-If you want all the RE products implemented, don't hesitate to write an issue :)
+If you want all the RE products implemented, don't hesitate to open an issue :)
 ```
 
 ### RADARSAT-2
 
 #### Classic modes
-| **RADARSAT-2**                              | SAR georeferenced extra (SGX)                                                       | SAR georeferenced fine (SGF)                          | SAR systematic geocorrected(SSG)<br>SAR precision geocorrected (SPG) |
+| **RADARSAT-2**                              | SAR georeferenced extra (SGX)                                                       | SAR georeferenced fine (SGF)                          | SAR systematic geocorrected (SSG)<br>SAR precision geocorrected (SPG) |
 |---------------------------------------------|-------------------------------------------------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------------|
 | Spotlight                                   | **pixel size: 0.8 m _(1.0 if incidence angle < 48°)_**<br>rg x az resolution: 0.8 m | **pixel size: 0.5 m**<br>rg x az resolution: 0.8 m    | **pixel size: 0.5 m**<br>rg x az resolution: 0.8 m                   |
 | Ultra-Fine<br>Wide Ultra-Fine               | **pixel size: 0.8 m _(1.0 if incidence angle < 48°)_**<br>rg x az resolution: 2.8 m | **pixel size: 1.5625 m**<br>rg x az resolution: 2.8 m | **pixel size: 1.5625 m**<br>rg x az resolution: 2.8 m                |
@@ -220,7 +222,7 @@ If you want all the RE products implemented, don't hesitate to write an issue :)
 * Only the Extra-Fine mode with 1 look is taken into account. Pixel sizes can change with 4 or 28 looks.
 
 #### ScanSAR mode
-| **RADARSAT-2**              | ScanSAR narrow beam (SCN)                            | ScanSAR wide beam (SCW)                               | ScanSAR fine (SCF)<br>ScanSAR sampled (SCS            |
+| **RADARSAT-2**              | ScanSAR narrow beam (SCN)                            | ScanSAR wide beam (SCW)                               | ScanSAR fine (SCF)<br>ScanSAR sampled (SCS)            |
 |-----------------------------|------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------------|
 | ScanSAR Narrow              | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m |                                                       | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m  |
 | ScanSAR Wide                |                                                      | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m |
@@ -268,10 +270,10 @@ If you want all the RE products implemented, don't hesitate to write an issue :)
 | **TOPSAR Wide (TW)**<br>Quad Pol              | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m                                         |
 
 ```{warning}
-It has been impossible to find the recommmanded pixel size from SAOCOM products.
-They have been set to half the resolution (as it is usually the case)
+It has been impossible to find the recommended pixel size for SAOCOM products.
+They have been set to half the resolution (as is usually the case).
 
-If you have more information about this, please write an issue!
+If you have more information, please open an issue!
 ```
 
 ### Capella
@@ -292,8 +294,8 @@ If you have more information about this, please write an issue!
 
 You can change the SAR GPT graphs used by setting the following environment variables:
 
-- `EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.
-- `EOREADER_DSPK_GRAPH`: Environment variables for despeckling graph path
+- `EOREADER_PP_GRAPH`: Environment variable for the pre-processing graph path.
+- `EOREADER_DSPK_GRAPH`: Environment variable for the despeckling graph path.
 
 ```{warning}
 For performance reasons, the `Terrain Correction` step is done **before** the `Despeckle` step. Indeed this step is very
@@ -302,7 +304,7 @@ if this is not the regular way of handling SAR data, this shouldn't really affec
 after that.
 ```
 
-You can change the DEM used for the Terrain Correction step by positioning the `EOREADER_SNAP_DEM_NAME` environment variable. 
+You can change the DEM used for the Terrain Correction step by setting the `EOREADER_SNAP_DEM_NAME` environment variable.
 Available DEMs are:
 - `ACE2_5Min` 
 - `ACE30`
@@ -314,7 +316,7 @@ Available DEMs are:
 - `SRTM 3Sec`
 - `External DEM`
 
-If `External DEM` is set, you must specify the DEM you want by positioning the `EOREADER_DEM_PATH` to a DEM that can be read by SNAP.
+If `External DEM` is set, you must specify the DEM you want by setting the `EOREADER_DEM_PATH` environment variable to a DEM that can be read by SNAP.
 
 ## Known SNAP bugs
 
@@ -322,7 +324,7 @@ See the [FAQ](https://eoreader.readthedocs.io/latest/faq.html#snap-known-bugs) f
 
 ### What to know if you are changing a graph
 
-Those graphs should have a reader and a writer on this model:
+These graphs should have a reader and a writer following this model:
 
 ```xml
 
@@ -349,16 +351,16 @@ Those graphs should have a reader and a writer on this model:
 ```
 
 ```{warning}
-Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. The first graph must orthorectify your
-SAR data, but should not despeckle it. The second graph is precisely charged to do it.
+Be sure to set `$file` and `$out` and keep the `BEAM-DIMAP` file format. The first graph must orthorectify your
+SAR data but should not despeckle it. The second graph is responsible for doing so.
 
-SNAP graphs are run on every band separately.
+SNAP graphs are run on each band separately.
 
- The pre-processing graph should also have a `Calibration` and a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+The pre-processing graph should also have `Calibration` and `Terrain Correction` steps with the following wildcards, which are set automatically in the module:
 
- - `$calib_pola`: Polarization of the band to calibrate
- - `$dem_name`: SNAP DEM name
- - `$dem_path`: DEM path (that can be use by SNAP, so only TIFF DEMs)
+- `$calib_pola`: Polarization of the band to calibrate
+- `$dem_name`: SNAP DEM name
+- `$dem_path`: DEM path (that can be used by SNAP, so only TIFF DEMs)
  - `$res_m`: Resolution in meters
  - `$res_deg`: Resolution in degrees
  - `$crs`: CRS
@@ -489,4 +491,4 @@ variable:
 
 - [Umbra](https://help.umbra.space/product-guide)
 
-*Documentation last accessed on 12/03/2025*
+*Documentation last accessed on 2025-03-12*

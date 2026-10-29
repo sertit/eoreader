@@ -91,7 +91,7 @@ def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
         gdf (gpd.GeoDataFrame): Geodataframe to convert to bbox
 
     Returns:
-        dict: STAC bbox
+        list: STAC bbox
     """
     # Convert from numpy dtype (which are not JSON serializable) to standard dtype
     return [float(val) for val in gdf.bounds.values[0]]
@@ -158,7 +158,7 @@ def get_media_type(band_path: str) -> Any:
     elif suffix.lower() in [".jpeg", ".jpg"]:
         media_type = pystac.MediaType.JPEG
     elif suffix.lower() == ".til" or suffix.lower() == ".nc":
-        media_type = None  # Not existing
+        media_type = None  # Does not exist
     else:
         media_type = None  # Not recognized
 

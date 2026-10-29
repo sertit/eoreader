@@ -82,7 +82,7 @@ class CustomFields(ListEnum):
     """ Custom product type. """
 
     SUN_AZ = "sun_azimuth"
-    """ Custom sun zimuth. """
+    """ Custom sun azimuth. """
 
     SUN_ZEN = "sun_zenith"
     """ Custom sun_zenith. """
@@ -222,10 +222,10 @@ class CustomProduct(Product):
 
     def get_datetime(self, as_datetime: bool = False) -> str:
         """
-        Set product real name from metadata
+        Get the product's acquisition datetime.
 
         Returns:
-            str: True name of the product (from metadata)
+            str | datetime: Acquisition datetime
         """
 
         # Datetime
@@ -303,7 +303,7 @@ class CustomProduct(Product):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -375,7 +375,7 @@ class CustomProduct(Product):
         Get the stack path.
 
         Returns:
-            dict: Dictionary containing the path of every orthorectified bands
+            dict: Dictionary containing the path of every orthorectified band
         """
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
@@ -465,7 +465,7 @@ class CustomProduct(Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -563,14 +563,14 @@ class CustomProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         # TODO?
         return False
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_{constellation}_{product_type}_{id}).
+        Get product condensed name ({acq_datetime}_{constellation}_{product_type}_{id}).
 
         Returns:
             str: Condensed name
@@ -598,7 +598,7 @@ class CustomProduct(Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespace
@@ -643,7 +643,7 @@ class CustomProduct(Product):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

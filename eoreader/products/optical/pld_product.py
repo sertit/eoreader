@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Pleiades products.
-See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
 
@@ -32,7 +32,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class PldProduct(DimapV2Product):
     """
     Class of Pleiades products.
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
     for more information.
     """
 

@@ -36,7 +36,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class S1ProductType(ListEnum):
     """
-    S1 products types. Take a look here:
+    S1 product types. Take a look here:
     https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products
     """
 
@@ -102,13 +102,13 @@ class S1Product(SarProduct):
     """
     Class for Sentinel-1 Products
 
-    You can use directly the .zip file
+    You can directly use the .zip file
     """
 
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
         """
@@ -204,7 +204,7 @@ class S1Product(SarProduct):
         # Pre init done by the super class
         super()._pre_init(**kwargs)
 
-        # Check if COG in name (S1 needs always SNAP)
+        # Check if COG in name (S1 always needs SNAP)
         if "_COG" in self.filename and not self._has_snap_x_or_higher(10):
             raise NotImplementedError(
                 "S1 COG products are only handled by SNAP 10.0 or higher. "
@@ -276,7 +276,7 @@ class S1Product(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from S1 products name (could check the metadata too)
+        Get sensor mode from S1 product name (could check the metadata too)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -377,7 +377,7 @@ class S1Product(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -410,7 +410,7 @@ class S1Product(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

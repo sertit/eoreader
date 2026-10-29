@@ -25,7 +25,7 @@ class SarBand(Band):
     """
     SAR Band object.
     Based on STAC band object.
-    See `here <https://github.com/stac-extensions/eo/#band-object>`_ for more information, without useless information.
+    See `here <https://github.com/stac-extensions/eo/#band-object>`_ for more information.
     """
 
     def __init__(self, eoreader_name, **kwargs):
@@ -69,7 +69,7 @@ class SarBandMap(BandMap):
                 })
 
         Args:
-            band_map (dict): Band mapping as {SarBandNames: Band number for loading band}
+            band_map (dict): Band mapping as {SarBandNames: Band number for loading the band}
         """
         for band_name, band in band_map.items():
             if not isinstance(band, SarBand):

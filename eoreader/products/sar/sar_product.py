@@ -116,7 +116,7 @@ class SnapDems(ListEnum):
 @unique
 class SarProductType(ListEnum):
     """
-    Generic products types, used to choose a SNAP graph.
+    Generic product types, used to choose a SNAP graph.
     """
 
     CPLX = "COMPLEX"
@@ -132,7 +132,7 @@ class SarProductType(ListEnum):
     """Already orthorecified image: don't need SNAP"""
 
     OTHER = "OTHER"
-    """Other products types, not used in EOReader"""
+    """Other product types, not used in EOReader"""
 
 
 class _ExtendedFormatter(Formatter):
@@ -142,10 +142,10 @@ class _ExtendedFormatter(Formatter):
     """
 
     def convert_field(self, value, conversion):
-        """Extend conversion symbol
-        Following additional symbol has been added
-        * l: convert to string and low case
-        * u: convert to string and up case
+        """Extend the conversion symbol
+        The following additional symbols have been added
+        * l: convert to string and lower case
+        * u: convert to string and upper case
 
         default are:
         * s: convert with str()
@@ -251,13 +251,13 @@ class SarProduct(Product):
 
     def _get_predictor(self) -> int:
         """
-        Set LZW predictor to 1 in order to SNAP to be able to read this GeoTiff (in despeckle operations mostly).
+        Set LZW predictor to 1 in order for SNAP to be able to read this GeoTiff (in despeckle operations mostly).
         Else set to 3.
 
         Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
 
         This is related to JAVA imageio library, not SNAP directly, so be sure to have imageio up-to-date to set 3.
-        For now, it is unknown to know if imageio handles predictor = 3, so live it to 1.
+        For now, it is unknown whether imageio handles predictor = 3, so leave it at 1.
 
         """
         # If we could know if imageio handles Predictor=3:
@@ -279,7 +279,7 @@ class SarProduct(Product):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -369,7 +369,7 @@ class SarProduct(Product):
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing!
+        .. WARNING:: This function orthorectifies SAR bands if not existing!
 
         .. code-block:: python
 
@@ -479,7 +479,7 @@ class SarProduct(Product):
         """
         Return the paths of required bands.
 
-        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing!
+        .. WARNING:: This function orthorectifies and despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -594,7 +594,7 @@ class SarProduct(Product):
     @cache
     def _get_raw_bands(self) -> list:
         """
-        Return the existing band paths (as they come with th archived products).
+        Return the existing band paths (as they come with the archived products).
 
         Returns:
             list: List of existing bands in the raw products (vv, hh, vh, hv)
@@ -606,9 +606,9 @@ class SarProduct(Product):
         """
         Return the existing orthorectified band paths (including despeckle bands).
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing!
+        .. WARNING:: This function orthorectifies SAR bands if not existing!
 
-        .. WARNING:: This functions despeckles SAR bands if not existing!
+        .. WARNING:: This function despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -629,7 +629,7 @@ class SarProduct(Product):
             }
 
         Returns:
-            dict: Dictionary containing the path of every orthorectified bands
+            dict: Dictionary containing the path of every orthorectified band
         """
         return self.get_band_paths(self.get_existing_bands())
 
@@ -865,7 +865,7 @@ class SarProduct(Product):
         return new_graph_path
 
     def _get_dem(self) -> (str, str):
-        """Get the DEM used by SNAP for orthorectification in Terrain Coprrection operator."""
+        """Get the DEM used by SNAP for orthorectification in the Terrain Correction operator."""
         try:
             dem_name = SnapDems.from_value(
                 os.environ.get(SNAP_DEM_NAME, SnapDems.GLO_30)
@@ -1377,7 +1377,7 @@ class SarProduct(Product):
             arr = arr.where(arr != self._snap_no_data, np.nan)
 
             # Interpolate if needed (interpolate na works only 1D-like, sadly)
-            # DSPK step in done on already interpolated data
+            # DSPK step is done on already interpolated data
             if not dspk and kwargs.get(SAR_INTERP_NA, False):
                 arr = interp_na(arr, dim="y")
                 arr = interp_na(arr, dim="x")

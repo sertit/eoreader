@@ -71,7 +71,7 @@ def test_index(tmp_path):
             failed_idx.append(idx_name)
 
     # Read the results
-    # Do like that to check all existing indices
+    # Do this to check all existing indices
     if failed_idx:
         raise AssertionError(f"Failed index: {failed_idx}")
 

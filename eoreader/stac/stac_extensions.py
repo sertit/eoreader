@@ -197,7 +197,7 @@ class EoExt:
 
 class ProjExt:
     """
-    Class `Projection Extension Specification <https://github.com/stac-extensions/projection/>`_ of STAC items.
+    Class of `Projection Extension Specification <https://github.com/stac-extensions/projection/>`_ of STAC items.
     """
 
     def __init__(self, prod, **kwargs):
@@ -315,7 +315,7 @@ class ProjExt:
 
 class ViewExt:
     """
-    Class `View Extension Specification <https://github.com/stac-extensions/view/>`_ of STAC items.
+    Class of `View Extension Specification <https://github.com/stac-extensions/view/>`_ of STAC items.
     """
 
     def __init__(self, prod, **kwargs):

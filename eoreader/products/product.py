@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Product, superclass of all EOReader satellites products"""
+"""Product, superclass of all EOReader satellite products"""
 
 # pylint: disable=W0107
 from __future__ import annotations
@@ -141,7 +141,7 @@ class Product:
         **kwargs,
     ) -> None:
         self.needs_extraction = True
-        """Does this product needs to be extracted to be processed? (:code:`True` by default)."""
+        """Does this product need to be extracted to be processed? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
         if (
@@ -189,7 +189,7 @@ class Product:
         """Acquisition datetime."""
 
         self.tile_name = None
-        """Tile if possible (for data that can be piled, for example S2 and Landsats)."""
+        """Tile if possible (for data that can be stacked, for example S2 and Landsat)."""
 
         self.sensor_type = None
         """Sensor type, SAR or optical."""
@@ -202,8 +202,8 @@ class Product:
 
         self.bands = None
         """
-        Band mapping between band wrapping names such as
-        :code:`GREEN` and band real number such as :code:`03` for Sentinel-2.
+        Band mapping between band names such as
+        :code:`GREEN` and real band numbers such as :code:`03` for Sentinel-2.
         """
 
         self.is_reference = False
@@ -211,8 +211,8 @@ class Product:
 
         self.corresponding_ref = []
         """The corresponding reference products to the current one
-         (if the product is not a reference but has a reference data corresponding to it).
-         A list because of multiple ref in case of non-stackable products (S3, S1...)"""
+         (if the product is not a reference but has reference data corresponding to it).
+         A list to handle multiple references in case of non-stackable products (S3, S1...)"""
 
         self.nodata = -9999
         """ Product nodata, set to -9999 by default """
@@ -221,7 +221,7 @@ class Product:
         """
         Nodata of raw bands. 
         Not useful except for products with non usable default bands, 
-        such as non-ortho opticalVHR data or GEC SAR data (they will override this value if needed)
+        such as non-ortho optical VHR data or GEC SAR data (they will override this value if needed)
         """
 
         # Mask values
@@ -376,7 +376,7 @@ class Product:
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -429,7 +429,7 @@ class Product:
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Extent in UTM
+            gpd.GeoDataFrame: Centroid in UTM
         """
         centroid = self.footprint().centroid
 
@@ -570,10 +570,10 @@ class Product:
 
     def _get_split_name(self) -> list:
         """
-        Get split name (erasing empty strings in it by precaution, especially for S1 and S3 data)
+        Get split name (removing empty strings by precaution, especially for S1 and S3 data)
 
         Returns:
-            list: Split products name
+            list: Split product name
         """
         return utils.get_split_name(self.name)
 
@@ -666,7 +666,7 @@ class Product:
 
 
         Returns:
-            str: Default band
+            BandNames: Default band
         """
         raise NotImplementedError
 
@@ -783,7 +783,7 @@ class Product:
 
     def _is_existing(self, filename: str) -> tuple[AnyPathType, bool]:
         """
-        Returns the output path of a filename (looking in nor writable folder first), and if it exists or not
+        Returns the output path of a filename (looking in the non-writable folder first), and if it exists or not
 
         Args:
             filename (str): Filename
@@ -891,7 +891,7 @@ class Product:
     @abstractmethod
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespace
@@ -944,7 +944,7 @@ class Product:
         self, mtd_from_path: str, mtd_archived: str = None
     ) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Args:
             mtd_from_path (str): Metadata regex (glob style) to find from extracted product
@@ -988,7 +988,7 @@ class Product:
         self, mtd_from_path: str, mtd_archived: str = None
     ) -> html.HtmlElement:
         """
-        Read metadata and outputs the metadata HTML root
+        Read metadata and output the metadata HTML root
 
         Args:
             mtd_from_path (str): Metadata regex (glob style) to find from extracted product
@@ -1028,7 +1028,7 @@ class Product:
     @cache
     def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict.
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -1089,8 +1089,8 @@ class Product:
             The bands will be purged of nodata (not over the sea),
             the nodata will be set to 0 to respect SNAP's behavior and the bands will be DataArray in float32.
 
-        Bands that come out this function at the same time are collocated and therefore have the same shapes.
-        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
+        Bands that come out of this function at the same time are collocated and therefore have the same shapes.
+        This can be broken if you load data separately. It is best to always load DEM data with some real bands.
 
         .. code-block:: python
 
@@ -1246,7 +1246,7 @@ class Product:
                 unique_bands, pixel_size=pixel_size, size=size, **kwargs
             )
 
-            # Compute index (they conserve the nodata)
+            # Compute index (they preserve the nodata)
             if index_list:
                 # Collocate bands before indices to ensure the same size to perform operations between bands
                 loaded_bands = self._collocate_bands(loaded_bands)
@@ -1460,7 +1460,7 @@ class Product:
         **kwargs,
     ) -> dict:
         """
-        Load cloud files as xarrays.
+        Load spectral indices as xarrays.
 
         Args:
             bands (list): List of the wanted bands
@@ -1559,7 +1559,7 @@ class Product:
         Args:
             exo_list (list): List of the exogenous data layer to load
             pixel_size (int): Band pixel size in meters
-            size (tuple | list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1608,7 +1608,7 @@ class Product:
 
     def has_band(self, band: BandNames | str) -> bool:
         """
-        Does this product has the specified band?
+        Does this product have the specified band?
 
         By band, we mean:
 
@@ -1660,7 +1660,7 @@ class Product:
 
     def has_bands(self, bands: list | BandNames | str) -> bool:
         """
-        Does this product has the specified bands?
+        Does this product have the specified bands?
 
         By band, we mean:
 
@@ -1675,7 +1675,7 @@ class Product:
             bands (list | BandNames | str): EOReader bands (optical, SAR, clouds, DEM)
 
         Returns:
-            bool: True if the products has the specified band
+            bool: True if the product has the specified band
         """
         bands = types.make_iterable(bands)
         return all([self.has_band(band) for band in set(bands)])
@@ -1683,7 +1683,7 @@ class Product:
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
 
         .. code-block:: python
 
@@ -1763,7 +1763,7 @@ class Product:
     def __gt__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
@@ -1777,13 +1777,13 @@ class Product:
     def __ge__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired after or in the same time as the other
+            bool: True if this product has been acquired after or at the same time as the other
 
         """
         return self.date >= other.date
@@ -1791,13 +1791,13 @@ class Product:
     def __eq__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired in the same time as the other
+            bool: True if this product has been acquired at the same time as the other
 
         """
         return self.date == other.date
@@ -1805,13 +1805,13 @@ class Product:
     def __ne__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired not in the same time as the other
+            bool: True if this product has been acquired not at the same time as the other
 
         """
         return self.date != other.date
@@ -1819,13 +1819,13 @@ class Product:
     def __le__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired before or in the same time as the other
+            bool: True if this product has been acquired before or at the same time as the other
 
         """
         return self.date <= other.date
@@ -1833,7 +1833,7 @@ class Product:
     def __lt__(self, other: Product) -> bool:
         """
         Overload greater than for eoreader -> compare the dates:
-        The greater products is the one acquired the last.
+        The greater product is the one acquired last.
 
         Args:
             other (Product): Other products to be compared with this one
@@ -1865,7 +1865,7 @@ class Product:
             # Move temporary process folder
             self._move_tmp_process(f"tmp_{self.condensed_name}")
 
-            # Remove old output if existing into the new output
+            # Remove old temporary output, if existing
             if self._tmp_output:
                 self._tmp_output.cleanup()
                 self._tmp_output = None
@@ -1882,7 +1882,7 @@ class Product:
             with contextlib.suppress(shutil.Error):
                 shutil.move(str(file), self._tmp_process)
 
-        # Remove opld temp process
+        # Remove old temp process
         if old_tmp_process is not None:
             files.remove(old_tmp_process)
 
@@ -1940,7 +1940,7 @@ class Product:
         else:
             LOGGER.debug("Warping DEM for %s", self.condensed_name)
 
-            # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
+            # Allow S3 HTTP Urls only on Linux because of rasterio bugs on Windows
             if validators.url(dem_path) and platform.system() == "Windows":
                 raise OSError(
                     f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
@@ -2047,7 +2047,7 @@ class Product:
         else:
             LOGGER.debug("Warping EXO for %s", self.condensed_name)
 
-            # # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
+            # # Allow S3 HTTP Urls only on Linux because of rasterio bugs on Windows
             # if validators.url(exo_path) and platform.system() == "Windows":
             #     raise OSError(
             #         f"URLs to EXO like {exo_path} are not supported on Windows! Use Docker or Linux instead"
@@ -2234,7 +2234,7 @@ class Product:
 
         Args:
             bands (list): Bands and index combination
-            pixel_size (float): Stack pixel size. . If not specified, use the product pixel size.
+            pixel_size (float): Stack pixel size. If not specified, use the product pixel size.
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             stack_path (AnyPathStrType): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
@@ -2646,7 +2646,7 @@ class Product:
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 
@@ -2703,7 +2703,7 @@ class Product:
     def _get_archived_file_list(self, archive_path=None):
         """
         Overload of utils.read_archived_file to use the product's path as archive.
-        Return a tuple to make it hashable and therefore digestable by lru_cache.
+        Return a tuple to make it hashable and therefore digestible by lru_cache.
         See https://stackoverflow.com/questions/49210801/python3-pass-lists-to-function-with-functools-lru-cache
         '"""
 

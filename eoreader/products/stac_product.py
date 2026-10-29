@@ -58,7 +58,7 @@ class StacProduct(Product):
 
         Args:
             product_path (AnyPathStrType): Product path
-            **kwargs: Other argumlents
+            **kwargs: Other arguments
         """
         item = kwargs.pop("item", None)
         if item is None:
@@ -99,7 +99,7 @@ class StacProduct(Product):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -283,7 +283,7 @@ class StacProduct(Product):
 
     def _read_mtd_xml_stac(self, mtd_url, **kwargs) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Args:
             mtd_from_path (str): Metadata regex (glob style) to find from extracted product

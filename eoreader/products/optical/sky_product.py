@@ -80,7 +80,7 @@ class SkyItemType(ListEnum):
     A SkySat Scene Product is an individual framed scene within a strip,
     captured by the satellite in its line-scan of the Earth.
     SkySat Satellites have three cameras per satellite, which capture three overlapping strips.
-    Each of these strips contain overlapping scenes, not organized to any particular tiling grid system.
+    Each of these strips contains overlapping scenes, not organized to any particular tiling grid system.
     SkySat Scene products are approximately 1 x 2.5 square kilometers in size. They are represented in the Planet Platform as the SkySatScene item type.
 
     Not handled by EOReader for now.
@@ -98,7 +98,7 @@ class SkyItemType(ListEnum):
 
     VIDEO = "SkySat Video "
     """
-    A SkySat Video Product is a full motion video are collected between 30 and 120 seconds by a single camera from any of the SkySats.
+    A SkySat Video Product is a full motion video collected between 30 and 120 seconds by a single camera from any of the SkySats.
     Its size is comparable to a SkySat Scene, about 1 x 2.5 square kilometers.
     They are represented in the Planet Platform as the SkySatVideo item type.
 
@@ -206,7 +206,7 @@ class SkyProduct(PlanetProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -307,7 +307,7 @@ class SkyProduct(PlanetProduct):
         self.bands.map_bands(band_map)
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         stack_path = self._get_path(
             filename=self.name, invalid_lookahead="_udm", extension="tif"
         )
@@ -457,7 +457,7 @@ class SkyProduct(PlanetProduct):
 
         xarr = super()._update_attrs_constellation_specific(xarr, bands, **kwargs)
 
-        # Do not add this if one non-spectral bands exists
+        # Do not add this if one non-spectral band exists
         has_spectral_bands = [is_spectral_band(band) for band in bands]
         if all(has_spectral_bands):
             if self.product_type in [
@@ -473,7 +473,7 @@ class SkyProduct(PlanetProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read GeoJSON metadata and outputs its as a metadata XML root and its namespaces as an empty dict
+        Read GeoJSON metadata and output the metadata XML root and its namespaces as an empty dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -500,7 +500,7 @@ class SkyProduct(PlanetProduct):
 
     def _merge_subdatasets_mtd(self):
         """
-        Merge subdataset, when several Planet products avec been ordered together (for SkySat Scenes)
+        Merge subdataset, when several Planet products have been ordered together (for SkySat Scenes)
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
         """
         # Merge datasets

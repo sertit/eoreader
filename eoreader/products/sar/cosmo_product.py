@@ -48,9 +48,9 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class CosmoProductType(ListEnum):
     """
-    COSMO-SkyMed (both generations) products types.
+    COSMO-SkyMed (both generations) product types.
 
-    The product classed are not specified here.
+    The product classes are not specified here.
 
     More info
     `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
@@ -310,7 +310,7 @@ class CosmoProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -459,7 +459,7 @@ class CosmoProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 
@@ -491,7 +491,7 @@ class CosmoProduct(SarProduct):
 
         Args:
             band (sbn): Band to preprocess
-            pixel_size (float): Pixl size
+            pixel_size (float): Pixel size
             kwargs: Additional arguments
 
         Returns:

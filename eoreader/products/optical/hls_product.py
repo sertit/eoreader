@@ -92,7 +92,7 @@ class HlsInstrument(ListEnum):
     """HLS instruments"""
 
     OLI_TIRS = "OLI-TIRS"
-    """Landsat OLI-TIRS instruments combined,, for Landsat-8 and 9 constellation"""
+    """Landsat OLI-TIRS instruments combined, for Landsat-8 and 9 constellations"""
 
     MSI = "TIRS"
     """Sentinel-2 Instrument, for Sentinel-2 constellation"""
@@ -128,7 +128,7 @@ class HlsProduct(OpticalProduct):
 
     def _get_path(self, band_id: str) -> AnyPathType:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             band_id (str): Band ID
@@ -141,7 +141,7 @@ class HlsProduct(OpticalProduct):
 
     def _get_fmask_path(self) -> AnyPathType:
         """
-        Get either the archived path of the normal path of the Fmask path
+        Get either the archived or the normal path of the Fmask file
 
         Returns:
             AnyPathType: band path
@@ -254,7 +254,7 @@ class HlsProduct(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -265,7 +265,7 @@ class HlsProduct(OpticalProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -594,8 +594,6 @@ class HlsProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
-        TODO
-
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
@@ -644,7 +642,7 @@ class HlsProduct(OpticalProduct):
         TODO: Keep points in name?
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         mask_path = self._get_fmask_path()
         name = os.path.basename(mask_path).replace(".Fmask.tif", "")
@@ -655,7 +653,7 @@ class HlsProduct(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # No need here (_get_name reimplemented)
         pass
@@ -665,7 +663,7 @@ class HlsProduct(OpticalProduct):
         Get split name (with points!)
 
         Returns:
-            list: Split products name
+            list: Split product name
         """
         return [x for x in self.name.split(".") if x]
 
@@ -843,7 +841,7 @@ class HlsProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Works either with reflectance  (scale = 0.0001) and tb (scale = 0.01)
+        # Works either with reflectance (scale = 0.0001) or tb (scale = 0.01)
         with rasterio.open(str(band_path)) as ds:
             tags = ds.tags()
             offset = float(tags["add_offset"])
@@ -869,7 +867,7 @@ class HlsProduct(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -918,7 +916,7 @@ class HlsProduct(OpticalProduct):
         Get HLS products condensed name ({date}_{constellation}_{product_type}_{tile}).
 
         Returns:
-            str: Condensed Landsat name
+            str: Condensed name
         """
         return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{self.tile_name}"
 

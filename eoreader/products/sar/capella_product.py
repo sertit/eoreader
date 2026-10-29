@@ -46,7 +46,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class CapellaProductType(ListEnum):
     """
-    Capella products types.
+    Capella product types.
     Take a look
     `here <https://support.capellaspace.com/what-sar-imagery-products-are-available-with-capella>`_.
     """
@@ -159,7 +159,7 @@ class CapellaProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://support.capellaspace.com/what-sar-imagery-products-are-available-with-capella>`_
         """
         # Using az resolution
@@ -210,7 +210,7 @@ class CapellaProduct(SarProduct):
             self._raw_band_regex = str(next(self.path.glob(f"{name}.tif")).name)
         except StopIteration:
             try:
-                # Sometimes with double fs
+                # Sometimes with double ff
                 self._raw_band_regex = str(next(self.path.glob(f"{name}.tiff")).name)
             except StopIteration:
                 # For SICD and SIDD
@@ -325,7 +325,7 @@ class CapellaProduct(SarProduct):
         prod_type = self.split_name[3]
         self.product_type = getattr(CapellaProductType, prod_type)
 
-        # WARNING: Capella don't seem to have Ground Range products...
+        # WARNING: Capella doesn't seem to have Ground Range products...
 
         if self.product_type == CapellaProductType.GEO:
             self.sar_prod_type = SarProductType.ORTHO
@@ -404,13 +404,13 @@ class CapellaProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read GeoJSON metadata and outputs it as a metadata XML root and its namespaces as an empty dict
+        Read GeoJSON metadata and output the metadata XML root and its namespaces as an empty dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
 
-        # MTD are JSON
+        # MTD is JSON
         try:
             from dict2xml import dict2xml
 
@@ -450,8 +450,8 @@ class CapellaProduct(SarProduct):
 
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
-        Return the existing path of the VV band (as they come with the archived products).
-        Capella product only contains a VV band!
+        Return the existing path of the VV band (as it comes with the archived product).
+        A Capella product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments
@@ -491,7 +491,7 @@ class CapellaProduct(SarProduct):
     # @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

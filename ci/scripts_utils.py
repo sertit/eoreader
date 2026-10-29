@@ -92,7 +92,7 @@ def get_ci_data_dir() -> AnyPathType:
 
 def get_db_dir_on_disk() -> AnyPathType:
     """
-    Get database director (on disk)
+    Get database directory (on disk)
 
     Returns:
         str: Database directory
@@ -205,7 +205,7 @@ def broken_prods_path():
 
 
 def get_gdal_cachemax_mo(gdal_cachemax_pct: int):
-    """Returns GDAL CACHEMAX in Mo"""
+    """Returns GDAL CACHEMAX in MB"""
     import psutil
 
     gdal_cachemax_bytes = int(
@@ -252,7 +252,7 @@ def s3_env(*args, **kwargs):
                 # Tells GDAL to merge consecutive range GET requests.
                 GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
                 #
-                # -- useless by experience --
+                # -- useless in practice --
                 # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory (5% by default).
                 # GDAL_CACHEMAX=get_gdal_cachemax_mo(gdal_cachemax_pct=10), # => doesn't seem to improve anything, in fact slows down things a bit
                 # Number of threads GDAL can use for block reads and (de)compression, set to ALL_CPUS to use all available cores.

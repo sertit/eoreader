@@ -61,7 +61,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class StacItem:
     """
     Class of STAC object, mapping EOReader products to STAC Items.
-    Implements STAC Spec basic and extensions
+    Implements the basic STAC Spec and extensions
     """
 
     def __init__(self, prod, **kwargs):

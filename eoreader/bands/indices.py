@@ -16,7 +16,7 @@
 """
 Set of usual spectral indices.
 
-**Note**: This is easier to manage indices as raw functions in a file rather than stored in a class
+**Note**: It is easier to manage indices as raw functions in a file than to store them in a class
 """
 
 import contextlib
@@ -239,7 +239,7 @@ def SCI(bands: dict) -> xr.DataArray:
     """
     `Soil Cuirass Index <https://hal.archives-ouvertes.fr/hal-03207299/document>`_ (p.4)
 
-    It aims is to dissociate vegetated coverings from mineralized surfaces
+    It aims to dissociate vegetated cover from mineralized surfaces
     *Okaingni et al. 2010; Stephane et al. 2016*
 
     :code:`SCI = 3*GREEN - RED - 100`
@@ -403,7 +403,7 @@ def get_all_needed_bands() -> dict:
 
 def is_index(index) -> bool:
     """
-    Returns True if is an index function from the :code:`bands.index` module
+    Returns True if it is an index function from the :code:`bands.indices` module
 
     .. code-block:: python
 
@@ -434,4 +434,4 @@ NEEDED_BANDS = get_all_needed_bands()
 # Set all indices
 for _idx in get_all_index_names():
     vars()[_idx] = _idx
-    # TODO: set another thing than str? Create an IndexName object?
+    # TODO: set something other than str? Create an IndexName object?

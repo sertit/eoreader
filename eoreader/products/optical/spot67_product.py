@@ -55,7 +55,7 @@ class Spot67Product(DimapV2Product):
         return getattr(Constellation, constellation_id)
 
     def _map_bands(self) -> None:
-        """Set products type"""
+        """Map bands"""
         # Create spectral bands
         # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMyMw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzIy/spot-brochure-2019.pdf
         pan = SpectralBand(

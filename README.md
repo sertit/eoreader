@@ -32,13 +32,13 @@ EOReader implements **sensor-agnostic** features:
     - [index](https://eoreader.readthedocs.io/latest/optical.html#available-index)
     - [cloud bands](https://eoreader.readthedocs.io/latest/optical.html#cloud-bands)
     - [DEM bands](https://eoreader.readthedocs.io/latest/optical.html#dem-bands)
-- [`stack`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
+- [`stack`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these types of bands
 
 EOReader works mainly with:
-- [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
+- [`xarray.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarray.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
-EOReader allow you to create internal STAC catalogs directly from raw data.
+EOReader allows you to create internal STAC catalogs directly from raw data.
 
 > [!NOTE] 
 > 💡 EOReader handles data from the past!  
@@ -48,7 +48,7 @@ EOReader allow you to create internal STAC catalogs directly from raw data.
 ## ⚡️ Quickstart
 
 ### Optical
-EOReader allows you ta load and stack spectral bands, spectral indices, DEM and cloud bands agnostically from every handled optical constellation:
+EOReader allows you to load and stack spectral bands, spectral indices, DEM and cloud bands agnostically from every handled optical constellation:
 
 ```python
 from eoreader.reader import Reader
@@ -163,21 +163,21 @@ As one of the [Copernicus Emergency Management Service](https://emergency.copern
 [SERTIT](https://sertit.unistra.fr/) needs to deliver geoinformation (such as flood or fire delineation, landslides mapping, etc.) based on multiple EO constellations.
 
 In rapid mapping, it is always important to have access to various sensor types, resolutions, and satellites. Indeed, SAR sensors are able to detect through clouds and during nighttime 
-(which is particularly useful during flood and storm events), while optical sensors benefit from of multi spectral bands to better analyze and classify the crisis information.
+(which is particularly useful during flood and storm events), while optical sensors benefit from multispectral bands to better analyze and classify the crisis information.
 
-As every minute counts in the production of geoinformation in an emergency mode, it seemed crucial to harmonize the ground on which are built our production tools, in order to make them as
+As every minute counts in the production of geoinformation in an emergency mode, it seemed crucial to harmonize the ground on which our production tools are built, in order to make them as
 sensor-agnostic as possible.
 
 This is why SERTIT decided to decouple the sensor handling from the extraction algorithms: the latter should be able to ingest semantic bands 
 (i.e. `RED` or `VV`) without worrying about how to load the specific sensor band or in what unit it is.  
 The assumption was made that all the spectral bands from optical sensors could be mapped between each other, in addition to the natural mapping between SAR bands.
 
-Thus, thanks to **EOReader**, these tools are made independent to the constellation:  
+Thus, thanks to **EOReader**, these tools are made independent of the constellation:  
 ✅ the algorithm (and its developer) can focus on its core tasks (such as extraction) without taking into account the sensor characteristics 
-(how to load a band, which band correspond to which band number, …)  
+(how to load a band, which band corresponds to which band number, …)  
 ✅ new sensor addition is effortless (if existing in **EOReader**) and requires no algorithm modification  
 ✅ maintenance is simplified and the code quality is significantly improved  
-✅ testing is also simplified as the sensor-related parts are tested in EOReader library  
+✅ testing is also simplified as the sensor-related parts are tested in the EOReader library  
 
 However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.

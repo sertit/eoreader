@@ -229,7 +229,7 @@ def test_dems(tmp_path):
         )
     )
 
-    # Test two different DEM source
+    # Test two different DEM sources
     slope_dem = str(
         get_db_dir().joinpath(
             "GLOBAL",
@@ -293,7 +293,7 @@ def test_dems_https():
     # Open prods
     prod = READER.open(prod_path, remove_tmp=True)
 
-    # Test two different DEM source
+    # Test two different DEM sources
     dem_sub_dir_path = [
         "GLOBAL",
         "MERIT_Hydrologically_Adjusted_Elevations",
@@ -326,7 +326,7 @@ def test_dems_S3():
     # Open prods
     prod = READER.open(prod_path, remove_tmp=True)
 
-    # Test two different DEM source
+    # Test two different DEM sources
     dem_sub_dir_path = [
         "GLOBAL",
         "MERIT_Hydrologically_Adjusted_Elevations",

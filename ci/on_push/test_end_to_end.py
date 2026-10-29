@@ -208,7 +208,7 @@ def _test_core(
                     pixel_size=pixel_size,
                     stack_path=curr_path,
                     clean_optical="clean",
-                    resamplig=Resampling.bilinear,
+                    resampling=Resampling.bilinear,
                     **kwargs,
                 )
 
