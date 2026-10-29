@@ -92,7 +92,6 @@ class LegionPlatform(ListEnum):
 
     - https://vantor.com/resources/worldview-legion-datasheet/
     - https://vantor.com/resources/radiometric-use-of-worldview-legion-imagery
-    - https://vantor.com/resources/calibration-worldview-legion-radiometric-parameters/
     """
 
     LG01 = "LG01"
@@ -416,7 +415,7 @@ class VantorProductType(ListEnum):
     """
     Vantor product types.
 
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 26)
+    See `here <https://web.archive.org/web/20240420081912/https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 26)
     """
 
     Basic = "System Ready"
@@ -468,7 +467,7 @@ class VantorBandId(ListEnum):
     """
     Vantor products band ID
 
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 24)
+    See `here <https://web.archive.org/web/20240420081912/https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 24)
     """
 
     P = "Panchromatic"
@@ -556,7 +555,7 @@ class VantorSatId(ListEnum):
     """
     Vantor products satellite IDs
 
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
+    See `here <https://web.archive.org/web/20240420081912/https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
 
     QB02 = "Quickbird"

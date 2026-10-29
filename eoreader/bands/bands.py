@@ -80,7 +80,7 @@ class Band:
 
         self.spyndex_name = None
         """
-        Spyndex standard name, can be found here: https://awesome-ee-spectral-indices.readthedocs.io/en/latest/
+        Spyndex standard name, can be found here: https://awesome-spectral-indices.github.io/awesome-spectral-indices/
         """
 
     def _to_repr(self) -> list:

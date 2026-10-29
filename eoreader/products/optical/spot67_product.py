@@ -57,7 +57,7 @@ class Spot67Product(DimapV2Product):
     def _map_bands(self) -> None:
         """Map bands"""
         # Create spectral bands
-        # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMyMw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzIy/spot-brochure-2019.pdf
+        # https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/spot_brochure_2019_355690d042/spot_brochure_2019_355690d042.pdf
         pan = SpectralBand(
             eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 450, WV_MAX: 745},

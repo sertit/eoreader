@@ -109,8 +109,6 @@ class TsxPolarization(ListEnum):
 class TsxSatId(ListEnum):
     """
     TerraSAR-X products satellite IDs + PAZ
-
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
 
     TDX = "TanDEM-X"

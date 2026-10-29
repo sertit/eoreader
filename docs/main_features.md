@@ -215,7 +215,7 @@ bands = prod.load(ok_bands, pixel_size=20.)
 
 ```{note}
 Indices and bands are opened as [`xarray` DataArrays](http://xarray.pydata.org/en/stable/)
-with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
+with [`rioxarray`](https://vylor.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
 The nodata written back to disk follows this convention:
 
 - `-9999` for optical bands (saved in `float32`)

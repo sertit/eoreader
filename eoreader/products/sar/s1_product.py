@@ -37,7 +37,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S1ProductType(ListEnum):
     """
     S1 product types. Take a look here:
-    https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products
+    https://sentiwiki.copernicus.eu/web/s1-processing#L1-Algorithms
     """
 
     RAW = "RAW"
@@ -57,7 +57,7 @@ class S1ProductType(ListEnum):
 class S1SensorMode(ListEnum):
     """
     S1 sensor mode. Take a look here:
-    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes
+    https://sentiwiki.copernicus.eu/web/s1-mission#Acquisition-Modes
 
     The primary conflict-free modes are IW, with VV+VH polarisation over land,
     and WV, with VV polarisation, over open ocean.
@@ -82,7 +82,7 @@ class S1SensorMode(ListEnum):
 class S1ResolutionClass(ListEnum):
     """
     S1 resolution class:
-    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected
+    https://sentiwiki.copernicus.eu/web/s1-products#S1-Products-SAR-Naming-Convention
     """
 
     FR = "F"
@@ -109,7 +109,7 @@ class S1Product(SarProduct):
         """
         Set product default pixel size (in meters)
         See
-        `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
+        `here <https://sentiwiki.copernicus.eu/web/s1-products#Level-1-Products>`_
         for more information
         """
 
@@ -181,7 +181,7 @@ class S1Product(SarProduct):
         """
         Set instrument
 
-        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        Sentinel-1: https://sentiwiki.copernicus.eu/web/s1-mission#SAR-Instrument
         """
         self.instrument = "SAR C-band"
 

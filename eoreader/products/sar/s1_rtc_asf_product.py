@@ -83,7 +83,7 @@ class S1RtcAsfProduct(SarProduct):
         """
         Set instrument
 
-        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        Sentinel-1: https://sentiwiki.copernicus.eu/web/s1-mission#SAR-Instrument
         """
         self.instrument = "SAR C-band"
 

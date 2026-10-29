@@ -244,7 +244,7 @@ class Product:
         self.pixel_size = None
         """
         For SAR data, it is important to distinguish (square) pixel spacing from actual resolution.
-        (see `this <https://natural-resources.canada.ca/maps-tools-and-publications/satellite-imagery-and-air-photos/tutorial-fundamentals-remote-sensing/satellites-and-sensors/spatial-resolution-pixel-size-and-scale/9407>` for more information).
+        (see `this <https://natural-resources.canada.ca/maps-tools-publications/satellite-elevation-air-photos/spatial-resolution-pixel-size-scale>` for more information).
         For optical data, those two terms have usually the same meaning (for a fully zoomed raster).
         """
 

@@ -106,7 +106,7 @@ class S3OlciProduct(S3Product):
         **kwargs,
     ) -> None:
         """
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
+        https://sentiwiki.copernicus.eu/web/olci-products
 
         Note that the name of each netCDF file provides information about its content.
         """
@@ -185,7 +185,7 @@ class S3OlciProduct(S3Product):
         """
         Set product type
 
-        More on spectral bands `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-3-olci/resolutions/radiometric>`_.
+        More on spectral bands `here <https://sentiwiki.copernicus.eu/web/olci-products#S3-OLCI-Products-PD-Resolution-Radiometric>`_.
         """
         # Product type
         if self.name[7] != "1":
@@ -543,7 +543,7 @@ class S3OlciProduct(S3Product):
         (tie_geometry.nc file). The appropriate instrument detector is given at each pixel by the ‘detector_index’
         dataset (instrument_data.nc file).
 
-        In https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
+        In https://sentinels.copernicus.eu/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -625,7 +625,7 @@ class S3OlciProduct(S3Product):
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See:
-        https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1
+        https://sentinels.copernicus.eu/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1
 
         QUALITY FLAGS (From end to start of the 32 bits):
         | Bit |  Flag               |

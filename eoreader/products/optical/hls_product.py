@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Harmonized Landsat-Sentinel (HLS) products
-- https://lpdaac.usgs.gov/documents/1326/HLS_User_Guide_V2.pdf
+- https://lpdaac.usgs.gov/documents/1698/HLS_User_Guide_V2.pdf
 - https://lpdaac.usgs.gov/data/get-started-data/collection-overview/missions/harmonized-landsat-sentinel-2-hls-overview/
 """
 

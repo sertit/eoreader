@@ -437,7 +437,7 @@ class CustomProduct(Product):
                 **kwargs,
             ).rename(band_name)
 
-            # According to: https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
+            # According to: https://web.archive.org/web/20240416031154/https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
             band_arr = band_arr / gain + offset
 
         band_arr.attrs["long_name"] = band_name

@@ -53,7 +53,7 @@ class PldProduct(DimapV2Product):
         Map bands
         """
         # Create spectral bands
-        # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMxNw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzE2/pleiades-brochure-2019.pdf
+        # https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/pleiades_brochure_2019_8883d573da/pleiades_brochure_2019_8883d573da.pdf
         pan = SpectralBand(
             eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 470, WV_MAX: 830},

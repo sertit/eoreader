@@ -178,7 +178,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "python-request": ("https://docs.python-requests.org/en/master/", None),
     "rasterio": ("https://rasterio.readthedocs.io/en/latest", None),
-    "rioxarray": ("https://corteva.github.io/rioxarray/latest/", None),
+    "rioxarray": ("https://vylor.github.io/rioxarray/latest/", None),
     "geopandas": ("https://geopandas.org/en/latest", None),
     "xarray": ("https://docs.xarray.dev/en/latest", None),
     "cloudpathlib": ("https://cloudpathlib.drivendata.org/stable/", None),

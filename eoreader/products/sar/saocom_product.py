@@ -66,7 +66,7 @@ class SaocomSensorMode(ListEnum):
     """
     SAOCOM Acquisition Mode.
     Take a look
-    `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+    `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
     """
 
     SM = "STRIPMAP"
@@ -84,7 +84,7 @@ class SaocomPolarization(ListEnum):
     """
     SAOCOM polarization mode.
     Take a look
-    `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+    `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
 
     acquiredPols:
     - HH
@@ -128,7 +128,7 @@ class SaocomProduct(SarProduct):
         """
         Set product default pixel size (in meters)
         See
-        `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+        `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
         for more information (Beam Modes)
 
         .. WARNING::

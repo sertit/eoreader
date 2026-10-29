@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Vision-1 products.
-See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
+See `here <https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
 for more information.
 """
 
@@ -122,7 +122,7 @@ class Vis1ProductType(ListEnum):
 class Vis1Product(DimapV1Product):
     """
     Class of Vision-1 products.
-    See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
+    See `here <https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
     for more information.
     """
 

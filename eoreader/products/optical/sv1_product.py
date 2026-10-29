@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 SuperView-1 products.
-See `here <http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf>`_
+See `here <https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf>`_
 for more information.
 """
 
@@ -59,7 +59,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Sv1BandCombination(ListEnum):
     """
     Band combination of SuperView-1 data
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
     """
 
     PMS = "Panchromatic and Multiple Spectral"
@@ -82,7 +82,7 @@ class Sv1BandCombination(ListEnum):
 class Sv1ProductType(ListEnum):
     """
     This is the processing level of SuperView-1 data
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
 
     **Note**: Stereo products are not handled.
     """
@@ -116,7 +116,7 @@ class Sv1ProductType(ListEnum):
 class Sv1Product(VhrProduct):
     """
     Class of SuperView-1 products.
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
     """
 
     def _pre_init(self, **kwargs) -> None:
@@ -163,7 +163,7 @@ class Sv1Product(VhrProduct):
         """
         Set instrument
 
-        SuperView-1: https://space.oscar.wmo.int/instruments/instruments/view/pms_3
+        SuperView-1: https://space.oscar.wmo.int/instruments/view/pms_3
         """
         self.instrument = "PMS-3"
 
@@ -183,7 +183,7 @@ class Sv1Product(VhrProduct):
 
     def _map_bands(self) -> None:
         """
-        Map bands, see https://space.oscar.wmo.int/instruments/instruments/view/pms_3
+        Map bands, see https://space.oscar.wmo.int/instruments/view/pms_3
         """
         # Create spectral bands
         pan = SpectralBand(
@@ -321,7 +321,7 @@ class Sv1Product(VhrProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         **Note**:
-        According to :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf`,
+        According to :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf`,
         all absolute times are in Beijing Time in the format of :code:`YYYY-MM-DDThh:mm:ss.ddddddZ`, unless otherwise specified!
 
         The datetime is then converted to UTC.

@@ -103,9 +103,9 @@ You can also load despeckled bands:
 ### Available indices
 
 EOReader uses (from version 0.18.0) the indices described in
-the [awesome spectral indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
+the [awesome spectral indices (ASI)](https://awesome-spectral-indices.github.io/awesome-spectral-indices/) project.
 
-ASI implements SAR indices, with the list available [here](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar).
+ASI implements SAR indices, with the list available [here](https://awesome-spectral-indices.github.io/awesome-spectral-indices/indices/index.html#modality-radar).
 
 ## DEM bands
 
@@ -477,7 +477,7 @@ variable:
 ### ICEYE
 
 - [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
-- [ICEYE Product Documentation](https://iceye-ltd.github.io/product-documentation/5.1/)
+- [ICEYE Product Documentation](https://sar.iceye.com/latest/)
 
 ### SAOCOM-1
 - [SAOCOM Description](https://satellite-information.veng.com.ar/en/saocom-en/)

@@ -86,10 +86,10 @@ class S2ProductType(ListEnum):
     """Sentinel-2 products types (L1C or L2A)"""
 
     L1C = "MSIL1C"
-    """Level-1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
+    """Level-1C: https://sentiwiki.copernicus.eu/web/s2-products"""
 
     L2A = "MSIL2A"
-    """Level-2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
+    """Level-2A: https://sentiwiki.copernicus.eu/web/s2-products"""
 
 
 @unique
@@ -272,7 +272,7 @@ class S2Product(OpticalProduct):
         """
         Set instrument
 
-        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        Sentinel-2: https://sentiwiki.copernicus.eu/web/s2-mission
         """
         self.instrument = "MSI"
 
@@ -1172,7 +1172,7 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -1220,7 +1220,7 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -1339,7 +1339,7 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage only nodata
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -1382,7 +1382,7 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage only nodata
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -1651,7 +1651,7 @@ class S2Product(OpticalProduct):
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
         Does this product have the specified cloud band?
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        https://sentiwiki.copernicus.eu/web/s2-processing
         """
         return band != SHADOWS
 
@@ -1666,7 +1666,7 @@ class S2Product(OpticalProduct):
         Load cloud files as xarrays.
 
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        https://sentiwiki.copernicus.eu/web/s2-processing
 
         Args:
             bands (list): List of the wanted bands
@@ -1885,7 +1885,7 @@ class S2Product(OpticalProduct):
         L1C data with baseline < 4.0
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
 
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        https://sentiwiki.copernicus.eu/web/s2-processing
 
         Args:
             bands (list): List of the wanted bands

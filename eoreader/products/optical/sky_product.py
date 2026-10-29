@@ -111,7 +111,7 @@ class SkyProductType(ListEnum):
     """
     Skysat product types (processing levels)
 
-    Only SkySat Collect items are managed for now: https://developers.planet.com/docs/data/skysatcollect/
+    Only SkySat Collect items are managed for now: https://docs.planet.com/data/imagery/skysat/item-types/skysatcollect/
     """
 
     L1A = "l1a_panchromatic"

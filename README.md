@@ -197,7 +197,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ### Press Release
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
-- Used to extract water for assessing agriculture impacts after the Kakhovka Dam Collapse (cross-post from [NASA Harvest](https://nasaharvest.org/index.php/news/navigating-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts) and [Planet](https://www.planet.com/pulse/navigating-the-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts-with-satellite-imagery/))
+- Used to extract water for assessing agriculture impacts after the Kakhovka Dam Collapse (cross-post from [NASA Harvest](https://www.nasaharvest.org/news/navigating-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts) and [Planet](https://www.planet.com/pulse/navigating-the-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts-with-satellite-imagery/))
 
 ### Articles
 
@@ -224,5 +224,5 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 - [`geopandas`](https://geopandas.org/)
 - [`rasterio`](https://rasterio.readthedocs.io/en/latest/)
 - [`xarray`](http://xarray.pydata.org/en/stable/)
-- [`rioxarray`](https://corteva.github.io/rioxarray/stable/)
-- [`awesome-spectral-indices` and `spyndex`](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html)
+- [`rioxarray`](https://vylor.github.io/rioxarray/stable/)
+- [`awesome-spectral-indices` and `spyndex`](https://awesome-spectral-indices.github.io/awesome-spectral-indices/)

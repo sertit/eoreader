@@ -180,14 +180,14 @@ class SlstrRadAdjust(ListEnum):
     )
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 06](https://www-cdn.eumetsat.int/files/2020-04/pdf_s3a_pn_slstr_l1_06.pdf),
+    [Sentinel-3 Product Notice 06](https://web.archive.org/web/20210226105154/https://www-cdn.eumetsat.int/files/2020-04/pdf_s3a_pn_slstr_l1_06.pdf),
     edited the 07/11/2018 and reviewed the 19/11/2018
     """
 
     S3_PN_SLSTR_L1_07 = S3_PN_SLSTR_L1_06
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 07](https://www-cdn.eumetsat.int/files/2020-06/pdf_s3a_pn_slstr_l1_07_1.1.pdf),
+    [Sentinel-3 Product Notice 07](https://web.archive.org/web/20210226101420/https://www-cdn.eumetsat.int/files/2020-06/pdf_s3a_pn_slstr_l1_07_1.1.pdf),
     edited the 15/01/2020 and reviewed the 09/06/2020, same as the Product Notice 06.
     """
 
@@ -207,11 +207,11 @@ class SlstrRadAdjust(ListEnum):
     )
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 08](https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
+    [Sentinel-3 Product Notice 08](https://web.archive.org/web/20230924073637/https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
     edited the 18/05/2021.
 
     Still true in [Sentinel-3 Product Notice 10](https://www-cdn.eumetsat.int/files/2023-01/S3_PN-SLSTR-L1_10%20-%20i1r0%20-%20SLSTR%20L1%20PB%20SL__L1__004_05_00.pdf) and in
-    [Sentinel-3 Product Notice 11](https://sentiwiki.copernicus.eu/__attachments/1672112/S3.PN.SLSTR-L1.11%20-%20Sentinel%203%20SLSTR%20Product%20Notice%20L1%20PB%20SL__L1_.004.07.00%202024%20-%201.0.pdf)
+    [Sentinel-3 Product Notice 11](https://web.archive.org/web/20250619223417/https://sentiwiki.copernicus.eu/__attachments/1672112/S3.PN.SLSTR-L1.11%20-%20Sentinel%203%20SLSTR%20Product%20Notice%20L1%20PB%20SL__L1_.004.07.00%202024%20-%201.0.pdf)
 
     The default one.
     """
@@ -236,7 +236,7 @@ class S3SlstrProduct(S3Product):
         **kwargs,
     ) -> None:
         """
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
+        https://sentiwiki.copernicus.eu/web/slstr-products
         Note that the name of each netCDF file provides information about its content.
 
         The suffix of each filename is associated with the selected grid:
@@ -730,9 +730,9 @@ class S3SlstrProduct(S3Product):
     #     can be converted to radiance by integrating the Planck function at the BT of interest multiplied over the
     #     spectral response of each band. The spectral response functions for SLSTR-A and SLSTR-B are available on
     #     the ESA Sentinel Online website (see Section 8.2.10)
-    #     https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
+    #     https://sentiwiki.copernicus.eu/web/s3-slstr-instrument
     #
-    #     In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+    #     In https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
     #
     #     Args:
     #         band_arr (xr.DataArray): Band array
@@ -761,7 +761,7 @@ class S3SlstrProduct(S3Product):
         of Thuillier et al. (2003) integrated over the measured SLSTR spectral responses
         and corrected for the earth-to-sun distance at the time of the measurement.
 
-        In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+        In https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -802,7 +802,7 @@ class S3SlstrProduct(S3Product):
     ) -> xr.DataArray:
         """
         Applying the radiance adjustment as recommended in the product notice:
-        S3.PN-SLSTR-L1.08 (https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf):
+        S3.PN-SLSTR-L1.08 (https://web.archive.org/web/20230924073637/https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf):
 
         SLSTR-A/B: All solar channels (S1-S6) have undergone a vicarious calibration assessment to
         quantify their radiometric calibration adjustment. Recent analysis of vicarious calibration results
@@ -974,7 +974,7 @@ class S3SlstrProduct(S3Product):
         Load cloud files as xarrays.
 
         Read S3 SLSTR clouds from the flags file:cloud netcdf file.
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification
+        https://sentiwiki.copernicus.eu/web/slstr-processing
 
         bit_id  flag_masks (ushort)     flag_meanings
         ===     ===                     ===

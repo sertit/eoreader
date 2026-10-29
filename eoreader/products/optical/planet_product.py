@@ -970,7 +970,7 @@ class PlanetProduct(OpticalProduct):
 
         Do not open cloud mask with this function. Use :code:`load` instead.
 
-        See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf/>`_ for more
+        See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_ for more
         information.
 
         Args:

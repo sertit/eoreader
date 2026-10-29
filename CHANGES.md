@@ -1,5 +1,9 @@
 # Release History
 
+## Unreleased
+
+- DOC: Update dead external links in docs, docstrings and notebooks (ESA legacy guides now live on SentiWiki; removed vendor documents now point to current official copies or archived versions)
+
 ## 0.24.4 (2026-09-28)
 
 - FIX: Add a workaround for EUSI's broken georef [#242](https://github.com/sertit/eoreader/issues/242)
@@ -150,7 +154,7 @@
   - `resolution` keyword in favor of `pixel_size`
   - `GREEN1` band in favor of `GREEN_1`
   - `utils.stack_dict` function in favor of `utils.stack` (remove `band` argument)
-  - deprecated spectral indices in favor of [awesome spectral index](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) ones.
+  - deprecated spectral indices in favor of [awesome spectral index](https://awesome-spectral-indices.github.io/awesome-spectral-indices/) ones.
     - `AFRI_1_6`: `AFRI1600`
     - `AFRI_2_1`: `AFRI2100`
     - `BSI`: `BI`
@@ -510,7 +514,7 @@
 - **BREAKING CHANGES: Refactoring spectral indices management** ([#47](https://github.com/sertit/eoreader/issues/47))
     - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing the use of all spectral indices
       listed [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/blob/main/output/spectral-indices-table.csv)
-    - SAR products may now compute indices if possible (see [this list](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar))
+    - SAR products may now compute indices if possible (see [this list](https://awesome-spectral-indices.github.io/awesome-spectral-indices/indices/index.html#modality-radar))
     - Old EOReader indices are still available for legacy purposes, with some changes:
         - For Sentinel-2 data, the band `NIR` and `NARROW_NIR` may be interchanged for some index (
           see [this discussion](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27))

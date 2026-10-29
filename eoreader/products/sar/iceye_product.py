@@ -98,7 +98,7 @@ class IceyeProduct(SarProduct):
         """
         Set product default pixel size (in meters)
         See
-        `here <https://sar.iceye.com/5.0/productguide/collectioncharacteristics/>`_ for more information (Amplitude Image Parameters)
+        `here <https://sar.iceye.com/latest/productspecification/dataproducts/>`_ for more information (Amplitude Image Parameters)
         """
         if self.sensor_mode == IceyeSensorMode.SM:
             def_pixel_size = 2.5

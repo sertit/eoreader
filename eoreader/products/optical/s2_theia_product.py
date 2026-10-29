@@ -142,7 +142,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         Set instrument
 
-        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        Sentinel-2: https://sentiwiki.copernicus.eu/web/s2-mission
         """
         self.instrument = "MSI"
 

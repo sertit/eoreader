@@ -224,7 +224,7 @@ Note: S3-compatible storage URLs are not yet available on Windows.
 ### Available spectral indices
 
 Since version 0.18.0, EOReader uses the indices described in the 
-[Awesome Spectral Indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
+[Awesome Spectral Indices (ASI)](https://awesome-spectral-indices.github.io/awesome-spectral-indices/) project.
 
 > ⚠️ You may need to install the latest `spyndex` directly from GitHub to access all available indices:
 > `pip uninstall spyndex && pip install -U --no-deps git+https://github.com/awesome-spectral-indices/spyndex.git`
@@ -252,7 +252,7 @@ In addition to these indices, EOReader retains the following indices for legacy 
 WorldView-1 is not affected by spectral indices as it only has a panchromatic band.
 ```
 
-Some indices are parametric (see the list [here](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html#expressions)). 
+Some indices are parametric (see the list [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices#formula-expressions)). 
 To add any parameter, you can pass it to your load or stack functions:
 
 ```python
@@ -335,8 +335,8 @@ Currently, this does not work automatically on archived or cloud-stored products
 
 ### Sentinel-2
 
-- [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
-- [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Cloud masks](https://sentiwiki.copernicus.eu/web/s2-processing)
+- [Product Specification (Processing Baseline < 4.0)](https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
 
 ### Vénµs
@@ -356,10 +356,10 @@ Currently, this does not work automatically on archived or cloud-stored products
 
 - [OLCI main page](https://sentiwiki.copernicus.eu/web/olci-processing)
 - [SLSTR main page](https://sentiwiki.copernicus.eu/web/slstr-processing)
-- [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
-- [SLSTR Handbook](https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
-- [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
-- [SLSTR Product Format](https://sentinel.esa.int/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
+- [OLCI Handbook](https://sentinels.copernicus.eu/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
+- [SLSTR Handbook](https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
+- [OLCI Product Format](https://sentinels.copernicus.eu/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
+- [SLSTR Product Format](https://sentinels.copernicus.eu/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
 - [SLSTR Clouds](https://sentiwiki.copernicus.eu/web/slstr-processing#SLSTRProcessing-Basiccloudmasking)
 
 ### PlanetScope, SkySat and RapidEye
@@ -370,19 +370,19 @@ Currently, this does not work automatically on archived or cloud-stored products
 
 ### Vision-1
 
-- [Vision-1 on Airbus Website](https://intelligence.airbus.com/imagery/our-optical-and-radar-satellite-imagery/vision-1/)
-- [Presentation of the satellite](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/Vision_1_web_201906_03a78fe799/Vision_1_web_201906_03a78fe799.pdf)
-- [User guide](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/vision_1_imagery_user_guide_20210217_5b09442f70/vision_1_imagery_user_guide_20210217_5b09442f70.pdf)
+- [Vision-1 on Airbus Website](https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/)
+- [Presentation of the satellite](https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/Vision_1_web_201906_03a78fe799/Vision_1_web_201906_03a78fe799.pdf)
+- [User guide](https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/vision_1_imagery_user_guide_20210217_5b09442f70/vision_1_imagery_user_guide_20210217_5b09442f70.pdf)
 
 ### DIMAP V1: SPOT-4/5
 - [Product Format (a bit outdated)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
 - [Preprocessing levels](https://earth.esa.int/eogateway/documents/20142/37627/SPOTScene-SPOTView-preprocessing-levels.pdf)
-- [Resolution and spectral modes](https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
+- [Resolution and spectral modes](https://web.archive.org/web/20240809114543/https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
 - [Convert to reflectance](https://cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf)
 
 ### DIMAP V2: Pleiades, SPOT-6/7
 
-- [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
+- [DIMAP V2 Format](https://web.archive.org/web/20251110063844/https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
 - [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
 - [SPOT-6/7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
 - [Pleiades Neo](https://docs.up42.com/getting-started/data-products/pleiades-neo/)
@@ -395,13 +395,13 @@ Currently, this does not work automatically on archived or cloud-stored products
 - [System-Ready Imagery](https://vantor.com/resources/imagery-system-ready-1b-datasheet/)
 - [View-Ready Imagery](https://vantor.com/resources/view-ready-2a-datasheet/)
 - [Map-Ready Imagery](https://vantor.com/resources/imagery-map-ready-datasheet/)
-- [ISD](https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
+- [ISD](https://web.archive.org/web/20240420081912/https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
 - [Digital Globe Standard Imagery (old)](https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf)
 - [Digital Globe Products Guide (old)](https://www.geosoluciones.cl/documentos/worldview/DigitalGlobe-Core-Imagery-Products-Guide.pdf)
 - [Conversion from DN to TOA reflectance](https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf)
 
 ### SuperView-1
-- [Imagery Product Guide](http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
+- [Imagery Product Guide](https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
 
 ### GeoSat-2 (ex Deimos-2)
 - [Imagery User Guide](https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf)
@@ -419,7 +419,7 @@ You can find a magnificent band comparison chart on the [Imagico](http://blog.im
 
 ### Index
 
-- [Awesome Spectral Indices](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/)
+- [Awesome Spectral Indices](https://awesome-spectral-indices.github.io/awesome-spectral-indices/)
 - [Index consistency](https://www.indexdatabase.de/)
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (old)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`

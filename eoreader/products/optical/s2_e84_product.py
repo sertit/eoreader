@@ -140,7 +140,7 @@ class S2E84Product(OpticalProduct):
         """
         Set instrument
 
-        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        Sentinel-2: https://sentiwiki.copernicus.eu/web/s2-mission
         """
         self.instrument = "MSI"
 
@@ -262,7 +262,7 @@ class S2E84Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Open a Scene classification map (SCL) mask.
-        See https://sentinels.copernicus.eu/ca/web/sentinel/technical-guides/sentinel-2-msi/level-2a/algorithm-overview
+        See https://sentiwiki.copernicus.eu/web/s2-processing#S2-Processing-Scene-Classification
         Paragraph: Classification Mask Generation
 
         Values:

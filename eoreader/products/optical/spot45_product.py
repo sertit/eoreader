@@ -88,7 +88,7 @@ The values of the normalized solar irradiance have been computed using WMO (Worl
 class Spot4BandCombination(ListEnum):
     """
     Band combination for SPOT-4 data
-    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://web.archive.org/web/20221208204248/https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     M = "M"
@@ -121,7 +121,7 @@ class Spot4BandCombination(ListEnum):
 class Spot5BandCombination(ListEnum):
     """
     Band combination for SPOT-5 data
-    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://web.archive.org/web/20221208204248/https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     T = "T"

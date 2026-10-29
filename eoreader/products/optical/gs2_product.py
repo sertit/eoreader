@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 GEOSAT-2 products.
-See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
 for more information.
 """
 
@@ -54,7 +54,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Gs2BandCombination(ListEnum):
     """
     GEOSAT-2 band combination.
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 
@@ -98,7 +98,7 @@ class Gs2BandCombination(ListEnum):
 class Gs2ProductType(ListEnum):
     """
     GEOSAT-2 product types (processing levels)
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 
@@ -140,7 +140,7 @@ class Gs2ProductType(ListEnum):
 class Gs2Product(DimapV1Product):
     """
     Class of GEOSAT-2 products.
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 

@@ -115,11 +115,19 @@ class UmbraSensorMode(ListEnum):
     SP = "SPOTLIGHT"
     """Spotlight"""
 
-    SM = "STRIPMAP"
+    SC = "SCAN"
     """
-    StripMap
-    
-    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes>`_.
+    Scan Mode
+    """
+
+    DW = "EXTENDED_DWELL"
+    """
+    Extended Dwell
+    """
+
+    MS = "MULTISTATIC"
+    """
+    Multistatic tasks
     """
 
 
@@ -350,7 +358,6 @@ class UmbraProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """Get sensor mode"""
-        # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
         root, _ = self.read_mtd()
         if self._has_stac_mtd:
             mode = root.findtext(".//instrument_mode")
