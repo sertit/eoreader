@@ -1,8 +1,10 @@
 # Release History
 
-## Unreleased
+## 0.25.0 (Unreleased)
 
-- DOC: Update dead external links in docs, docstrings and notebooks (ESA legacy guides now live on SentiWiki; removed vendor documents now point to current official copies or archived versions)
+- DOC: Refine README and explode files to make the docs clearer
+- DOC: Update dead external links in docs, docstrings and notebooks
+- DOC: Add AI-assisted contribution onboarding
 
 ## 0.24.4 (2026-09-28)
 
@@ -69,7 +71,7 @@
 - OPTIM: Better management of windows wrt whole files with SAR data
 - OPTIM: Don't set a window name in band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
 - OPTIM: Don't touch the raster (even if ortho) when computing the extent of SAR products
-- SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
+- DEPS: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - LINT: Lint YAML files
 - DOC: Update copyright to 2026
 
@@ -710,7 +712,7 @@
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
-- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in
+- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentiwiki.copernicus.eu/web/s1-products#S1-Products-SAR-Naming-Convention) (was missing from the product name, as it is not in
   the product preview)
 - FIX: Fixing PAZ/TDX MTD regex
 - FIX: Optical products: Only set cloud cover and radiometry attributes if spectral bands are asked
