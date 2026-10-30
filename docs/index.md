@@ -18,6 +18,7 @@
    :hidden:
 
    main_features
+   context
    optical
    optical_band_mapping
    sar
@@ -60,6 +61,8 @@
    :hidden:
 
    contributing
+   ai_policy
+   architecture
    history
    GitHub Repository <https://github.com/sertit/eoreader>
 ```

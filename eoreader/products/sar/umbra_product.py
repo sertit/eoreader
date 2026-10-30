@@ -47,8 +47,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class UmbraProductType(ListEnum):
     """
-    Umbra products types.
-    Take a look to the
+    Umbra product types.
+    Take a look at the
     `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
     """
 
@@ -115,18 +115,26 @@ class UmbraSensorMode(ListEnum):
     SP = "SPOTLIGHT"
     """Spotlight"""
 
-    SM = "STRIPMAP"
+    SC = "SCAN"
     """
-    StripMap
-    
-    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes>`_.
+    Scan Mode
+    """
+
+    DW = "EXTENDED_DWELL"
+    """
+    Extended Dwell
+    """
+
+    MS = "MULTISTATIC"
+    """
+    Multistatic tasks
     """
 
 
 class UmbraProduct(SarProduct):
     """
     Class for Umbra Products
-    Take a look to the
+    Take a look at the
     `product guide <https://help.umbra.space/product-guide>`_.
     """
 
@@ -146,7 +154,7 @@ class UmbraProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        Take a look to the
+        Take a look at the
         `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
         """
         root, _ = self.read_mtd()
@@ -168,7 +176,7 @@ class UmbraProduct(SarProduct):
                 f"Resolution retrieved from metadata ({self.resolution} m) is different from the ones given in the documentation: {doc_res}"
             )
 
-        # For Umbra, resolution and pixel size seems to be the same...
+        # For Umbra, resolution and pixel size seem to be the same...
         # Nothing mentions any GSD in the new mtd, and it's the case for the deprecated one
         self.pixel_size = self.resolution
 
@@ -211,7 +219,7 @@ class UmbraProduct(SarProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -339,7 +347,7 @@ class UmbraProduct(SarProduct):
         # Only product type handled by EOReader
         self.product_type = UmbraProductType.GEC
 
-        # WARNING: Umbra don't seem to have Ground Range products...
+        # WARNING: Umbra doesn't seem to have Ground Range products...
         # Use try/except here for the future (for GEO/GRD?), because now it's ineffective ;-)
         if self.product_type == UmbraProductType.GEC:
             self.sar_prod_type = SarProductType.GEOCODED
@@ -350,7 +358,6 @@ class UmbraProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """Get sensor mode"""
-        # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
         root, _ = self.read_mtd()
         if self._has_stac_mtd:
             mode = root.findtext(".//instrument_mode")
@@ -422,12 +429,12 @@ class UmbraProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read GeoJSON metadata and outputs it as a metadata XML root and its namespaces as an empty dict
+        Read GeoJSON metadata and output the metadata XML root and its namespaces as an empty dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        # MTD are JSON
+        # MTD is JSON
         try:
             from dict2xml import dict2xml
 
@@ -472,8 +479,8 @@ class UmbraProduct(SarProduct):
 
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
-        Return the existing path of the VV band (as they come with the archived products).
-        Umbra product only contains a VV band!
+        Return the existing path of the VV band (as it comes with the archived product).
+        An Umbra product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments
@@ -555,7 +562,7 @@ class UmbraProduct(SarProduct):
 
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

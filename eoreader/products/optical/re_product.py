@@ -86,7 +86,7 @@ class ReProductType(ListEnum):
 
 class ReProduct(PlanetProduct):
     """
-    Class of PlanetScope products.
+    Class of RapidEye products.
     See `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
     for more information.
 
@@ -138,7 +138,7 @@ class ReProduct(PlanetProduct):
     def _map_bands(self):
         """
         Map bands
-        See <Product specs `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`>_ for more information.
+        See `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_ for more information.
         """
         gsd = 6.5
 
@@ -180,7 +180,7 @@ class ReProduct(PlanetProduct):
         )
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
@@ -369,7 +369,7 @@ class ReProduct(PlanetProduct):
 
     def _merge_subdatasets_mtd(self):
         """
-        Merge subdataset, when several Planet products avec been ordered together
+        Merge subdatasets, when several Planet products have been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
         """
         LOGGER.warning(

@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 SuperView-1 products.
-See `here <http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf>`_
+See `here <https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf>`_
 for more information.
 """
 
@@ -59,12 +59,12 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Sv1BandCombination(ListEnum):
     """
     Band combination of SuperView-1 data
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
     """
 
     PMS = "Panchromatic and Multiple Spectral"
     """
-    The product is combined of panchromatic and multiple spectral bands.
+    The product is composed of panchromatic and multiple spectral bands.
     - Panchromatic (PAN): The product includes 1 band and is black and white, its ground sampling distance (GSD) is 50 cm;
     - Multiple Spectral (MUX): The product includes 4 bands that are Blue, Green, Red and Near-infrared. The ground sampling distance (GSD) is 2 meters.
     """
@@ -82,9 +82,9 @@ class Sv1BandCombination(ListEnum):
 class Sv1ProductType(ListEnum):
     """
     This is the processing level of SuperView-1 data
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
 
-    **Note**: Stereo product are not handled.
+    **Note**: Stereo products are not handled.
     """
 
     L1B = "Basic Product"
@@ -103,7 +103,7 @@ class Sv1ProductType(ListEnum):
 
     L2A = "Ortho Ready Standard Product"
     """
-    Ortho Ready Standard Products are radiometrically corrected, sensor corrected, and projected to a ellipsoid using current image mean elevation for each panchromatic and multispectral.
+    Ortho Ready Standard Products are radiometrically corrected, sensor corrected, and projected to an ellipsoid using current image mean elevation for each panchromatic and multispectral.
     All Ortho Ready Standard Products can have a uniform GSD throughout the entire product.
     The default projection is UTM projection.
     Ortho Ready Standard Products are available in panchromatic at 0.5 meters and multi-spectral bands at 2 meters.
@@ -116,8 +116,7 @@ class Sv1ProductType(ListEnum):
 class Sv1Product(VhrProduct):
     """
     Class of SuperView-1 products.
-    See :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
-    for more information.
+    See :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf` file for more information.
     """
 
     def _pre_init(self, **kwargs) -> None:
@@ -164,7 +163,7 @@ class Sv1Product(VhrProduct):
         """
         Set instrument
 
-        SuperView-1: https://space.oscar.wmo.int/instruments/instruments/view/pms_3
+        SuperView-1: https://space.oscar.wmo.int/instruments/view/pms_3
         """
         self.instrument = "PMS-3"
 
@@ -184,7 +183,7 @@ class Sv1Product(VhrProduct):
 
     def _map_bands(self) -> None:
         """
-        Map bands, see https://space.oscar.wmo.int/instruments/instruments/view/pms_3
+        Map bands, see https://space.oscar.wmo.int/instruments/view/pms_3
         """
         # Create spectral bands
         pan = SpectralBand(
@@ -297,7 +296,7 @@ class Sv1Product(VhrProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -322,10 +321,10 @@ class Sv1Product(VhrProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         **Note**:
-        According to :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf`:,
-        all absolute times are in Beijing Time in the format of :code:`YYYY-MM-DDThh:mm:ss.ddddddZ`:, unless otherwise specified!
+        According to :code:`https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf`,
+        all absolute times are in Beijing Time in the format of :code:`YYYY-MM-DDThh:mm:ss.ddddddZ`, unless otherwise specified!
 
-        The datetime is then be converted to UTC.
+        The datetime is then converted to UTC.
 
         .. code-block:: python
 
@@ -380,7 +379,7 @@ class Sv1Product(VhrProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         return path.get_filename(self._glob("*.shp"))
 
@@ -475,7 +474,7 @@ class Sv1Product(VhrProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -488,7 +487,7 @@ class Sv1Product(VhrProduct):
     @cache
     def read_pan_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the PAN metadata XML root and its namespaces as a dict
+        Read metadata and output the PAN metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -500,7 +499,7 @@ class Sv1Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return False
 

@@ -86,10 +86,10 @@ class S2ProductType(ListEnum):
     """Sentinel-2 products types (L1C or L2A)"""
 
     L1C = "MSIL1C"
-    """Level-1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
+    """Level-1C: https://sentiwiki.copernicus.eu/web/s2-products"""
 
     L2A = "MSIL2A"
-    """Level-2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
+    """Level-2A: https://sentiwiki.copernicus.eu/web/s2-products"""
 
 
 @unique
@@ -265,14 +265,14 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         self.product_type = S2ProductType.from_value(self.split_name[1])
 
     def _set_instrument(self) -> None:
         """
         Set instrument
 
-        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        Sentinel-2: https://sentiwiki.copernicus.eu/web/s2-mission
         """
         self.instrument = "MSI"
 
@@ -405,7 +405,7 @@ class S2Product(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -501,7 +501,7 @@ class S2Product(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         try:
             # Get MTD XML file
@@ -805,7 +805,7 @@ class S2Product(OpticalProduct):
         -> convert all inputs to BandNames
 
         Args:
-            bands (list): Band wanted
+            bands (list): List of the wanted bands
             associated_bands (dict): Associated bands
 
         Returns:
@@ -856,7 +856,7 @@ class S2Product(OpticalProduct):
         **kwargs,
     ) -> dict:
         """
-        Load cloud files as xarrays. Overload to manage associated bands.
+        Load cloud files as xarrays. Override to manage associated bands.
 
         Args:
             bands (list): List of the wanted bands
@@ -935,12 +935,12 @@ class S2Product(OpticalProduct):
         Open a list of mask files as xarrays.
 
         Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
         Returns:
-            xr.DataArray: Cleaned band array
+            dict: Dictionary {band_name, band_xarray}
         """
         # Already sanitized
         associated_bands = self._sanitized_associated_bands(
@@ -973,11 +973,11 @@ class S2Product(OpticalProduct):
         **kwargs,
     ) -> xr.DataArray:
         """
-        Open one mask files as xarrays.
+        Open one mask file as xarrays.
 
         Args:
             bands (BandNames): Wanted mask band
-            associated_band (BandNames): Associated spectral band to the wanted mask,v to determine the bit ID of some masks. Using the GREEN band if not given.
+            associated_band (BandNames): Associated spectral band to the wanted mask, to determine the bit ID of some masks. Using the GREEN band if not given.
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
@@ -1051,7 +1051,7 @@ class S2Product(OpticalProduct):
         """
         Open S2 mask (GML files stored in QI_DATA/qi) as :code:`gpd.GeoDataFrame`.
 
-        Masks than can be called that way are:
+        Masks that can be called that way are:
 
         - :code:`TECQUA`: Technical quality mask
         - :code:`SATURA`: Saturated Pixels
@@ -1086,7 +1086,7 @@ class S2Product(OpticalProduct):
 
         Args:
             mask_id (str | S2GmlMasks): Mask name, such as DEFECT, NODATA, SATURA...
-            band (BandNames | str): Band number as an SpectralBandNames or str (for clouds: 00)
+            band (BandNames | str): Band number as a SpectralBandNames or str (for clouds: 00)
 
         Returns:
             gpd.GeoDataFrame: Mask as a vector
@@ -1123,20 +1123,20 @@ class S2Product(OpticalProduct):
         """
         Open S2 mask (jp2 files stored in QI_DATA) as raster.
 
-        Masks than can be called that way are:
+        Masks that can be called that way are:
 
         - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
         - :code:`QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
-        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band!**
+        - :code:`CLASSI`: CLOUDS and SNOWICE **only with :code:`00` as a band!**
 
         Args:
             mask_id (str | S2GmlMasks): Mask ID
-            band (BandNames | str): Band number as an SpectralBandNames or str (for clouds: 00)
+            band (BandNames | str): Band number as a SpectralBandNames or str (for clouds: 00)
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
-            gpd.GeoDataFrame: Mask as a DataArray
+            xr.DataArray: Mask as a DataArray
         """
         # Check inputs
         mask_id = S2Jp2Masks.from_value(mask_id)
@@ -1172,11 +1172,11 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1200,7 +1200,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1220,11 +1220,11 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1293,7 +1293,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1339,11 +1339,11 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage only nodata
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1382,11 +1382,11 @@ class S2Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage only nodata
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there: https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1602,7 +1602,7 @@ class S2Product(OpticalProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -1628,7 +1628,7 @@ class S2Product(OpticalProduct):
     @cache
     def read_datatake_mtd(self) -> (etree._Element, dict):
         """
-        Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
+        Read datatake metadata and output the metadata XML root and its namespaces as a dict
         (datatake metadata is the file in the root directory named :code:`MTD_MSI(L1C/L2A).xml`)
 
         .. code-block:: python
@@ -1650,8 +1650,8 @@ class S2Product(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        Does this product have the specified cloud band?
+        https://sentiwiki.copernicus.eu/web/s2-processing
         """
         return band != SHADOWS
 
@@ -1666,7 +1666,7 @@ class S2Product(OpticalProduct):
         Load cloud files as xarrays.
 
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        https://sentiwiki.copernicus.eu/web/s2-processing
 
         Args:
             bands (list): List of the wanted bands
@@ -1796,7 +1796,7 @@ class S2Product(OpticalProduct):
         Load cloud files as xarrays.
 
         Read S2 MSK_CLDPRB_20m .JP2 file, only for L2A products.
-        CLOUDS and ALL_CLOUDS corresponds to a threshold at 66% of this mask, when CIRRUS is loaded with the above functions.
+        CLOUDS and ALL_CLOUDS correspond to a threshold at 66% of this mask, when CIRRUS is loaded with the above functions.
 
         Args:
             bands (list): List of the wanted bands
@@ -1885,7 +1885,7 @@ class S2Product(OpticalProduct):
         L1C data with baseline < 4.0
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
 
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        https://sentiwiki.copernicus.eu/web/s2-processing
 
         Args:
             bands (list): List of the wanted bands
@@ -2113,7 +2113,7 @@ class S2Product(OpticalProduct):
     @qck_wrapper
     def get_quicklook_path(self) -> str:
         """
-        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+        Get quicklook path if existing (some providers are providing a quicklook, such as creodias)
 
         Returns:
             str: Quicklook path
@@ -2132,7 +2132,7 @@ class S2Product(OpticalProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 
@@ -2216,7 +2216,7 @@ class S2StacProduct(StacProduct, S2Product):
 
     def _get_path(self, file_id: str, ext="tif") -> str:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             band_id (str): Band ID
@@ -2294,7 +2294,7 @@ class S2StacProduct(StacProduct, S2Product):
     @cache
     def read_datatake_mtd(self) -> (etree._Element, dict):
         """
-        Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
+        Read datatake metadata and output the metadata XML root and its namespaces as a dict
         (datatake metadata is the file in the root directory named :code:`MTD_MSI(L1C/L2A).xml`)
 
         .. code-block:: python
@@ -2314,16 +2314,10 @@ class S2StacProduct(StacProduct, S2Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read Landsat metadata as:
+        Read Granule metadata.
 
-         - :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
-         - XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
-
-        Args:
-            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
-            (etree._Element, dict):
-                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))
 

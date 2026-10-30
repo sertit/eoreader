@@ -24,7 +24,7 @@ reduce_verbosity()
 @s3_env
 @dask_env
 def test_broken_s2():
-    """Function testing the support of broken Sentinel-2 constellation"""
+    """Function testing the support of the broken Sentinel-2 constellation"""
     pixel_size = 10.0 * 100
 
     # ----------- Broken MTD -----------

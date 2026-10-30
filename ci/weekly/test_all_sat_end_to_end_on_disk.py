@@ -168,7 +168,7 @@ def _test_core(
     Args:
         pattern (str): Pattern of the satellite
         prod_dirs (str | list): Product directory
-        possible_bands(list): Possible bands
+        possible_bands (list): Possible bands
         debug (bool): Debug option
     """
     set_dem(dem_path)
@@ -264,7 +264,7 @@ def _test_core(
                 #     **kwargs,
                 # )[first_band]
 
-                # CLOUDS: just try to load them without testing it
+                # CLOUDS: just try to load them without testing them
                 LOGGER.info("Loading clouds")
                 cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
                 ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
@@ -277,7 +277,7 @@ def _test_core(
                 LOGGER.info("get_existing_band_paths")
                 prod.get_existing_band_paths()  # noqa
 
-                # Check if possible to load narrow nir, without checking result
+                # Check if it is possible to load narrow NIR, without checking the result
                 if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
                     prod.load(NARROW_NIR)
 
@@ -301,7 +301,7 @@ def _test_core(
 def test_s1_slc(capfd, eoreader_tests_path):
     @dask_env
     def test_s1_slc_core():
-        """Function testing the support of Sentinel-1 constellation"""
+        """Function testing the support of the Sentinel-1 constellation"""
         try:
             _test_core_sar("*S1*_IW_SLC*.SAFE", tmpdir=eoreader_tests_path.tmpdir)
         except RuntimeError:
@@ -316,7 +316,7 @@ def test_s1_slc(capfd, eoreader_tests_path):
 def test_s1_slc_zip(capfd, eoreader_tests_path):
     @dask_env
     def test_s1_slc_zip_core():
-        """Function testing the support of Sentinel-1 constellation"""
+        """Function testing the support of the Sentinel-1 constellation"""
         try:
             _test_core_sar("*S1*_IW_SLC*.zip", tmpdir=eoreader_tests_path.tmpdir)
         except RuntimeError:

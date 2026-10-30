@@ -41,7 +41,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class Rs2ProductType(ListEnum):
     """
-    RADARSAT-2 projection identifier.
+    RADARSAT-2 product type identifier.
     Take a look `here <https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca>`_.
     """
 
@@ -89,10 +89,10 @@ class Rs2SensorMode(ListEnum):
     """Standard Mode"""
 
     W = "Wide"
-    """Spotlight Mode"""
+    """Wide Mode"""
 
     F = "Fine"
-    """Wide Mode"""
+    """Fine Mode"""
 
     WF = "Wide Fine"
     """Wide Fine Mode"""
@@ -152,7 +152,7 @@ class Rs2Product(SarProduct):
     """
     Class for RADARSAT-2 Products
 
-    You can use directly the .zip file
+    You can directly use the .zip file
     """
 
     def _set_pixel_size(self) -> None:
@@ -476,7 +476,7 @@ class Rs2Product(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from RADARSAT-2 products name (could check the metadata too)
+        Get sensor mode from RADARSAT-2 product name (could check the metadata too)
         """
         # Get metadata
         root, nsmap = self.read_mtd()
@@ -561,7 +561,7 @@ class Rs2Product(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -593,7 +593,7 @@ class Rs2Product(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

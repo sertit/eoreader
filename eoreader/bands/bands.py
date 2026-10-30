@@ -80,15 +80,15 @@ class Band:
 
         self.spyndex_name = None
         """
-        Spyndex standard name, can be found here: https://awesome-ee-spectral-indices.readthedocs.io/en/latest/
+        Spyndex standard name, can be found here: https://awesome-spectral-indices.github.io/awesome-spectral-indices/
         """
 
     def _to_repr(self) -> list:
         """
-        Returns a representation of the product as a list
+        Returns a representation of the band as a list
 
         Returns:
-            list: Representation of the product
+            list: Representation of the band
         """
         # Mandatory fields
         repr_str = [

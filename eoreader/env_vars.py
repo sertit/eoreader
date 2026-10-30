@@ -25,7 +25,7 @@ SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
 """Environment variable for SAR default pixel size, used for SNAP orthorectification to override default pixel size."""
 
 SAR_PREDICTOR = "EOREADER_SAR_PREDICTOR"
-"""Environment variable for SAR predictor when writing file into GeoTiff (default is 3 if SNAP version > 13, else 1)."""
+"""Environment variable for SAR predictor when writing a file into GeoTiff (default is 3 if SNAP version > 13, else 1)."""
 
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
@@ -52,15 +52,15 @@ SNAP will use your DEM stored in :code:`EOREADER_DEM_PATH` as an external DEM.
 """
 
 S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
-"""Environment variable used for specify DB base url (e.g. :code:`https://s3.unistra.fr/bucket_name/`) """
+"""Environment variable used to specify the DB base url (e.g. :code:`https://s3.unistra.fr/bucket_name/`) """
 
 TEST_USING_S3_DB = "TESTING_USING_S3_DB"
-"""Environment variable to specify to use external DB as a opposed to local one. (For testing purposes only)"""
+"""Environment variable to specify using the external DB, as opposed to the local one. (For testing purposes only)"""
 
 CI_EOREADER_BAND_FOLDER = "CI_EOREADER_BAND_FOLDER"
 """
 Environment variable used in CI to override the existing band path
-in order to bypass SNAP process and DEM reprojection.
+in order to bypass the SNAP process and DEM reprojection.
 """
 
 USE_DASK = "EOREADER_USE_DASK"
@@ -77,7 +77,7 @@ If 'auto' is set, the value passed as chunks will be :code:`'auto'`.
 
 NOF_BANDS_IN_CHUNKS = "EOREADER_NOF_BANDS_IN_CHUNKS"
 """
-If set, overrides the default number of bands to be considered used in chunking (1 by default, i.e. default chunk is :code:`{"band": 1, "x": 1024, "y": 1024}`).
+If set, overrides the default number of bands to be considered in chunking (1 by default, i.e. default chunk is :code:`{"band": 1, "x": 1024, "y": 1024}`).
 Only used if :code:`EOREADER_USE_DASK` is set to 1.
 Not used in case of :code:`EOREADER_USE_DASK` set as :code:`'auto'`.
 """

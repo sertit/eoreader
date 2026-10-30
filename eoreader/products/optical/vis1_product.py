@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 Vision-1 products.
-See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
+See `here <https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
 for more information.
 """
 
@@ -61,7 +61,7 @@ _VIS1_E0 = {
 }
 """
 Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
-It is determined by using well know models of Solar Irradiance with the measured spectral transmission of the imager for each incident wavelength.
+It is determined by using well-known models of Solar Irradiance with the measured spectral transmission of the imager for each incident wavelength.
 It has units of Wm-2μm-1. The applicable values for Vision-1 are provided in the table.
 """
 
@@ -122,7 +122,7 @@ class Vis1ProductType(ListEnum):
 class Vis1Product(DimapV1Product):
     """
     Class of Vision-1 products.
-    See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
+    See `here <https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
     for more information.
     """
 
@@ -171,7 +171,7 @@ class Vis1Product(DimapV1Product):
 
     def _set_product_type(self) -> None:
         """
-        Set products type
+        Set product type
 
         See Vision-1_web_201906.pdf for more information.
         """
@@ -273,7 +273,7 @@ class Vis1Product(DimapV1Product):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -356,7 +356,7 @@ class Vis1Product(DimapV1Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict

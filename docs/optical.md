@@ -2,15 +2,15 @@
 
 You will find an optical tutorial [here](https://eoreader.readthedocs.io/latest/notebooks/optical.html).
 
-## Implemented optical constellation
+## Implemented optical constellations
 
 ![optical_sensors](_static/optical_sensors.png)
 
-The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
-The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
-However, especially for SAR data, the default pixel size of GRD bands is different from the product resolution!
+The product resolution corresponds to that given in [Data Access Portfolio (2014-2024, section 6.2)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf). 
+The Data Access Portfolio Document describes the datasets and data access services available to Copernicus users to meet their Earth Observation data requirements.
+Note: For SAR data, the default pixel size of GRD bands is different from the product resolution.
 
-| Constellations              | Class                                                              | Use archive                  |
+| Constellations              | Class                                                              | Use archive                 |
 |-----------------------------|--------------------------------------------------------------------|------------------------------|
 | Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
 | Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2StacProduct`        | -                            |
@@ -36,12 +36,12 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | GEOSAT-2                    | {meth}`~eoreader.products.optical.gs2_product.Gs2Product`          | ✅                            |
 | Aleph-1 (Satellogic)        | {meth}`~eoreader.products.optical.aleph1_product.Aleph1Product`    | ✅                            |
 
-\* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
+\* *Archived Landsat Collection-1 products are not handled because of the tar.gz format, which is too slow to process. It is better to work with the extracted product. Landsat-9 Collection-1 products do not exist.*
 
-\*\* *Vantor satellites: Worldview Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
+\*\* *Vantor satellites: WorldView Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1 and QuickBird should work, although they have not been tested). 
 
 ```{warning}
-Satellites products that cannot be used as archived have to be extracted before use.
+Satellite products that cannot be used as archives must be extracted before use.
 ```
 
 | Constellations              | Product Types             | Default Pixel Size                    |
@@ -70,18 +70,18 @@ Satellites products that cannot be used as archived have to be extracted before 
 | GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data    |
 | Aleph-1 (Satellogic)        | L1B & L1D & L1D-SR        | 0.7 m for L1D data                    |
 
-\* *Vantor satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
+\* *Vantor satellites: WorldView Legion 2, 3, 4 and GeoEye-1 (but WorldView-1 and QuickBird should work, although they have not been tested). 
 
-\*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
+\*\* ⚠️ *DIMAP SEN products are orthorectified using RPCs rather than the rigorous sensor model. Shifts may occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
 ```{note}
-Note that for the rest of this documentation: 
-- HLS.S30 and Sentinel-2 data are equivalent (with the only difference of a 30 m gsd).
+Note that for the rest of this documentation:
+- HLS.S30 and Sentinel-2 data are equivalent (with the only difference being a 30 m GSD).
 - HLS.L30 and Landsat-OLI-TIRS data are equivalent.
 ```
 
 The goal of **EOReader** is to implement every constellation that can be used in the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
-The constellations that can be used during CEMS activations are (as of 09/2021):  
+The constellations that can be used during CEMS activations are (as of 09/2021):
 ![cems_constellations](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 ## Optical bands
@@ -89,31 +89,30 @@ The constellations that can be used during CEMS activations are (as of 09/2021):
 The following bands are available in **EOReader** but may not be available for all constellations.
 
 ```{warning}
-EOReader loads bands in UTM. VHR bands can be orthorectified but EOReader needs a DEM for that.
-Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you want.
+EOReader loads bands in UTM. VHR bands can be orthorectified, but EOReader needs a DEM for that.
+Be sure to set the `EOREADER_DEM_PATH` environment variable to the DEM you want.
 ```
 
 ### Satellite bands
 
 ```{note}
-Optical bands are always loaded in reflectance, except for brilliance temperature bands that are left as is. 
+Optical bands are always loaded as reflectance, except for brightness temperature bands, which are left as is. 
 
-However, the user can ask for bands "as is" by using the {meth}`~eoreader.keyword.TO_REFLECTANCE` keyword with the load and stack functions.
-It will give the bands in the provider format (either DN, radiance or reflactance in uint16...).
-See [the optical notebook](https://eoreader.readthedocs.io/latest/notebooks/optical.html#radiometric-processing) to see how to implement it.
+However, users can request bands "as is" by using the {meth}`~eoreader.keywords.TO_REFLECTANCE` keyword with the load and stack functions.
+This will provide the bands in the provider format (either DN, radiance, or reflectance in uint16...).
+See [the optical notebook](https://eoreader.readthedocs.io/latest/notebooks/optical.html#radiometric-processing) for implementation details.
 
 These bands will be cleaned according to the user's needs. 
-By default, only the pixels outside the detectors footprints are set to nodata.
-Methods to clean optical bands are best described in the
-[notebook](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html) about the optical cleaning methods.
+By default, only pixels outside the detector footprints are set to nodata.
+Methods to clean optical bands are best described in the [optical cleaning methods notebook](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html).
 ```
 
 #### Band names
 
 These bands are mainly based on Sentinel-2 bands. 
-The names are the ones from Sentinel-2, even if sometimes it can be confusing (especially for `Coastal Aerosol` and `SWIR Cirrus` bands).
+The names are derived from Sentinel-2, although this can sometimes be confusing (especially for the `Coastal Aerosol` and `SWIR Cirrus` bands).
 
-Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
+Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`, etc.):
 
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.DEEP_BLUE`: Deep Blue (same goal as Coastal Aerosol, mainly for VHR data, centered around 420 nm)
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol (mainly for HR data, centered around 440 nm)
@@ -130,16 +129,16 @@ Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.WV`: Water vapour
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_CIRRUS`: Cirrus band
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_1`: Short Wave Infrared 1
-- {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_2` Short Wave Infrared 2
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_2`: Short Wave Infrared 2
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.PAN`: Panchromatic
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.TIR_1`: Thermal Infrared 1
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.TIR_2`: Thermal Infrared 2
 
 ```{note}
 Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
-They will be called by their true name (i.e. `F1` or `Oa05`). However, 
-the mapped band will have to be called with their mapped name, i.e. `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
-But the bands that are not present in the `bands.__init__` file won't be recognized.
+They will be called by their actual name (i.e., `F1` or `Oa05`). However, 
+mapped bands must be called using their mapped name, i.e., `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
+Note: bands not present in the `bands.__init__` file will not be recognized.
 ```
 
 #### Optical band mapping between constellations
@@ -150,7 +149,7 @@ But the bands that are not present in the `bands.__init__` file won't be recogni
 
 Thermal bands are not represented in this plot. Here is the table of the mapping:
 
-| Bands names (alias)          | Thermal IR (`TIR_1`) | Thermal IR (`TIR_2`) |
+| Band names (alias)           | Thermal IR (`TIR_1`) | Thermal IR (`TIR_2`) |
 |------------------------------|----------------------|----------------------|
 | Sentinel-3 SLSTR             | **8** (1km)          | **9** (1km)          |
 | Landsat OLI-TIRS (8-9)       | **10** (100m)        | **11** (100m)        |
@@ -159,32 +158,28 @@ Thermal bands are not represented in this plot. Here is the table of the mapping
 | Landsat MSS (only Landsat-3) | **8** (240m)         | **8** (240m)         |
 
 Not all bands of these constellations are mapped in EOReader. 
-However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
+However, they can still be used by directly using their name (e.g., `F1` or `Oa05`).
 
 ### Sentinel-2 L2A specific bands
 
-EOReader can now load (since v0.22.0) Sentinel-2 L2A specific bands (quality assurance bands) as any other band: 
+Since v0.22.0, EOReader can load Sentinel-2 L2A specific bands (quality assurance bands) like any other band: 
 - Aerosol optical thickness (`AOT`)
-- Scene average water vapour (`WVP`)
+- Scene average water vapor (`WVP`)
 - Scene classification layer (`SCL`)
 
 ### Cloud bands
 
-Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
-orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be stacked.
+A maximum of 5 cloud bands are available, depending on the files provided in the data. All bands are rasterized and
+orthorectified if needed (for Sentinel-2 or Sentinel-3 data, for example), ready to be stacked.
 
-The only difference with the other bands is that the cloud bands are provided in `uint8` and have a nodata equal to 255.
+The only difference from the other bands is that cloud bands are provided in `uint8` and have a nodata value of 255.
 
-- {meth}`~eoreader.bands.band_names.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the
-  orthorectification and rasterization). Can provide other flags, or cloud probability.
-- {meth}`~eoreader.bands.band_names.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0). If clouds are provided in
-  probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.band_names.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0). If clouds are provided in
-  probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.band_names.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0). If clouds are provided in
-  probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.band_names.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
-  Do not take into account missing bands (i.e. for Landsat MSS constellation, `ALL_CLOUDS` == `CLOUDS`)
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.RAW_CLOUDS`: Raw cloud file as provided (the only changes are orthorectification and rasterization). Can provide other flags or cloud probability.
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0). If clouds are provided as probabilities, their presence is determined according to the Landsat definition (probability > 67%)
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0). If clouds are provided as probabilities, their presence is determined according to the Landsat definition (probability > 67%)
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.SHADOWS`: Shadow presence (1) or absence (0). If clouds are provided as probabilities, their presence is determined according to the Landsat definition (probability > 67%)
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadow presence (1) or absence (0).  
+  Does not account for missing bands (e.g., for the Landsat MSS constellation, `ALL_CLOUDS` == `CLOUDS`)
 
 | Sensors                       | Cloud files | Clouds Bands                                              |
 |-------------------------------|-------------|-----------------------------------------------------------|
@@ -215,29 +210,31 @@ The only difference with the other bands is that the cloud bands are provided in
 
 ### DEM bands
 
-Optical constellations can all load {meth}`~eoreader.bands.band_names.DemBandNames.DEM`, {meth}`~eoreader.bands.band_names.DemBandNames.SLOPE`
+All optical constellations can load {meth}`~eoreader.bands.band_names.DemBandNames.DEM`, {meth}`~eoreader.bands.band_names.DemBandNames.SLOPE`, 
 and {meth}`~eoreader.bands.band_names.DemBandNames.HILLSHADE` bands. 
 The `SLOPE` band is given in degrees. 
-Please post an issue if you need this band in `percent`.
+Please open an issue if you need this band in `percent`.
 
-Use the environment variable `EOREADER_DEM_PATH` to position your worldwide DEM. You can
-use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
-a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
-`https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
+Use the `EOREADER_DEM_PATH` environment variable to specify your worldwide DEM path. You can use either:
+- A local path (e.g., `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt`)
+- A URL pointing to a web resource hosted on S3-compatible storage (e.g., `https://s3.storage.com/dem-bucket/srtm_cog.tif`)
+
+Note: S3-compatible storage URLs are not yet available on Windows.
 
 ### Available spectral indices
 
-EOReader uses (from version 0.18.0) the indices described in the 
-[awesome spectral indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
+Since version 0.18.0, EOReader uses the indices described in the 
+[Awesome Spectral Indices (ASI)](https://awesome-spectral-indices.github.io/awesome-spectral-indices/) project.
 
-> ⚠ You may need to install the last `spyndex` directly from GitHub latest version to have all available indices:
+> ⚠️ You may need to install the latest `spyndex` directly from GitHub to access all available indices:
 > `pip uninstall spyndex && pip install -U --no-deps git+https://github.com/awesome-spectral-indices/spyndex.git`
 
-In addition to all these indices, EOReader kept the following indices for legacy purposes:
+In addition to these indices, EOReader retains the following indices for legacy purposes:
 
 | Spectral Indices         | ASI equivalent   | Formulas (with ASI syntax)                                                     | Name                                                |
 |--------------------------|------------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
-| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) || `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
+| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
+| `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
 | `NDRE2`                  | ❌                | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
 | `NDRE3`                  | ❌                | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
 | `CI32`                   | ❌                | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
@@ -252,11 +249,11 @@ In addition to all these indices, EOReader kept the following indices for legacy
 | `WV_WI`                  | ❌                | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
 
 ```{note}
-WorldView-1 is not concerned by spectral indices as it only has a panchromatic band
+WorldView-1 is not affected by spectral indices as it only has a panchromatic band.
 ```
 
-Some indices are parametric (see the list [here](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html#expressions)). 
-To add any parameter you can pass it to your load or stack functions:
+Some indices are parametric (see the list [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices#formula-expressions)). 
+To add any parameter, you can pass it to your load or stack functions:
 
 ```python
 >>> prod.load("WDRVI", alpha=1)
@@ -265,7 +262,7 @@ To add any parameter you can pass it to your load or stack functions:
 ### Masks
 
 Since v0.22.0, EOReader can load masks directly in the `load` function.
-However, the band masks are not exposed directly into `eoreader.bands`, but through their enums.
+However, band masks are not exposed directly in `eoreader.bands` but rather through their enums.
 They can also be called by their string representation.
 
 ```python
@@ -274,7 +271,7 @@ They can also be called by their string representation.
 >>> prod.load(HlsMaskBandNames.FMASK)
 ```
 
-For Sentinel-2 et Sentinel-2 Theia data, some masks are band-specific and should be called with the `associated_bands` keywords.
+For Sentinel-2 and Sentinel-2 Theia data, some masks are band-specific and should be called using the `associated_bands` keyword.
 This leads to a side effect that can be disorienting: these masks should be retrieved from the dataset with an unusual key (`{band}_{associated_band}`).
 
 ```python
@@ -304,19 +301,19 @@ Attributes:
     ...
 ```
 
-See the different MaskBandNames enums to discover all the available masks and how to call them.
-⚠ This feature is experimental.
+See the different `MaskBandNames` enums to discover all available masks and how to call them.
+⚠️ This feature is experimental.
 
 ## Implemented workarounds
 
 ### Corrupted shapes in Vantor products
 
-Some Vantor products have incoherent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
-EOreader applies a workaround by updating on the spot the .IMD file to allow GDAL to correctly read the product.
+Some Vantor products have inconsistent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
+EOReader applies a workaround by updating the .IMD file on the spot to allow GDAL to correctly read the product.
 
 This can be blocked by setting `EOREADER_FIX_VANTOR` to `0` (as the raw product is altered and this behavior may not be desirable).
 
-For now it doesn't work automatically on archived or cloud-stored products. 
+Currently, this does not work automatically on archived or cloud-stored products. 
 
 ## Documentary Sources
 
@@ -338,8 +335,8 @@ For now it doesn't work automatically on archived or cloud-stored products.
 
 ### Sentinel-2
 
-- [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
-- [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Cloud masks](https://sentiwiki.copernicus.eu/web/s2-processing)
+- [Product Specification (Processing Baseline < 4.0)](https://sentinels.copernicus.eu/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
 
 ### Vénµs
@@ -348,7 +345,7 @@ For now it doesn't work automatically on archived or cloud-stored products.
 - [Format L2A](https://www.cesbio.cnrs.fr/multitemp/format-of-ven%c2%b5s-l2a-produced-by-muscate/)
 - [Instrument](https://database.eohandbook.com/database/missionsummary.aspx?missionID=601&utm_source=eoportal&utm_content=venus)
 
-### Harmonize Landsat-Sentinel
+### Harmonized Landsat-Sentinel
 - [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1698/HLS_User_Guide_V2.pdf)
 
 ### Sentinel-2 Theia
@@ -359,10 +356,10 @@ For now it doesn't work automatically on archived or cloud-stored products.
 
 - [OLCI main page](https://sentiwiki.copernicus.eu/web/olci-processing)
 - [SLSTR main page](https://sentiwiki.copernicus.eu/web/slstr-processing)
-- [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
-- [SLSTR Handbook](https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
-- [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
-- [SLSTR Product Format](https://sentinel.esa.int/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
+- [OLCI Handbook](https://sentinels.copernicus.eu/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
+- [SLSTR Handbook](https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
+- [OLCI Product Format](https://sentinels.copernicus.eu/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
+- [SLSTR Product Format](https://sentinels.copernicus.eu/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
 - [SLSTR Clouds](https://sentiwiki.copernicus.eu/web/slstr-processing#SLSTRProcessing-Basiccloudmasking)
 
 ### PlanetScope, SkySat and RapidEye
@@ -373,38 +370,38 @@ For now it doesn't work automatically on archived or cloud-stored products.
 
 ### Vision-1
 
-- [Vision-1 on Airbus Website](https://intelligence.airbus.com/imagery/our-optical-and-radar-satellite-imagery/vision-1/)
-- [Presentation of the satellite](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/Vision_1_web_201906_03a78fe799/Vision_1_web_201906_03a78fe799.pdf)
-- [User guide](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/vision_1_imagery_user_guide_20210217_5b09442f70/vision_1_imagery_user_guide_20210217_5b09442f70.pdf)
+- [Vision-1 on Airbus Website](https://web.archive.org/web/20230928143525/https://www.intelligence-airbusds.com/imagery/constellation/vision1/)
+- [Presentation of the satellite](https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/Vision_1_web_201906_03a78fe799/Vision_1_web_201906_03a78fe799.pdf)
+- [User guide](https://storage.googleapis.com/p-ssp-iep-prod-8ff-strapi-uploads/vision_1_imagery_user_guide_20210217_5b09442f70/vision_1_imagery_user_guide_20210217_5b09442f70.pdf)
 
 ### DIMAP V1: SPOT-4/5
-- [Product Format (a bit too old)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
+- [Product Format (a bit outdated)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
 - [Preprocessing levels](https://earth.esa.int/eogateway/documents/20142/37627/SPOTScene-SPOTView-preprocessing-levels.pdf)
-- [Resolution and spectral modes](https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
+- [Resolution and spectral modes](https://web.archive.org/web/20240809114543/https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
 - [Convert to reflectance](https://cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf)
 
 ### DIMAP V2: Pleiades, SPOT-6/7
 
-- [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
+- [DIMAP V2 Format](https://web.archive.org/web/20251110063844/https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
 - [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
 - [SPOT-6/7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
 - [Pleiades Neo](https://docs.up42.com/getting-started/data-products/pleiades-neo/)
 
-### Vantor (ex Maxar, Digital Globe)
-- [Vantor ressources](https://vantor.com/resources)
+### Vantor (formerly Maxar, Digital Globe)
+- [Vantor resources](https://vantor.com/resources)
 - [Worldview Legion](https://vantor.com/resources/worldview-legion-datasheet/)
 - [Radiometric Use of WorldView Legion](https://vantor.com/resources/radiometric-use-of-worldview-legion-imagery)
 - [Worldviews](https://earth.esa.int/eogateway/catalog/worldview-esa-archive)
 - [System-Ready Imagery](https://vantor.com/resources/imagery-system-ready-1b-datasheet/)
 - [View-Ready Imagery](https://vantor.com/resources/view-ready-2a-datasheet/)
 - [Map-Ready Imagery](https://vantor.com/resources/imagery-map-ready-datasheet/)
-- [ISD](https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
+- [ISD](https://web.archive.org/web/20240420081912/https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
 - [Digital Globe Standard Imagery (old)](https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf)
 - [Digital Globe Products Guide (old)](https://www.geosoluciones.cl/documentos/worldview/DigitalGlobe-Core-Imagery-Products-Guide.pdf)
 - [Conversion from DN to TOA reflectance](https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf)
 
 ### SuperView-1
-- [Imagery Product Guide](http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
+- [Imagery Product Guide](https://web.archive.org/web/20240413000813/http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
 
 ### GeoSat-2 (ex Deimos-2)
 - [Imagery User Guide](https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf)
@@ -422,9 +419,9 @@ You can find a magnificent band comparison chart on the [Imagico](http://blog.im
 
 ### Index
 
-- [Awesome Spectral Indices](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/)
+- [Awesome Spectral Indices](https://awesome-spectral-indices.github.io/awesome-spectral-indices/)
 - [Index consistency](https://www.indexdatabase.de/)
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (old)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
-*Documentation last accessed on 12/03/2025*
+*Documentation last accessed on 2025-03-12*

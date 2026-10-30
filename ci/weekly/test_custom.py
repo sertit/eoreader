@@ -159,7 +159,7 @@ def test_custom_wgs84():
     with pytest.raises(InvalidProductError):
         prod_wgs84.load(BLUE, size=[3863, 1049])[BLUE]  # noqa
 
-    # Try non-available clouds and bands
+    # Try unavailable clouds and bands
     assert len(prod_wgs84.load([])) == 0
     assert not prod_wgs84.has_bands(CLOUDS)
     with pytest.raises(AssertionError):

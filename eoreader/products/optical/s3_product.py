@@ -227,7 +227,7 @@ class S3Product(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -363,7 +363,7 @@ class S3Product(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_mtd()
 
-            # Open identifier
+            # Get identifier
             acq_date = root.findtext(".//start_time")
             if not acq_date:
                 raise InvalidProductError("start_time not found in metadata!")
@@ -383,7 +383,7 @@ class S3Product(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -540,7 +540,7 @@ class S3Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -708,7 +708,7 @@ class S3Product(OpticalProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -722,7 +722,7 @@ class S3Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         # Open first nc file as every file should have the global attributes
-        # Here in read_mtd we don't know which type of product we have (before we have the correct constellation)
+        # Here in read_mtd we don't know which type of product we have (before determining the correct constellation)
         # Manage archives
         if self.is_archived:
             if path.is_cloud_path(self.path):
@@ -797,7 +797,7 @@ class S3Product(OpticalProduct):
 
         NetCDF files are supposed to be at the root of this product.
 
-        Returns a string as it is meant to be opened by rasterio or directly a xr.DataArray (if archived)
+        Returns a string as it is meant to be opened by rasterio or directly an xr.DataArray (if archived)
 
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 

@@ -103,7 +103,7 @@ class CsgProduct(CosmoProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
         for more information (tables 23-24: L1B/C/D Product features, table 20: L1A Product features for missing values).
         Taking the :code:`CSK legacy` values

@@ -83,7 +83,7 @@ class S1RtcAsfProduct(SarProduct):
         """
         Set instrument
 
-        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        Sentinel-1: https://sentiwiki.copernicus.eu/web/s1-mission#SAR-Instrument
         """
         self.instrument = "SAR C-band"
 
@@ -137,7 +137,7 @@ class S1RtcAsfProduct(SarProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -219,7 +219,7 @@ class S1RtcAsfProduct(SarProduct):
              str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
+            # Sentinel-1 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime
@@ -248,7 +248,7 @@ class S1RtcAsfProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -282,7 +282,7 @@ class S1RtcAsfProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

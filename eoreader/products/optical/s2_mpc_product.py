@@ -106,7 +106,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         Set product real name.
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         return self.item.properties["s2:product_uri"].split(".")[0]  # remove .SAFE
 
@@ -140,7 +140,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
 
     def _get_path(self, file_id: str, ext="tif") -> str:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             band_id (str): Band ID
@@ -173,12 +173,8 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         """
         Read mtd.
 
-        Args:
-            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
-
         Returns:
-            (etree._Element, dict):
-                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))
 

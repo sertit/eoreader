@@ -4,13 +4,11 @@ These features can be seen in the [basic tutorial](https://eoreader.readthedocs.
 
 ## Open
 
-The reader singleton is your unique entry.
-It will create for you the product object corresponding to your satellite data.
+The reader singleton is your only entry point.
+It will create the product object corresponding to your satellite data for you.
 
-You can load products from the cloud, see 
-[this tutorial](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html).
-S3 and S3 Compatible Storage are working and maybe Google and Azure if `rasterio` supports it, 
-but they have not been tested.
+You can load products from the cloud (see [this tutorial](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html)).
+S3 and S3 Compatible Storage work, and Google and Azure may work if `rasterio` supports them, but they have not been tested.
 
 ```python
 import os
@@ -26,17 +24,17 @@ output = os.path.abspath('.')
 # Create the reader singleton
 reader = Reader()
 prod = reader.open(path, output_path=output, remove_tmp=True)
-# remove_tmp allows you to automatically delete processing files 
-# such as cleaned or orthorectified bands when the product is deleted
-# False by default to speed up the computation if you want to use the same product in several part of your code
+# remove_tmp allows you to automatically delete processing files,
+# such as cleaned or orthorectified bands, when the product is deleted
+# False by default to speed up computation if you want to use the same product in several parts of your code
 
 # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
 # It will automatically create the output directory if needed
 prod.output = os.path.join(output, prod.condensed_name)
 ```
 
-The goal of this library is to manage only one satellite product at a time. 
-To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
+The goal of this library is to manage only one satellite product at a time.
+To handle more complicated sets of products (such as mosaics, pairs, or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
 
 This feature can also be used as a context manager:
 
@@ -56,14 +54,14 @@ with Reader().open(path, remove_tmp=True) as prod:
 
 ### Condensed name
 
-If you chose to create the output folder after creation of the `Product` object, you can leverage the `condensed_name` to name it.  
+If you choose to create the output folder after creating the `Product` object, you can leverage the `condensed_name` to name it.  
 
-The `condensed_name` of your product is a powerful feature: it is the **more compact name** possible to identify your product in a **unique** way, with a pattern **common** to every EOReader product.  
-It is very convenient to name in the same way all your results, to be able to sort them by date, sensors, etc.
+The `condensed_name` of your product is a powerful feature: it is the **most compact name** possible to identify your product in a **unique** way, with a pattern **common** to every EOReader product.  
+It is very convenient for naming all your results in the same way, allowing you to sort them by date, sensor, etc.
 
-It is constructed this way: `{date}_{constellation}_{other_identifiers}` (tiles, ID, instrument, etc. depending on the sensor type)
+It is constructed as follows: `{date}_{constellation}_{other_identifiers}` (tiles, ID, instrument, etc., depending on the sensor type)
 
-Hereunder is an example of a folder containing results for a lot of different sensors. 
+Below is an example of a folder containing results for many different sensors. 
 The results are named after the condensed names, so they are easily sortable by date and sensor (here the most recent product is first).
 
 <details><summary>Example of condensed names</summary>
@@ -117,7 +115,7 @@ The results are named after the condensed names, so they are easily sortable by 
 ### Recognized paths
 
 **EOReader** always uses the directory containing the product files.
-Hereunder are the paths meant to be given to the reader.
+Below are the paths that should be provided to the reader.
 
 #### Optical
 
@@ -147,7 +145,7 @@ Hereunder are the paths meant to be given to the reader.
 | `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
 | `UMBRA`                                  | Directory containing the `.tif` file,<br>i.e. `2023-11-10-09-37-28_UMBRA-04`                                                           |
 
-For example, if you want to link the following Pleiades:
+For example, if you want to link the following Pleiades product:
 ```
 ├── /home/data
 │   ├── DATA
@@ -160,12 +158,12 @@ For example, if you want to link the following Pleiades:
 │   │   │   │   │   ├── ...
 ```
 
-The product is the folder containing the DIMAP file, i.e. `IMG_PHR1A_PMS_001`, so the path to give to EOReader is `/home/data/DATA/Call925/6650951101/IMG_PHR1A_PMS_001`
+The product is the folder containing the DIMAP file (i.e., `IMG_PHR1A_PMS_001`), so the path to provide to EOReader is `/home/data/DATA/Call925/6650951101/IMG_PHR1A_PMS_001`
 
 ## Load
 
 {meth}`~eoreader.products.product.Product.load` is the function for accessing product-related bands.
-It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
+It can load satellite bands, indices, DEM bands, and cloud bands according to this workflow:
 
 ```{image} https://zupimages.net/up/22/12/9mz0.png
 :class: full-width
@@ -176,14 +174,14 @@ Bands can be called with their name, ID or mapped name.
 For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
 
 ```{note}
-For now, EOReader **always** loads bands with projected CRS (in UTM). 
+Currently, EOReader **always** loads bands with projected CRS (in UTM). 
 
 We know that this policy may be an issue for:
 
-- Sentinel-3 data that are vast and may have inaccurate georeferencing.
-- DIMAP data provided in WGS84 that need reprojection (and therefore time-consuming processes)
+- Sentinel-3 data, which can be vast and may have inaccurate georeferencing.
+- DIMAP data provided in WGS84 that require reprojection (and therefore time-consuming processes)
 
-If needed, we could change in the future this to allow custom CRS. 
+If needed, we could change this in the future to allow custom CRS. 
 If so, do not hesitate to add comments in [this issue](https://github.com/sertit/eoreader/issues/5) on GitHub!
 ```
 
@@ -196,7 +194,7 @@ from eoreader.env_vars import DEM_PATH
 path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE"
 output = os.path.abspath("./output")
 # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory,
-# and you won't be able to retrieve what's has been written on disk
+# and you won't be able to retrieve what has been written to disk
 prod = Reader().open(path, output_path=output)
 
 # Specify a DEM to load DEM bands
@@ -206,44 +204,44 @@ os.environ[DEM_PATH] = r"my_dem.tif"
 band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
 ok_bands = to_str([band for band in band_list if prod.has_band(band)])
 # [GREEN, NDVI, HILLSHADE]
-# Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+# Sentinel-2 cannot produce satellite band TIR_1 or cloud band SHADOWS
 
 # Load bands
 # if pixel_size is not specified -> load at default pixel_size (10.0 m for S2 data)
 bands = prod.load(ok_bands, pixel_size=20.)
-# NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+# NOTE: every array that comes out of `load` is collocated, which is not the case if you load arrays separately
 # (important for DEM data as they may have different grids)
 ```
 
 ```{note}
-Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
-with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
-The nodata written back on disk is by convention:
+Indices and bands are opened as [`xarray` DataArrays](http://xarray.pydata.org/en/stable/)
+with [`rioxarray`](https://vylor.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
+The nodata written back to disk follows this convention:
 
 - `-9999` for optical bands (saved in `float32`)
 - `65535` for optical bands (saved in `uint16`)
 - `0` for SAR bands (saved in `float32`), to be compliant with SNAP default nodata
 - `255` for masks (saved in `uint8`)
 
-For optical bands, only the pixels outside of the detector are set to nodata by default 
+For optical bands, only the pixels outside of the detector are set to nodata by default,
 but this can be changed according to the user's needs (see below).
 ```
 
-Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
-- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html).
-- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)).
-- Exogenous data can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html)).
+Some additional arguments can be passed to this function; please see {meth}`~eoreader.keywords` for the list.
+- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html)
+- Sentinel-3 additional keyword usage is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html)
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html))
+- Exogenous data can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html))
 
-💡 The bands will be opened with a chunk of `[1, TILE_SIZE, TILE_SIZE]` with `TILE_SIZE` coming from the 
+💡 The bands will be opened with chunks of `[1, TILE_SIZE, TILE_SIZE]`, where `TILE_SIZE` comes from the 
 [`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
 The `TILE_SIZE` default value is 2048.
 
-💡 By default the band will be resampled following a bilinear resampling. 
-To override this behaviour, modify the `EOREADER_BAND_RESAMPLING` environment variable.
-Note that for discrete files such as masks, the nearest resampling is set in stone.
+💡 By default, the band will be resampled using bilinear resampling. 
+To override this behavior, modify the `EOREADER_BAND_RESAMPLING` environment variable.
+Note that for discrete files such as masks, the nearest resampling is fixed.
 
-Available values (use the number and see rasterio's Resampling for more details and limitations):
+Available values (use the number and see rasterio's Resampling enum for more details and limitations):
 - `nearest` = `0`
 - `bilinear` = `1`
 - `cubic` = `2`
@@ -262,12 +260,12 @@ Available values (use the number and see rasterio's Resampling for more details 
 
 ## Stack
 
-{meth}`~eoreader.products.product.Product.stack()` is the function stacking all possible bands.
-It is based on the load function and then just stacks the bands and write it on disk if needed.
+{meth}`~eoreader.products.product.Product.stack()` is the function that stacks all requested bands.
+It is based on the load function and then stacks the bands, writing them to disk if needed.
 
-The bands are ordered as asked in the stack.
-However, they cannot be duplicated (the stack cannot contain 2 `RED` bands for instance)!
-If the same band is asked several times, its order will be the one of the last demand.
+The bands are ordered as requested in the stack.
+However, they cannot be duplicated (the stack cannot contain 2 `RED` bands, for instance)!
+If the same band is requested several times, its order will be determined by the last request.
 
 ```python
 # Create a stack with the previous OK bands
@@ -278,39 +276,37 @@ stack = prod.stack(
 )
 ```
 
-Bands can be called with their name, ID or mapped name. 
-For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
+Bands can be called using their name, ID, or mapped name. 
+For example, for Sentinel-3 OLCI you can use `7`, `Oa07`, or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
 
-Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
-- Methods to clean optical bands are best
-  described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html).
-- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)).
+Some additional arguments can be passed to this function; please see {meth}`~eoreader.keywords` for the list.
+- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html)
+- Sentinel-3 additional keyword usage is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html)
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html))
 
 ## Read Metadata
-EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 
+EOReader gives you access to the metadata of your product as a `lxml.etree._Element`, followed by the namespaces you may need to read them.
 
 ```python
-
 # Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
 mtd, nmsp = prod.read_mtd()
 
-# You can access a field like that: 
+# You can access a field like this:
 datastrip_id = mtd.findtext(".//DATASTRIP_ID")
 # 'S2B_OPER_MSI_L1C_DS_VGSR_20210929T075738_S20210517T104617_N79.90'
 
-# Pay attention, for some products you will need a namespace, i.e. for planet data:
+# Note: for some products you will need a namespace, e.g., for Planet data:
 # name = mtd.findtext(f".//{nsmap['eop']}identifier")
 ```
 
 
 ```{note}
-Landsat Collection 1 have no metadata with XML format, so the XML is simulated from the text file.
+Landsat Collection 1 has no metadata in XML format, so the XML is simulated from the text file.
 ```
 
 ```{note}
-Sentinel-3 constellations have no metadata file but have global attributes repeated in every NetCDF files.
-This is what you will have when calling this function:
+Sentinel-3 constellations have no metadata file but have global attributes repeated in every NetCDF file.
+This is what you will get when calling this function:
 
 - `absolute_orbit_number`
 - `comment`
@@ -333,9 +329,9 @@ This is what you will have when calling this function:
 ```
 
 ## Plot
-If a quicklook exists, the user can plot the product.
-Always existing for VHR and SAR data, more rarely for other optical constellations.
-See [Optical](https://eoreader.readthedocs.io/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/latest/notebooks/SAR.html) tutorials for examples.
+If a quicklook exists, you can plot the product.
+Quicklooks are always available for VHR and SAR data, and more rarely for other optical constellations.
+See the [Optical](https://eoreader.readthedocs.io/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
 # Plot product
@@ -347,7 +343,7 @@ prod.plot()
 
 ### CRS
 
-Get the product CRS, always in UTM.
+Get the product CRS (always in UTM).
 ```python
 # Product CRS (always in UTM)
 prod.crs()
@@ -356,7 +352,7 @@ prod.crs()
 
 ### Extent and footprint
 
-Get the product extent and footprint, always in UTM as a `gpd.GeoDataFrame`.
+Get the product extent and footprint (always in UTM) as a `gpd.GeoDataFrame`.
 
 ```python
 # Full extent of the bands as a geopandas GeoDataFrame
@@ -370,7 +366,7 @@ prod.footprint()
 #0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
 ```
 
-Please note the difference between `footprint` and `extent`:
+Note the difference between `footprint` and `extent`:
 
 | Without nodata                                             | With nodata                                             |
 |------------------------------------------------------------|---------------------------------------------------------|
@@ -378,8 +374,8 @@ Please note the difference between `footprint` and `extent`:
 
 ### Solar angles
 
-Get optical product azimuth (between [0, 360] degrees) and
-[zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
+Get the optical product's azimuth (between [0, 360] degrees) and
+[zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing a Hillshade, for example.
 
 ```python
 # Get azimuth and zenith solar angles
@@ -389,7 +385,7 @@ prod.get_mean_sun_angles()
 
 ### Cloud Cover
 
-Get optical product cloud cover as specified in the metadata
+Get the optical product's cloud cover as specified in the metadata.
 
 ```python
 # Get cloud cover
@@ -399,8 +395,8 @@ prod.get_cloud_cover()
 
 ### Orbit direction
 
-Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
-Always specified in the metadata for SAR constellations, set to `DESCENDING` by default for optical data if not existing.
+Get the product orbit direction (useful especially for SAR data) as a {meth}`~eoreader.products.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
+This is always specified in the metadata for SAR constellations; it defaults to `DESCENDING` for optical data if not present.
 
 ```python
 # Get orbit direction
@@ -410,9 +406,9 @@ prod.get_orbit_direction()
 
 ## STAC
 
-**EOReader** can help you create [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) items from every supported products, included custom ones.
-Those items are ready to be added in any STAC catalogue or collection. 
-See [STAC Notebook](https://eoreader.readthedocs.io/latest/notebooks/stac.html) to learn more about this feature.
+**EOReader** can help you create [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) items from all supported products, including custom ones.
+These items are ready to be added to any STAC catalog or collection. 
+See the [STAC Notebook](https://eoreader.readthedocs.io/latest/notebooks/stac.html) to learn more about this feature.
 
 ```python
 # Get STAC object
@@ -423,8 +419,8 @@ prod.stac.create_item()
 # <Item id = 20210517T103619_S2_T30QVE_L1C_075738>
 ```
 
-Some functions have different names between EOReader and STAC vocabulary. 
-For legacy purpose, this has not been changed. Hereunder is the mapping:
+Some functions have different names between EOReader and the STAC vocabulary. 
+For legacy purposes, this has not been changed. Below is the mapping:
 - `prod.stac.bbox` is equivalent to `prod.extent` but in `WGS84` (`EPSG:4326`)
 - `prod.stac.proj.bbox` is equivalent to `prod.extent`
 - `prod.stac.geometry` is equivalent to `prod.footprint` but in `WGS84` (`EPSG:4326`)

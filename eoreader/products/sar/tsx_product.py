@@ -42,7 +42,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class TsxProductType(ListEnum):
     """
-    TerraSAR-X & TanDEM-X & PAZ projection identifier.
+    TerraSAR-X & TanDEM-X & PAZ product type identifier.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -93,24 +93,22 @@ class TsxPolarization(ListEnum):
     """
 
     S = "SINGLE"
-    """"Single Polarization"""
+    """Single Polarization"""
 
     D = "DUAL"
-    """"Dual Polarization"""
+    """Dual Polarization"""
 
     Q = "QUAD"
-    """"Quad Polarization"""
+    """Quad Polarization"""
 
     T = "TWIN"
-    """"Twin Polarization"""
+    """Twin Polarization"""
 
 
 @unique
 class TsxSatId(ListEnum):
     """
     TerraSAR-X products satellite IDs + PAZ
-
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
 
     TDX = "TanDEM-X"
@@ -133,7 +131,7 @@ class TsxSatId(ListEnum):
 class TsxGeometricResolution(ListEnum):
     """
     TerraSAR-X & TanDEM-X & PAZ geometric resolution, either Radiometrically Enhanced Products or Spatially Enhanced Products.
-    This would infer on the resolution of the band, but Copernicus EMS doesn't handle this, so we keep SSC resolution as is ESA Data Access Portfolio.
+    This would affect the resolution of the band, but Copernicus EMS doesn't handle this, so we keep the SSC resolution as per the ESA Data Access Portfolio.
 
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
@@ -187,7 +185,7 @@ class TsxProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (page 49, 4. Basic Product Tables)
 
@@ -415,7 +413,7 @@ class TsxProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from TerraSAR-X products name (could check the metadata too)
+        Get sensor mode from TerraSAR-X product name (could check the metadata too)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -493,7 +491,7 @@ class TsxProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -530,7 +528,7 @@ class TsxProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

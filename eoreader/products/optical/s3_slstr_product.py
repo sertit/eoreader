@@ -180,14 +180,14 @@ class SlstrRadAdjust(ListEnum):
     )
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 06](https://www-cdn.eumetsat.int/files/2020-04/pdf_s3a_pn_slstr_l1_06.pdf),
+    [Sentinel-3 Product Notice 06](https://web.archive.org/web/20210226105154/https://www-cdn.eumetsat.int/files/2020-04/pdf_s3a_pn_slstr_l1_06.pdf),
     edited the 07/11/2018 and reviewed the 19/11/2018
     """
 
     S3_PN_SLSTR_L1_07 = S3_PN_SLSTR_L1_06
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 07](https://www-cdn.eumetsat.int/files/2020-06/pdf_s3a_pn_slstr_l1_07_1.1.pdf),
+    [Sentinel-3 Product Notice 07](https://web.archive.org/web/20210226101420/https://www-cdn.eumetsat.int/files/2020-06/pdf_s3a_pn_slstr_l1_07_1.1.pdf),
     edited the 15/01/2020 and reviewed the 09/06/2020, same as the Product Notice 06.
     """
 
@@ -207,11 +207,11 @@ class SlstrRadAdjust(ListEnum):
     )
     """
     Coefficients given in the
-    [Sentinel-3 Product Notice 08](https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
+    [Sentinel-3 Product Notice 08](https://web.archive.org/web/20230924073637/https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
     edited the 18/05/2021.
 
     Still true in [Sentinel-3 Product Notice 10](https://www-cdn.eumetsat.int/files/2023-01/S3_PN-SLSTR-L1_10%20-%20i1r0%20-%20SLSTR%20L1%20PB%20SL__L1__004_05_00.pdf) and in
-    [Sentinel-3 Product Notice 11](https://sentiwiki.copernicus.eu/__attachments/1672112/S3.PN.SLSTR-L1.11%20-%20Sentinel%203%20SLSTR%20Product%20Notice%20L1%20PB%20SL__L1_.004.07.00%202024%20-%201.0.pdf)
+    [Sentinel-3 Product Notice 11](https://web.archive.org/web/20250619223417/https://sentiwiki.copernicus.eu/__attachments/1672112/S3.PN.SLSTR-L1.11%20-%20Sentinel%203%20SLSTR%20Product%20Notice%20L1%20PB%20SL__L1_.004.07.00%202024%20-%201.0.pdf)
 
     The default one.
     """
@@ -236,7 +236,7 @@ class S3SlstrProduct(S3Product):
         **kwargs,
     ) -> None:
         """
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
+        https://sentiwiki.copernicus.eu/web/slstr-products
         Note that the name of each netCDF file provides information about its content.
 
         The suffix of each filename is associated with the selected grid:
@@ -336,7 +336,7 @@ class S3SlstrProduct(S3Product):
         self.pixel_size = 500.0
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -551,7 +551,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band (BandNames | str): Band to preprocess (quality flags or others are accepted)
-            pixel_size (float): Pixl size
+            pixel_size (float): Pixel size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
             kwargs: Other arguments used to load bands
@@ -682,7 +682,7 @@ class S3SlstrProduct(S3Product):
 
     def _tie_to_img(self, tie_arr: np.ndarray, suffix: str) -> np.ndarray:
         """
-        Convert an image sampled on the tie point grid (tx) to the wanted gris, given by the suffix
+        Convert an image sampled on the tie point grid (tx) to the wanted grid, given by the suffix
 
         Args:
             tie_arr (xr.Dataset): Image sampled on the tie point grid (tx)
@@ -730,9 +730,9 @@ class S3SlstrProduct(S3Product):
     #     can be converted to radiance by integrating the Planck function at the BT of interest multiplied over the
     #     spectral response of each band. The spectral response functions for SLSTR-A and SLSTR-B are available on
     #     the ESA Sentinel Online website (see Section 8.2.10)
-    #     https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
+    #     https://sentiwiki.copernicus.eu/web/s3-slstr-instrument
     #
-    #     In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+    #     In https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
     #
     #     Args:
     #         band_arr (xr.DataArray): Band array
@@ -761,7 +761,7 @@ class S3SlstrProduct(S3Product):
         of Thuillier et al. (2003) integrated over the measured SLSTR spectral responses
         and corrected for the earth-to-sun distance at the time of the measurement.
 
-        In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+        In https://sentinels.copernicus.eu/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -802,15 +802,15 @@ class S3SlstrProduct(S3Product):
     ) -> xr.DataArray:
         """
         Applying the radiance adjustment as recommended in the product notice:
-        S3.PN-SLSTR-L1.08 (https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf):
+        S3.PN-SLSTR-L1.08 (https://web.archive.org/web/20230924073637/https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf):
 
-        SLSTR-A/B: All solar channels (S1-S6) have been undergoing a vicarious calibration assessment to
+        SLSTR-A/B: All solar channels (S1-S6) have undergone a vicarious calibration assessment to
         quantify their radiometric calibration adjustment. Recent analysis of vicarious calibration results
         over desert sites performed by RAL, CNES, Rayference and University of Arizona have determined
         new and consistent radiometric deviations wrt. common reference sensors (MERIS, MODIS)
-        [S3MPC.RAL.TN.010]. Consequently, these have been used to provide a first-order radiometric
+        [S3MPC.RAL.TN.010]. Consequently, these have been used to provide first-order radiometric
         corrections which are provided in the below tables with more detail at the following link
-        [S3MPC.RAL.TN.020]. Current radiances in the L1B product remain uncorrected of these
+        [S3MPC.RAL.TN.020]. Current radiances in the L1B product remain uncorrected for these
         radiometric calibration adjustments. Hence, these multiplicative coefficients are strongly
         recommended to be used by all users.
 
@@ -846,7 +846,7 @@ class S3SlstrProduct(S3Product):
                 rad_coeff = getattr(rad_adjust_tuple, f"{band_id}_{view}")
                 band_arr *= rad_coeff
         except KeyError:
-            # Not a band (ie Quality Flags) or Brightness temperature: no adjust needed
+            # Not a band (ie Quality Flags) or Brightness temperature: no adjustment needed
             pass
 
         return band_arr
@@ -953,12 +953,12 @@ class S3SlstrProduct(S3Product):
         # Combine masks
         mask = no_data | exception
 
-        # DO not set 0 to epsilons as they are a part of the
+        # Do not set 0 to epsilons as they are a part of the data
         return self._set_nodata_mask(band_arr, mask)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         -> SLSTR does
         """
         return band in [RAW_CLOUDS, ALL_CLOUDS, CLOUDS, CIRRUS]
@@ -974,7 +974,7 @@ class S3SlstrProduct(S3Product):
         Load cloud files as xarrays.
 
         Read S3 SLSTR clouds from the flags file:cloud netcdf file.
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification
+        https://sentiwiki.copernicus.eu/web/slstr-processing
 
         bit_id  flag_masks (ushort)     flag_meanings
         ===     ===                     ===
@@ -1088,7 +1088,7 @@ class S3SlstrProduct(S3Product):
         try:
             cond_arr = features.sieve(cond_arr, size=10, connectivity=4)
         except TypeError:
-            # Manage dask arrays that fails with rasterio sieve
+            # Manage dask arrays that fail with rasterio sieve
             cond_arr = features.sieve(cond_arr.compute(), size=10, connectivity=4)
         cond_arr = np.expand_dims(cond_arr, axis=0)
 

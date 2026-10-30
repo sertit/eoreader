@@ -63,8 +63,8 @@ class Aleph1ProductType(ListEnum):
     L0 = "Raw"
     """
     The L0 Product is the rawest product from Satellogic’s products family. 
-    It is composed by the raw frames coming directly from the sensor of the payloads without any modification or processing, along with the necessary metadata. 
-    The frames are simple packaged in a standardized format to create the L0 product. The units of each raster are in DNs directly from the sensor.
+    It is composed of the raw frames coming directly from the sensor of the payloads without any modification or processing, along with the necessary metadata. 
+    The frames are simply packaged in a standardized format to create the L0 product. The units of each raster are in DNs directly from the sensor.
     
     See: https://developers.satellogic.com/imagery-products/l0.html
     
@@ -74,13 +74,13 @@ class Aleph1ProductType(ListEnum):
     L1A = "Raw corrected"
     """
     The L1A Product is a raw, but corrected product from Satellogic’s products family. 
-    It is composed by the raw frames that have been radiometrically corrected along with the necessary metadata.
+    It is composed of the raw frames that have been radiometrically corrected along with the necessary metadata.
 
     The algorithms applied to the L0 data to convert it into L1A are: 
     
-    - Artifacts removals 
+    - Artifact removal 
     - PSF Deconvolution 
-    - Radiometric correction to Top of the atosmphere units 
+    - Radiometric correction to Top of the atmosphere units 
     - HDR (combining 2 L0 frames with different exposures, only on Mark V) 
     - Stray light correction 
     - NO-data and cloud mask calculation
@@ -115,7 +115,7 @@ class Aleph1ProductType(ListEnum):
 
     L1D = "Ortho"
     """
-    The L1D and L1D_SR imagery products are 4-band (RGB and Near infrared) product designed for accuracy and best of class image quality. 
+    The L1D and L1D_SR imagery products are 4-band (RGB and Near infrared) products designed for accuracy and best of class image quality. 
     It is delivered to customers after going through radiometric and geometric correction process.
     
     See: https://developers.satellogic.com/imagery-products/ortho.html
@@ -125,7 +125,7 @@ class Aleph1ProductType(ListEnum):
 
     L1D_SR = "Ortho Super Resolution"
     """
-    The L1D and L1D_SR imagery products are 4-band (RGB and Near infrared) product designed for accuracy and best of class image quality. 
+    The L1D and L1D_SR imagery products are 4-band (RGB and Near infrared) products designed for accuracy and best of class image quality. 
     It is delivered to customers after going through radiometric and geometric correction process.
     
     See: https://developers.satellogic.com/imagery-products/ortho.html
@@ -197,7 +197,7 @@ class Aleph1Product(VhrProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -208,7 +208,7 @@ class Aleph1Product(VhrProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -363,7 +363,7 @@ class Aleph1Product(VhrProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -610,7 +610,7 @@ class Aleph1Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return band in list(self._get_clouds_thresh().keys()) + [RAW_CLOUDS]
 

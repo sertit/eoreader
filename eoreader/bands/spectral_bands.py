@@ -143,7 +143,7 @@ class SpectralBandMap(BandMap):
                 })
 
         Args:
-            band_map (dict): Band mapping as {SpectralBandNames: Band number for loading band}
+            band_map (dict): Band mapping as {SpectralBandNames: Band number for loading the band}
         """
         for band_name, band in band_map.items():
             if not isinstance(band, SpectralBand):

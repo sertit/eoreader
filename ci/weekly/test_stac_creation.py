@@ -1,4 +1,4 @@
-"""Script testing the creaction of STAC Items from EOReader Products."""
+"""Script testing the creation of STAC Items from EOReader Products."""
 
 import contextlib
 import logging

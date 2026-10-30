@@ -60,7 +60,7 @@ class CskProduct(CosmoProduct):
     .. code-block:: python
 
         >>> from eoreader.reader import Reader
-        >>> # CSK products could have any folder but needs to have a .h5 file correctly formatted
+        >>> # CSK products could have any folder but need to have a .h5 file correctly formatted
         >>> # ie. "CSKS1_SCS_B_HI_15_HH_RA_SF_20201028224625_20201028224632.h5"
         >>> path = r"1011117-766193"
         >>> prod = Reader().open(path)
@@ -69,7 +69,7 @@ class CskProduct(CosmoProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)
         """

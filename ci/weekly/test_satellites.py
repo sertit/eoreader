@@ -93,7 +93,7 @@ def _test_core_sar(
 
 def check_product_consistency(prod: Product):
     """
-    Check if the products are consistent
+    Check if the product is consistent
 
     Args:
         prod (Product): Tested product
@@ -135,7 +135,7 @@ def check_product_consistency(prod: Product):
 
 def check_load(prod: Product, first_band, pixel_size) -> None:
     """
-    Check if the loading process
+    Check the loading process
     Args:
         prod (Product): Tested product
         first_band: First band name
@@ -272,8 +272,8 @@ def check_band_consistency(prod: Product, band_arr: xr.DataArray, first_band) ->
 
 def check_clouds(prod: Product, size: tuple) -> None:
     """
-    Check if a proiduct can load its clouds without any error.
-    We won't test their thematic content, just if this doesn't fails.
+    Check if a product can load its clouds without any error.
+    We won't test their thematic content, just if this doesn't fail.
 
     TODO: Test properly the clouds
 
@@ -479,7 +479,7 @@ test_sar_constellations_cases = [
     pytest.param("*csk_*", {}, id="csk"),
     pytest.param("*CSG_*", {}, id="csg"),
     pytest.param("*TSX*", {}, id="tsx"),
-    pytest.param("*TDX*", {}, id="tdx"),  # Assume that tests PAZ and TDX
+    pytest.param("*TDX*", {}, id="tdx"),  # Also tests PAZ and TDX
     pytest.param("*RS2_*", {}, id="rs2"),
     pytest.param("*RCM*", {}, id="rcm"),
     pytest.param("*SC_*", {}, id="iceye"),

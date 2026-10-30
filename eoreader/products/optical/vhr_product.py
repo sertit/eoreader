@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-VHR (very high resoplution) super class.
+VHR (very high resolution) super class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
@@ -338,7 +338,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
@@ -362,7 +362,7 @@ class VhrProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -431,7 +431,7 @@ class VhrProduct(OpticalProduct):
         """
         Get the default UTM band:
         - If one already exists, get it
-        - If not, create reproject (if needed) the GREEN band
+        - If not, create it, reprojecting the GREEN band (if needed)
 
         Args:
             pixel_size (int): Band pixel size in meters
@@ -452,7 +452,7 @@ class VhrProduct(OpticalProduct):
         reproj_bands = list(self._get_band_folder().glob(warped_regex))
 
         if len(reproj_bands) == 0:
-            # Check in the writeable band folder
+            # Check in the writable band folder
             reproj_bands = list(self._get_band_folder(writable=True).glob(warped_regex))
 
             if len(reproj_bands) == 0:
@@ -495,7 +495,7 @@ class VhrProduct(OpticalProduct):
         - height
         - CRS
 
-        Overload in order not to reproject WGS84 data
+        Override in order not to reproject WGS84 data
 
         Args:
             kwargs: Additional arguments

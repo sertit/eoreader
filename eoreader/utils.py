@@ -144,7 +144,7 @@ def read(
     **kwargs,
 ) -> xr.DataArray:
     """
-    Overload of :code:`sertit.rasters.read()` managing  DASK in EOReader's way.
+    Overload of :code:`sertit.rasters.read()` managing DASK in EOReader's way.
 
     .. code-block:: python
 
@@ -158,7 +158,7 @@ def read(
 
     Args:
         raster_path (AnyPathStrType): Path to the raster
-        pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+        pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset units (X, Y)
         size (tuple | list): Size of the array (width, height). Overrides pixel_size if provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
@@ -270,7 +270,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         except AttributeError:
             pass
 
-    # Write windowed in case of big rasters (> 5 Go)
+    # Write windowed in case of big rasters (> 5 GB)
     # Workaround to avoid core dumps
     with contextlib.suppress(Exception):
         if (
@@ -732,7 +732,7 @@ def get_window_suffix(window, max_extent: gpd.GeoDataFrame = None) -> str:
     if window is not None:
         equals = False
 
-        # Only add a window suffix in case the window don't correspond to the product extent
+        # Only add a window suffix in case the window doesn't correspond to the product extent
         if max_extent is not None:
             if path.is_path(window):
                 win = vectors.read(window).dissolve().geometry

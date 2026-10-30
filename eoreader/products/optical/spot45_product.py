@@ -80,7 +80,7 @@ _SPOT5_E0 = {
     SWIR_1: [238.87, 237.78],
 }
 """
-The values of the normalized solar irradiance have been computed using WMO (World Meteorogical Organization) spectral solar irradiance.
+The values of the normalized solar irradiance have been computed using WMO (World Meteorological Organization) spectral solar irradiance.
 """
 
 
@@ -88,7 +88,7 @@ The values of the normalized solar irradiance have been computed using WMO (Worl
 class Spot4BandCombination(ListEnum):
     """
     Band combination for SPOT-4 data
-    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://web.archive.org/web/20221208204248/https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     M = "M"
@@ -121,7 +121,7 @@ class Spot4BandCombination(ListEnum):
 class Spot5BandCombination(ListEnum):
     """
     Band combination for SPOT-5 data
-    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://web.archive.org/web/20221208204248/https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     T = "T"
@@ -302,7 +302,7 @@ class Spot45Product(DimapV1Product):
 
     def _set_product_type(self) -> None:
         """
-        Set products type
+        Set product type
 
         See Vision-1_web_201906.pdf for more information.
         """
@@ -482,7 +482,7 @@ class Spot45Product(DimapV1Product):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -611,7 +611,7 @@ class Spot45Product(DimapV1Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -689,7 +689,7 @@ class Spot45Product(DimapV1Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get PlanetScope products condensed name ({date}_{constellation}_{product_type}_{band_combi}).
+        Get SPOT4/5 products condensed name ({date}_{constellation}_{product_type}_{band_combi}).
 
         Returns:
             str: Condensed name

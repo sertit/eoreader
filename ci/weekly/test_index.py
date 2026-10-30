@@ -44,7 +44,7 @@ WRITE_ON_DISK = False
 @dask_env
 def test_index(tmp_path):
     """Function testing the correct functioning of the indices"""
-    # Load S2 products as it can load every index
+    # Load S2 product as it can load every index
     s2_path = opt_path().joinpath(
         r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
     )
@@ -92,7 +92,7 @@ def test_index(tmp_path):
             decimal = 2
             max_mismatch_pct = 1
             if idx_name in ["BAI", "BAIM", "WI", "EVI", "AWEInsh", "GRI"]:
-                # Not bound between -1 / 1 indices
+                # Not bounded between -1 and 1
                 decimal = 0
                 max_mismatch_pct = 2
             ci.assert_raster_max_mismatch(
@@ -103,6 +103,6 @@ def test_index(tmp_path):
             failed_idx.append(idx_name)
 
     # Read the results
-    # Do like that to check all existing indices
+    # Do this to check all existing indices
     if failed_idx:
         raise AssertionError(f"Failed index: {failed_idx}")

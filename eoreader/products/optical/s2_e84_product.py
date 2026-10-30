@@ -133,14 +133,14 @@ class S2E84Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         self.product_type = S2ProductType.from_value(self.split_name[1])
 
     def _set_instrument(self) -> None:
         """
         Set instrument
 
-        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        Sentinel-2: https://sentiwiki.copernicus.eu/web/s2-mission
         """
         self.instrument = "MSI"
 
@@ -224,7 +224,7 @@ class S2E84Product(OpticalProduct):
 
     def _get_path(self, file_id: str, ext: str = "tif") -> AnyPathType:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             file_id (str): file ID
@@ -262,7 +262,7 @@ class S2E84Product(OpticalProduct):
     ) -> xr.DataArray:
         """
         Open a Scene classification map (SCL) mask.
-        See https://sentinels.copernicus.eu/ca/web/sentinel/technical-guides/sentinel-2-msi/level-2a/algorithm-overview
+        See https://sentiwiki.copernicus.eu/web/s2-processing#S2-Processing-Scene-Classification
         Paragraph: Classification Mask Generation
 
         Values:
@@ -318,7 +318,7 @@ class S2E84Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no bands are specified
         if not bands:
             return {}
 
@@ -398,7 +398,7 @@ class S2E84Product(OpticalProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -409,7 +409,7 @@ class S2E84Product(OpticalProduct):
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Override of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
         whereas QA nodata is where at least one band has nodata.
 
@@ -476,7 +476,7 @@ class S2E84Product(OpticalProduct):
         Set product real name.
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         return self.tile_mtd["productName"]
 
@@ -485,7 +485,7 @@ class S2E84Product(OpticalProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # No need here (_get_name reimplemented)
         pass
@@ -817,7 +817,7 @@ class S2E84StacProduct(StacProduct, S2E84Product):
 
     def _get_path(self, file_id: str, ext="tif") -> str:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived or the normal path of a tif file
 
         Args:
             band_id (str): Band ID
@@ -893,16 +893,10 @@ class S2E84StacProduct(StacProduct, S2E84Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read Landsat metadata as:
+        Read Granule metadata.
 
-         - :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
-         - XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
-
-        Args:
-            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
-            (etree._Element, dict):
-                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("granule_metadata"))
 

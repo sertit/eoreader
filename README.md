@@ -7,7 +7,7 @@
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/latest/_static/favicon.png) EOReader
 
-**EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/latest/optical.html)
+**EOReader** is a remote-sensing open-source Python library reading [optical](https://eoreader.readthedocs.io/latest/optical.html)
 and [SAR](https://eoreader.readthedocs.io/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
@@ -32,23 +32,46 @@ EOReader implements **sensor-agnostic** features:
     - [index](https://eoreader.readthedocs.io/latest/optical.html#available-index)
     - [cloud bands](https://eoreader.readthedocs.io/latest/optical.html#cloud-bands)
     - [DEM bands](https://eoreader.readthedocs.io/latest/optical.html#dem-bands)
-- [`stack`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
+- [`stack`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these types of bands
 
 EOReader works mainly with:
-- [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
+- [`xarray.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarray.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
-EOReader allow you to create internal STAC catalogs directly from raw data.
+EOReader allows you to create internal STAC catalogs directly from raw data.
 
 > [!NOTE] 
 > 💡 EOReader handles data from the past!  
 > Legacy formats are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
 > This is super useful if you need to create an internal STAC catalog with old data.
 
+## 🛠 Installation
+
+### Pip
+
+You can install EOReader via pip:
+
+```bash
+pip install eoreader
+```
+
+EOReader mainly relies on `geopandas`, `xarray` and `rasterio` (through `rioxarray`).
+
+Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html) to learn more about that.
+
+### Conda
+
+You can install EOReader via conda:
+
+```
+conda config --env --set channel_priority strict
+conda install -c conda-forge eoreader
+```
+
 ## ⚡️ Quickstart
 
 ### Optical
-EOReader allows you ta load and stack spectral bands, spectral indices, DEM and cloud bands agnostically from every handled optical constellation:
+EOReader allows you to load and stack spectral bands, spectral indices, DEM and cloud bands agnostically from every handled optical constellation:
 
 ```python
 from eoreader.reader import Reader
@@ -111,77 +134,35 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/latest
 
 Available notebooks provided as examples:
 
-- [Why EOReader?](https://eoreader.readthedocs.io/latest/notebooks/why_eoreader.html)
+- [Why EOReader?](https://eoreader.readthedocs.io/latest/notebooks/why_eoreader.html): the motivation behind the library
 
-### Basics 
-- [Basic tutorial](https://eoreader.readthedocs.io/latest/notebooks/base.html)
-- [Optical data](https://eoreader.readthedocs.io/latest/notebooks/optical.html)
-- [SAR data](https://eoreader.readthedocs.io/latest/notebooks/SAR.html)
-- [VHR data](https://eoreader.readthedocs.io/latest/notebooks/VHR.html)
-- [Remove clouds](https://eoreader.readthedocs.io/latest/notebooks/remove_clouds.html)
+### Basics
+- [Basic tutorial](https://eoreader.readthedocs.io/latest/notebooks/base.html): first steps: open a product, load and stack bands
+- [Optical data](https://eoreader.readthedocs.io/latest/notebooks/optical.html): spectral bands, indices, and cloud bands from optical constellations
+- [SAR data](https://eoreader.readthedocs.io/latest/notebooks/SAR.html): radar bands with SNAP orthorectification
+- [VHR data](https://eoreader.readthedocs.io/latest/notebooks/VHR.html): very high resolution sensors (Pleiades, WorldView, ...)
+- [Remove clouds](https://eoreader.readthedocs.io/latest/notebooks/remove_clouds.html): cloud masking from brightness temperature measurements
 
-
-### Advanced 
-- [Sentinel-3 data](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html)
-- [Water detection on multiple products](https://eoreader.readthedocs.io/latest/notebooks/water_detection.html)
-- [Windowed Reading](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)
-- [DEM](https://eoreader.readthedocs.io/latest/notebooks/dem.html)
-- [Exogenous data](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html)
-- [Custom stacks](https://eoreader.readthedocs.io/latest/notebooks/custom.html)
-- [Methods to clean optical bands](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html)
-- [AWS storage](https://eoreader.readthedocs.io/latest/notebooks/aws.html)
-- [S3 Compatible Storage](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html)
+### Advanced
+- [Sentinel-3 data](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html): OLCI and SLSTR band specificities
+- [Water detection on multiple products](https://eoreader.readthedocs.io/latest/notebooks/water_detection.html): water extraction across several constellations over the same area
+- [Windowed Reading](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html): read a subset of a product instead of full bands
+- [DEM](https://eoreader.readthedocs.io/latest/notebooks/dem.html): DEM bands (DEM, SLOPE, HILLSHADE) and orthorectification
+- [Exogenous data](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html): collocate external data onto the product grid
+- [Custom stacks](https://eoreader.readthedocs.io/latest/notebooks/custom.html): read back stacks previously written by EOReader
+- [Methods to clean optical bands](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html): cleaning methods and their time cost
+- [AWS storage](https://eoreader.readthedocs.io/latest/notebooks/aws.html): read products stored on AWS S3
+- [S3 Compatible Storage](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html): read products from MinIO or other S3-compatible stores
 
 ### Experimental
-- [Dask](https://eoreader.readthedocs.io/latest/notebooks/dask.html)
-- [STAC](https://eoreader.readthedocs.io/latest/notebooks/stac.html)
-
-## 🛠 Installation
-
-### Pip
-
-You can install EOReader via pip:
-
-`pip install eoreader`
-
-EOReader mainly relies on `geopandas`, `xarray` and `rasterio` (through `rioxarray`).
-
-Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html) to learn more about that.
-
-### Conda
-
-You can install EOReader via conda:
-
-```
-conda config --env --set channel_priority strict
-conda install -c conda-forge eoreader
-```
+- [Dask](https://eoreader.readthedocs.io/latest/notebooks/dask.html): lazy computation with dask-backed arrays
+- [STAC](https://eoreader.readthedocs.io/latest/notebooks/stac.html): create SpatioTemporal Asset Catalog items from products
 
 ## 📚 Context
 
-As one of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/) Rapid Mapping and Risk and Recovery Mapping operators, 
-[SERTIT](https://sertit.unistra.fr/) needs to deliver geoinformation (such as flood or fire delineation, landslides mapping, etc.) based on multiple EO constellations.
-
-In rapid mapping, it is always important to have access to various sensor types, resolutions, and satellites. Indeed, SAR sensors are able to detect through clouds and during nighttime 
-(which is particularly useful during flood and storm events), while optical sensors benefit from of multi spectral bands to better analyze and classify the crisis information.
-
-As every minute counts in the production of geoinformation in an emergency mode, it seemed crucial to harmonize the ground on which are built our production tools, in order to make them as
-sensor-agnostic as possible.
-
-This is why SERTIT decided to decouple the sensor handling from the extraction algorithms: the latter should be able to ingest semantic bands 
-(i.e. `RED` or `VV`) without worrying about how to load the specific sensor band or in what unit it is.  
-The assumption was made that all the spectral bands from optical sensors could be mapped between each other, in addition to the natural mapping between SAR bands.
-
-Thus, thanks to **EOReader**, these tools are made independent to the constellation:  
-✅ the algorithm (and its developer) can focus on its core tasks (such as extraction) without taking into account the sensor characteristics 
-(how to load a band, which band correspond to which band number, …)  
-✅ new sensor addition is effortless (if existing in **EOReader**) and requires no algorithm modification  
-✅ maintenance is simplified and the code quality is significantly improved  
-✅ testing is also simplified as the sensor-related parts are tested in EOReader library  
-
-However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
-Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
-If this happens to you, do not hesitate to make a PR or write an issue about that!
+EOReader was created by [SERTIT](https://sertit.unistra.fr/) to support
+[Copernicus Emergency Management Service](https://emergency.copernicus.eu/)
+rapid mapping. See [CONTEXT.md](https://github.com/sertit/eoreader/blob/main/CONTEXT.md) for the full story.
 
 ## 🎤 Communication
 ### Talks
@@ -197,7 +178,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ### Press Release
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
-- Used to extract water for assessing agriculture impacts after the Kakhovka Dam Collapse (cross-post from [NASA Harvest](https://nasaharvest.org/index.php/news/navigating-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts) and [Planet](https://www.planet.com/pulse/navigating-the-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts-with-satellite-imagery/))
+- Used to extract water for assessing agriculture impacts after the Kakhovka Dam Collapse (cross-post from [NASA Harvest](https://www.nasaharvest.org/news/navigating-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts) and [Planet](https://www.planet.com/pulse/navigating-the-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts-with-satellite-imagery/))
 
 ### Articles
 
@@ -208,6 +189,16 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 - [Introduction to EOReader](https://sertit.unistra.fr/en/news/introduction-to-eoreader/)
 - [EOReader: Remote sensing open-source python library](https://sertit.unistra.fr/en/news/eoreader/)
 - [The collapse of the Kakhovka dam seen from satellite imagery](https://sertit.unistra.fr/en/news/the-collapse-of-the-kakhovka-dam-seen-from-satellite-imagery/)
+
+## 🚀 Contributing
+
+EOReader welcomes contributions, human-written or carefully reviewed AI-assisted:
+
+- **Humans**: [CONTRIBUTING.md](https://github.com/sertit/eoreader/blob/main/CONTRIBUTING.md): quick start, test suite, PR conventions
+- **Coding agents**: [AGENTS.md](https://github.com/sertit/eoreader/blob/main/AGENTS.md): hard limits, task navigation, verification & self-review
+- **Technical reference**: [ARCHITECTURE.md](https://github.com/sertit/eoreader/blob/main/ARCHITECTURE.md): architecture, modules, build & test, pitfalls
+- **AI-assisted contribution policy**: [AI_POLICY.md](https://github.com/sertit/eoreader/blob/main/AI_POLICY.md)
+- Task templates with AI-risk warnings: [.github/templates/](https://github.com/sertit/eoreader/tree/main/.github/templates)
 
 ## 📝 License
 
@@ -224,5 +215,5 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 - [`geopandas`](https://geopandas.org/)
 - [`rasterio`](https://rasterio.readthedocs.io/en/latest/)
 - [`xarray`](http://xarray.pydata.org/en/stable/)
-- [`rioxarray`](https://corteva.github.io/rioxarray/stable/)
-- [`awesome-spectral-indices` and `spyndex`](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html)
+- [`rioxarray`](https://vylor.github.io/rioxarray/stable/)
+- [`awesome-spectral-indices` and `spyndex`](https://awesome-spectral-indices.github.io/awesome-spectral-indices/)

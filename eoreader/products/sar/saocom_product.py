@@ -64,9 +64,9 @@ class SaocomProductType(ListEnum):
 @unique
 class SaocomSensorMode(ListEnum):
     """
-    SAOCOM Acquisition Mode mode.
+    SAOCOM Acquisition Mode.
     Take a look
-    `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+    `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
     """
 
     SM = "STRIPMAP"
@@ -84,7 +84,7 @@ class SaocomPolarization(ListEnum):
     """
     SAOCOM polarization mode.
     Take a look
-    `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+    `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
 
     acquiredPols:
     - HH
@@ -109,16 +109,16 @@ class SaocomPolarization(ListEnum):
     """
 
     SP = "SP"
-    """"Single Polarization (HH or VV)"""
+    """Single Polarization (HH or VV)"""
 
     DP = "DP"
-    """"Dual Polarization (HH/HV or VV/VH)"""
+    """Dual Polarization (HH/HV or VV/VH)"""
 
     QP = "QP"
-    """"Quadruple Polarization (HH/HV/VH/VV)"""
+    """Quadruple Polarization (HH/HV/VH/VV)"""
 
     CP = "CP"
-    """"Compact Polarization (LH/LV or RH/RV): Not yet available"""
+    """Compact Polarization (LH/LV or RH/RV): Not yet available"""
 
 
 class SaocomProduct(SarProduct):
@@ -127,13 +127,13 @@ class SaocomProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
-        `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
+        See
+        `here <https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf>`_
         for more information (Beam Modes)
 
         .. WARNING::
             For SSC data:
-                - We assume being in High Resolution (SE)
+                - We assume it is in High Resolution (SE)
                 - Incidence angle: we consider the worst option, around 20 degrees
         """
         # Find the polarization
@@ -155,7 +155,7 @@ class SaocomProduct(SarProduct):
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        # Impossible to find anywhere the recommaneded pixel spacing for SAOCOM data
+        # The recommended pixel spacing for SAOCOM data cannot be found anywhere
         # SLC: For STRIPMAP data this product is sampled at the natural pixel spacing
         # Decision : For other SAR images, usually: pixel_size = resolution / 2.
         # TODO: Is it the case here?
@@ -248,7 +248,7 @@ class SaocomProduct(SarProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -311,7 +311,7 @@ class SaocomProduct(SarProduct):
     @cache
     def _get_raw_bands(self) -> list:
         """
-        Return the existing band paths (as they come with th archived products).
+        Return the existing band paths (as they come with the archived products).
 
         Returns:
             list: List of existing bands in the raw products (vv, hh, vh, hv)
@@ -370,7 +370,7 @@ class SaocomProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from TerraSAR-X products name (could check the metadata too)
+        Get sensor mode from SAOCOM product name (could check the metadata too)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -450,7 +450,7 @@ class SaocomProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -502,7 +502,7 @@ class SaocomProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

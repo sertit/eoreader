@@ -41,7 +41,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class RcmProductType(ListEnum):
     """
-    RADARSAT-Constellation projection identifier.
+    RADARSAT-Constellation product type identifier.
     Take a look `here <https://catalyst.earth/catalyst-system-files/enterprise-aerial-help/references/gdb_r/RADARSAT_Constellation.html>`_.
     """
 
@@ -75,8 +75,8 @@ class RcmProductType(ListEnum):
 
     MLC = "MLC"
     """
-    MLC represent Multi-Look slant range Complex products.
-    It is for dual Co-/Cross-Polarization1 or Compact Polarization which is a spatially averaged version of the SLC product condensed to a single multi-burst image of the covariance matrix elements.
+    MLC represents Multi-Look slant range Complex products.
+    It is for dual Co-/Cross-Polarization or Compact Polarization which is a spatially averaged version of the SLC product condensed to a single multi-burst image of the covariance matrix elements.
     The covariance matrix elements consist of two real diagonal elements |xH|2 and |xV|2, and a complex off-diagonal element xH*conj(xV) where x is either Circular,
     H or V depending on the SLC product polarization setting and conj denotes the complex conjugate.
     """
@@ -92,25 +92,25 @@ class RcmSensorMode(ListEnum):
     """
 
     THREE_M = "Very High Resolution 3m"
-    """" Very-High Resolution, 3 meters [3M] """
+    """ Very-High Resolution, 3 meters [3M] """
 
     FIVE_M = "High Resolution 5m"
-    """" High Resolution, 5 meters [5M] """
+    """ High Resolution, 5 meters [5M] """
 
     QP = "Quad-Polarization"
-    """" Quad-Polarization [QP] """
+    """ Quad-Polarization [QP] """
 
     SIXTEEN_M = "Medium Resolution 16m"
-    """" Medium Resolution, 16 meters [16M] """
+    """ Medium Resolution, 16 meters [16M] """
 
     THIRTY_M = "Medium Resolution 30m"
-    """" Medium Resolution, 30 meters [SC30] """
+    """ Medium Resolution, 30 meters [SC30] """
 
     FIFTY_M = "Medium Resolution 50m"
-    """" Medium Resolution, 50 meters [SC50] """
+    """ Medium Resolution, 50 meters [SC50] """
 
     SCLN = "Low Noise"
-    """" Low Noise [SCLN] """
+    """ Low Noise [SCLN] """
 
     HUNDRED_M = "Low Resolution 100m"
     """ Low Resolution, 100 meters [SC100] """
@@ -126,13 +126,13 @@ class RcmProduct(SarProduct):
     """
     Class for RADARSAT-Constellation Products
 
-    You can use directly the .zip file
+    You can directly use the .zip file
     """
 
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
+        See
         `here <https://ftp.maps.canada.ca/pub/csa_asc/Space-technology_Technologie-spatiale/radarsat_constellation_mission_plan/RCM-SP-52-9092_Product_Spec_1-15_Public.pdf>`_
         for more information (Table 4-1 Raw and Image Product Description Table - Contents and Volumes, page 18)
         """
@@ -271,7 +271,7 @@ class RcmProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from RADARSAT-2 products name (could check the metadata too)
+        Get sensor mode from RADARSAT-Constellation product name (could check the metadata too)
         """
         # Get metadata
         root, nsmap = self.read_mtd()
@@ -360,7 +360,7 @@ class RcmProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -418,7 +418,7 @@ class RcmProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

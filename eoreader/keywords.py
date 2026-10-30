@@ -76,7 +76,7 @@ Keyword that allows the user to choose whether to write the Local Incidence Angl
 
 ICEYE_USE_SLC = "iceye_use_slc"
 """
-Force use the SLC image for GRD_SLC ICEYE products which contains both.
+Force use the SLC image for GRD_SLC ICEYE products which contain both.
 """
 
 TO_REFLECTANCE = "to_reflectance"
@@ -103,7 +103,7 @@ def _prune_keywords(additional_keywords: list = None, **kwargs) -> dict:
     Args:
         kwargs: Kwargs to prune
 
-    Returns: Prune kwargs
+    Returns: Pruned kwargs
     """
     if kwargs:
         prune_kwargs = kwargs.copy()

@@ -68,13 +68,13 @@ class PlaInstrument(ListEnum):
 
     PS2 = "Dove Classic (PS2)"
     """
-    Dove Classic (PS2) Instrument: Four-band frame Image with a split-frame VIS+NIR filter
+    Dove Classic (PS2) Instrument: Four-band frame image with a split-frame VIS+NIR filter
     """
 
     PS2_SD = "Dove-R (PS2.SD)"
     """
     Dove-R (PS2.SD) Instrument:
-    Four-band frame imager with butcher-block filter providing blue, green, red,and NIR stripes
+    Four-band frame imager with butcher-block filter providing blue, green, red, and NIR stripes
     """
 
     PSB_SD = "SuperDove (PSB.SD)"
@@ -101,7 +101,7 @@ class PlaProductType(ListEnum):
     """
     **PlanetScope Basic Scene Product (Level 1B)**
 
-    Scaled Top of Atmosphere Radiance(at sensor) and sensor corrected product.
+    Scaled Top of Atmosphere Radiance (at sensor) and sensor corrected product.
     This product has scene based framing and is not projected to a cartographic projection.
     Radiometric and sensor corrections are applied to the data.
     """
@@ -112,7 +112,7 @@ class PlaProductType(ListEnum):
 
     Orthorectified, scaled Top of Atmosphere Radiance (at sensor) or Surface Reflectance image product
     suitable for analytic and visual applications.
-    This product has scene based framing and projected to a cartographic projection.
+    This product has scene based framing and is projected to a cartographic projection.
 
     **PSScene3Band**
 
@@ -391,7 +391,7 @@ class PlaProduct(PlanetProduct):
         )
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """Set product type"""
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
@@ -530,7 +530,7 @@ class PlaProduct(PlanetProduct):
 
     def _merge_subdatasets_mtd(self):
         """
-        Merge subdataset, when several Planet products avec been ordered together
+        Merge subdatasets, when several Planet products have been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
         """
 

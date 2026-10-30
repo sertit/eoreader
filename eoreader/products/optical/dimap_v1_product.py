@@ -127,7 +127,7 @@ class DimapV1Product(VhrProduct):
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+        Get real UTM footprint of the products (without nodata, i.e. the useful area)
 
         .. code-block:: python
 
@@ -242,7 +242,7 @@ class DimapV1Product(VhrProduct):
         Set product real name from metadata
 
         Returns:
-            str: True name of the product (from metadata)
+            str: Actual name of the product (from metadata)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -319,7 +319,7 @@ class DimapV1Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band?
+        Does this product have the specified cloud band?
         """
         return False
 

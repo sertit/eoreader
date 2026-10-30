@@ -56,7 +56,7 @@ class CheckMethod(ListEnum):
     Check the filename:
 
     Safer method that allows modified product names as it recursively looks for the metadata name in the product files.
-    For products that have generic metadata files (ie. RS2 that as mtd named :code:`product.xml`),
+    For products that have generic metadata files (ie. RS2 that has mtd named :code:`product.xml`),
     it also checks the band name.
     """
 
@@ -78,7 +78,7 @@ class Constellation(ListEnum):
     """
     Sentinel-2, reprocessed by Theia.
 
-    Considered as a new constellation as the product is completely different different from Sentinel-2.
+    Considered as a new constellation as the product is completely different from Sentinel-2.
     """
 
     S3_OLCI = "Sentinel-3 OLCI"
@@ -266,7 +266,7 @@ class Constellation(ListEnum):
     """SPOT-6/7 (not a real constellation, but used as a template for SPOT6/7 products)"""
 
     VANTOR = "Vantor"
-    """Vantor (not a real constellation, but used as a template for every Vantor products)"""
+    """Vantor (not a real constellation, but used as a template for every Vantor product)"""
 
     SATELLOGIC = "Satellogic"
     """Satellogic (not a real constellation, but used for convenience for Aleph-1 products)"""
@@ -522,7 +522,7 @@ class Reader:
         Args:
             regex (str | list): Regex in :code:`re` sense
             prefix (str): Prefix of regex, ^ by default (means start of the string)
-            suffix (str): Prefix of regex, $ by default (means end of the string)
+            suffix (str): Suffix of regex, $ by default (means end of the string)
 
         Returns:
             list: List of compiled pattern
@@ -531,7 +531,7 @@ class Reader:
         def _compile_(regex_str: str):
             return re.compile(f"{prefix}{regex_str}{suffix}")
 
-        # Case folder is not enough to identify the products (i.e. COSMO Skymed)
+        # In case the folder is not enough to identify the products (i.e. COSMO-SkyMed)
         if types.is_iterable(regex):
             comp = [_compile_(regex) for regex in regex]
         else:
@@ -601,13 +601,13 @@ class Reader:
                 tile name: T30QVE
 
         Args:
-            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths also.
+            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths are also accepted.
             archive_path (AnyPathStrType): Archive path
             output_path (AnyPathStrType): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
-            constellation (Constellation | str | list): One or several constellations to help the Reader to choose more rapidly the correct Product
+            constellation (Constellation | str | list): One or several constellations to help the Reader choose the correct Product more rapidly
             **kwargs: Other arguments
         Returns:
             Product: EOReader's product
@@ -627,9 +627,9 @@ class Reader:
                                 request.json(), preserve_dict=False
                             )
                         except Exception:
-                            # More protected way of loading STAC item with 'from_file' that to do 'Item.from_dict(request.json())'
+                            # More protected way of loading the STAC item with 'from_file' than to do 'Item.from_dict(request.json())'
                             # Drawback: requesting the item 2 times
-                            # That's why don't do this directly and keep it as a fallback
+                            # That's why we don't do this directly and keep it as a fallback
                             product_path = Item.from_file(product_path)
                         is_stac = True
                     else:
@@ -765,13 +765,13 @@ class Reader:
         Open a path or a cloud URI as an EOReader's product
 
         Args:
-            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths also.
+            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths are also accepted.
             archive_path (AnyPathStrType): Archive path
             output_path (AnyPathStrType): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
-            constellation (Constellation | str | list): One or several constellations to help the Reader to choose more rapidly the correct Product
+            constellation (Constellation | str | list): One or several constellations to help the Reader choose the correct Product more rapidly
             **kwargs: Other arguments
         Returns:
             Product: EOReader's product
@@ -916,7 +916,7 @@ class Reader:
             constellation (Constellation | str): Constellation's name or ID
 
         Returns:
-            bool: True if valid name
+            bool: True if valid mtd
 
         """
         if product_path not in self._prod_files:
@@ -1005,7 +1005,7 @@ def is_filename_valid(product_path: AnyPathStrType, regex: list | re.Pattern) ->
     else:
         product_file_name = path.get_filename(product_path)
 
-    # Case folder is not enough to identify the products (i.e. COSMO Skymed)
+    # In case the folder is not enough to identify the products (i.e. COSMO-SkyMed)
     # WARNING: Two level max for the moment
     is_valid = bool(regex[0].match(product_file_name))
     if is_valid and len(regex) > 1:
@@ -1125,7 +1125,7 @@ def create_product(
         archive_path (AnyPathStrType): Archive path
         output_path (AnyPathStrType): Output path
         remove_tmp (bool): Remove tmp files
-        constellation (Constellation): COnstellation
+        constellation (Constellation): Constellation
         **kwargs: Other arguments
 
     Returns:
@@ -1133,7 +1133,7 @@ def create_product(
     """
     sat_class = constellation.name.lower() + "_product"
 
-    # Channel correctly the constellations to their generic files (just in case)
+    # Route the constellations to their generic files (just in case)
     # Vantor-like constellations
     if _is_vantor(constellation):
         sat_class = "vantor_product"
@@ -1184,10 +1184,10 @@ def create_stac_product(
     Create STAC Product
 
     Args:
-        item (Item): Product path
+        item (Item): STAC Item
         output_path (AnyPathStrType): Output path
         remove_tmp (bool): Remove tmp files
-        constellation (Constellation): COnstellation
+        constellation (Constellation): Constellation
         **kwargs: Other arguments
 
     Returns:

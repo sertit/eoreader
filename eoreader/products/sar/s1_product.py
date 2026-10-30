@@ -36,8 +36,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class S1ProductType(ListEnum):
     """
-    S1 products types. Take a look here:
-    https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products
+    S1 product types. Take a look here:
+    https://sentiwiki.copernicus.eu/web/s1-processing#L1-Algorithms
     """
 
     RAW = "RAW"
@@ -57,7 +57,7 @@ class S1ProductType(ListEnum):
 class S1SensorMode(ListEnum):
     """
     S1 sensor mode. Take a look here:
-    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes
+    https://sentiwiki.copernicus.eu/web/s1-mission#Acquisition-Modes
 
     The primary conflict-free modes are IW, with VV+VH polarisation over land,
     and WV, with VV polarisation, over open ocean.
@@ -82,7 +82,7 @@ class S1SensorMode(ListEnum):
 class S1ResolutionClass(ListEnum):
     """
     S1 resolution class:
-    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected
+    https://sentiwiki.copernicus.eu/web/s1-products#S1-Products-SAR-Naming-Convention
     """
 
     FR = "F"
@@ -102,14 +102,14 @@ class S1Product(SarProduct):
     """
     Class for Sentinel-1 Products
 
-    You can use directly the .zip file
+    You can directly use the .zip file
     """
 
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
-        `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
+        See
+        `here <https://sentiwiki.copernicus.eu/web/s1-products#Level-1-Products>`_
         for more information
         """
 
@@ -181,7 +181,7 @@ class S1Product(SarProduct):
         """
         Set instrument
 
-        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        Sentinel-1: https://sentiwiki.copernicus.eu/web/s1-mission#SAR-Instrument
         """
         self.instrument = "SAR C-band"
 
@@ -204,7 +204,7 @@ class S1Product(SarProduct):
         # Pre init done by the super class
         super()._pre_init(**kwargs)
 
-        # Check if COG in name (S1 needs always SNAP)
+        # Check if COG in name (S1 always needs SNAP)
         if "_COG" in self.filename and not self._has_snap_x_or_higher(10):
             raise NotImplementedError(
                 "S1 COG products are only handled by SNAP 10.0 or higher. "
@@ -276,7 +276,7 @@ class S1Product(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from S1 products name (could check the metadata too)
+        Get sensor mode from S1 product name (could check the metadata too)
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -377,7 +377,7 @@ class S1Product(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -410,7 +410,7 @@ class S1Product(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 

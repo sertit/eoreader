@@ -1,17 +1,16 @@
 # Custom stacks
 
 Custom products can be created from any stack (and some data) provided by the user. These custom products will work
-exactly as usual products, but with the user's metadata.
+exactly like regular products, but with the user's metadata.
 
-See [this notebook](https://eoreader.readthedocs.io/latest/notebooks/custom.html) for examples on how custom stacks
-are working.
+See [this notebook](https://eoreader.readthedocs.io/latest/notebooks/custom.html) for examples of how custom stacks work.
 
 ## Custom stack with minimum data
 
 For both SAR and optical stacks, the two minimum keywords to provide are:
 
-- `band_map`: a dictionary mapping the satellite band to the band number (starting to 1, in GDAL style)
-- `sensor_type`: Either `SAR` or `OPTICAL` (a string or a SensorType Enum)
+- `band_map`: a dictionary mapping the satellite band to the band number (starting **from** 1, in GDAL style)
+- `sensor_type`: Either `SAR` or `OPTICAL` (a string or a `SensorType` enum)
 
 ```python
 
@@ -33,15 +32,15 @@ custom_prod = Reader().open(
 
 ## Custom stack with full data
 
-If you know them, it is best to give **EOReader** all the data you know about your stack:
+If you know them, it is best to provide **EOReader** with all the data you know about your stack:
 
 - `name`: product name. If not provided, the filename will be used
 - `datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will be used
-- `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string of a `Constellation` enum.
+- `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string or a `Constellation` enum.
 - `product_type`: product type. If not provided, `CUSTOM` will be set.
 - `pixel_size`: product default pixel size. If not provided, the stack pixel size will be used.
 
-For optical products, two additional keyword can be set to compute the hillshade band:
+For optical products, two additional keywords can be set to compute the hillshade band:
 
 - `sun_azimuth`
 - `sun_zenith`
@@ -73,15 +72,15 @@ custom_prod = Reader().open(
 
 ## Disambiguate the custom stack
 
-At the heart of EOReader lies the condensed name of a product, to whom refers every file produced.
-However, if insufficient data is given at the creation of yuour custom stack, ambiguity can occur if several custom stacks are created in the same second.
+At the heart of EOReader lies the condensed name of a product, to which every produced file refers.
+However, if insufficient data is provided when creating your custom stack, ambiguity can occur if several custom stacks are created in the same second.
 
-To avoid this, if no product type nor constellation is given, the condensed name will be set to the file's filename.
+To avoid this, if no product type or constellation is given, the condensed name will be set to the file's filename.
 
-However, if this doesn't please you, there are, several workarounds exist:
-- give a datatime and a product type or a constellation
-- add an `id` that will be added at the end of your condensed name
-- give directly your own custom condensed name via `condensed_name`
+However, if this does not suit you, there are several workarounds:
+- Provide a datetime and a product type or constellation
+- Add an `id` that will be added at the end of your condensed name
+- Provide your own custom condensed name directly via `condensed_name`
 
 ```python
 >>> from eoreader.reader import Reader
@@ -124,4 +123,4 @@ my_wonderful_name
 
 ## Limitations
 
-- ⚠ For now, stacks must be projected in **UTM** (and orthorectified)
+- ⚠️ Currently, stacks must be projected in **UTM** (and orthorectified)

@@ -15,7 +15,7 @@
 # limitations under the License.
 """
 GEOSAT-2 products.
-See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
 for more information.
 """
 
@@ -54,7 +54,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Gs2BandCombination(ListEnum):
     """
     GEOSAT-2 band combination.
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 
@@ -98,7 +98,7 @@ class Gs2BandCombination(ListEnum):
 class Gs2ProductType(ListEnum):
     """
     GEOSAT-2 product types (processing levels)
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 
@@ -140,7 +140,7 @@ class Gs2ProductType(ListEnum):
 class Gs2Product(DimapV1Product):
     """
     Class of GEOSAT-2 products.
-    See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf>`_
     for more information.
     """
 
@@ -212,7 +212,7 @@ class Gs2Product(DimapV1Product):
 
     def _set_product_type(self) -> None:
         """
-        Set products type
+        Set product type
         """
         # Get MTD XML file
         prod_type = self.split_name[2]
@@ -416,7 +416,7 @@ class Gs2Product(DimapV1Product):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict

@@ -44,7 +44,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class IceyeProductType(ListEnum):
     """
-    ICEYE products types.
+    ICEYE product types.
     Take a look
     `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
@@ -97,8 +97,8 @@ class IceyeProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See here
-        `here <https://sar.iceye.com/5.0/productguide/collectioncharacteristics/>`_ for more information (Amplitude Image Parameters)
+        See
+        `here <https://sar.iceye.com/latest/productspecification/dataproducts/>`_ for more information (Amplitude Image Parameters)
         """
         if self.sensor_mode == IceyeSensorMode.SM:
             def_pixel_size = 2.5
@@ -167,7 +167,7 @@ class IceyeProduct(SarProduct):
         if footprint.crs is None:
             root, nsmap = self.read_mtd()
 
-            # Some ICEYE product metadata has a namespace some don't
+            # Some ICEYE product metadata has a namespace, some don't
             namespace = nsmap.get(None, "")
 
             # Get lat lon of extent coordinates
@@ -212,7 +212,7 @@ class IceyeProduct(SarProduct):
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
-        # Some ICEYE product metadata has a namespace some don't
+        # Some ICEYE product metadata has a namespace, some don't
         namespace = nsmap.get(None, "")
 
         # Open identifier
@@ -236,7 +236,7 @@ class IceyeProduct(SarProduct):
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
-        # Some ICEYE product metadata has a namespace some don't
+        # Some ICEYE product metadata has a namespace, some don't
         namespace = nsmap.get(None, "")
 
         # Open identifier
@@ -274,7 +274,7 @@ class IceyeProduct(SarProduct):
             # Get MTD XML file
             root, nsmap = self.read_mtd()
 
-            # Some ICEYE product metadata has a namespace some don't
+            # Some ICEYE product metadata has a namespace, some don't
             namespace = nsmap.get(None, "")
 
             # Open identifier
@@ -304,7 +304,7 @@ class IceyeProduct(SarProduct):
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
-        # Some ICEYE product metadata has a namespace some don't
+        # Some ICEYE product metadata has a namespace, some don't
         namespace = nsmap.get(None, "")
 
         # Open identifier
@@ -323,7 +323,7 @@ class IceyeProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
+        Read metadata and output the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -367,8 +367,8 @@ class IceyeProduct(SarProduct):
 
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
-        Return the existing path of the VV band (as they come with the archived products).
-        ICEYE product only contains a VV band!
+        Return the existing path of the VV band (as it comes with the archived product).
+        An ICEYE product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments
@@ -401,7 +401,7 @@ class IceyeProduct(SarProduct):
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
         """
-        Get cloud cover as given in the metadata
+        Get orbit direction as given in the metadata
 
         .. code-block:: python
 
