@@ -2,6 +2,9 @@
 
 ## 0.25.0 (Unreleased)
 
+- FIX: Clip the AOI by the scene footprint before SNAP's `Subset`, as SNAP moves the vertices outside the image to its first pixel and the orthorectified bands end up cut or empty [#331](https://github.com/sertit/eoreader/issues/331)
+- FIX: Use the GCPs of the image border instead of an affine fit for the extent of SAR products without extent file
+- DEPS: Pin `geopandas>=1.0.0` (for `union_all`)
 - DOC: Refine README and explode files to make the docs clearer
 - DOC: Update dead external links in docs, docstrings and notebooks
 - DOC: Add AI-assisted contribution onboarding
@@ -24,16 +27,16 @@
 - FIX: Don't try to use `mako` as default colormap if seaborn is not installed
 - FIX: Manage multiple values for keyword `nodata` in _`orthorectify`.
 - FIX: Allow EPSG retrieval from `proj:epsg` (in addition to `proj:code`) from STAC properties, even if deprecated (see the warning [here](https://github.com/stac-extensions/projection/blob/a623c66acf5fc97bf93dd1cce7ef28ac74e8faeb/README.md?plain=1#L59))
-- OPTIM: Don't use `rasters.read` when computing the default extent, use `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
+- OPTIM: Don't use `rasters.read` when computing the default extent, use the `rasterio`'s dataset directly to ensure nothing is loaded into memory even with cloud-stored data
 - OPTIM: Save in memory the files path listed in the Reader to avoid relisting them for every constellation check
 - OPTIM: Don't compute several times the UTM bands when loading masks if the band is already available
-- OPTIM: Only loop over useful constellations in Reader (and add several template constellations such as Landsat)
+- OPTIM: Only loop on useful constellations in Reader (and add several template constellations such as Landsat)
 - CI: Remove duplicated test
 - CI: Several speed-ups
 
 ## 0.24.2 (2026-07-15)
 
-- FIX: Fix 4-band `VantorBandId.Multi`'s band order (BGRN instead of NRGB)
+- FIX: Fix 4-bands `VantorBandId.Multi`'s band order (BGRN instead of NRGB)
 - FIX: Set back LIA (SAR local incidence angles) computation in default pipeline since SNAP 13 has been fixed [#276](https://github.com/sertit/eoreader/issues/276)
 
 ## 0.24.1 (2026-06-30)
@@ -52,7 +55,7 @@
 - **ENH: Handle windows when loading DEM bands**
 - ENH: Better report errors with faulty HTML responses with STAC links
 - FIX: Fix border effect (extent replacing footprint) when computing the extent before the footprint for `Umbra` products
-- FIX: Ensure outputting quicklook paths as strings
+- FIX: Ensure outputing quicklook paths as strings
 - FIX: Get correct buffer for windows in geographic CRS when subsetting SAR data
 - FIX: Fix SNAP fallback issue
 - FIX: Workaround for calibration polarisation issue: don't specify any polarisation in case of single-polarisation product.
@@ -70,17 +73,17 @@
 - FIX: Handle correctly missing `product.kml` in RS2 products
 - FIX: Handle windows when loading DEM bands
 - OPTIM: Better management of windows wrt whole files with SAR data
-- OPTIM: Don't set a window name in band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
+- OPTIM: Don't set a window name if band files if the window corresponds to the band extent [#286](https://github.com/sertit/eoreader/issues/286)
 - OPTIM: Don't touch the raster (even if ortho) when computing the extent of SAR products
-- DEPS: SNAP-GPT - Subset in read operator instead of adding a subset operator
+- SNAP: SNAP-GPT - Subset in read operator instead of adding a subset operator
 - LINT: Lint YAML files
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)
 
 - **ENH: Adding the support of `VENUS` sensor** [#235](https://github.com/sertit/eoreader/issues/235) - by @ArthurVincentCS
-- **ENH: Disambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
-- **ENH: Fix corrupted Maxar products with inconsistent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
+- **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
+- **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
 - **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN** - by @oscarn2
 - **ENH: Allow exogenous data in load and stack** [#273](https://github.com/sertit/eoreader/issues/273) - by @gsalgues
@@ -94,7 +97,7 @@
 - FIX: Fix WV Legion wrong band order in Multi Spectral 1 mode [#246](https://github.com/sertit/eoreader/issues/246)
 - FIX: Collocate Planet spectral bands with masks for some rare cases where it fails
 - FIX: Loosen the constraints on PlanetScope stack name as it may change, from `Analytic` to `composite`, etc. [#244](https://github.com/sertit/eoreader/issues/244)
-- FIX: Add a fallback in case of impossibility of reading ICEYE `QUICKLOOK.kml` file
+- FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
 - FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
 - FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
 - FIX: Add `DISPLAY` as DIMAP-V2 radiometric processings [#249](https://github.com/sertit/eoreader/issues/249)
@@ -142,22 +145,22 @@
 
 ## 0.22.2 (2025-04-18)
 
-- FIX: Fix GPT graphs (multiple errors, such as a lonely `Subset`, a `LinearToFromdB` step not written, etc.)
+- FIX: Fix GPT graphs (mutiple errors, such a lonely `Subset`, a `LinearToFromdB` step not written, etc.)
 - FIX: Fixed TSX and TDX Products Regex to properly identify Staring Spotlight products as `TsxProduct` and `TdxProduct` - by @guillemc23
 
 ## 0.22.1 (2025-04-04)
 
 - FIX: Correct the logic behind saving a stack in uint16 in `product.stack`  
-- FIX: Fix a regression disallowing passing a custom nodata to `product.stack`  
+- FIX: Fix a regression disallowing to pass a custom nodata to `product.stack`  
 - FIX: Fix COSMO GTC reading
 
 ## 0.22.0 (2025-03-25)
 
 - **BREAKING CHANGES: Remove deprecated features** ([#94](https://github.com/sertit/eoreader/issues/94), [#95](https://github.com/sertit/eoreader/issues/95), [#96](https://github.com/sertit/eoreader/issues/96))
-  - `resolution` keyword in favor of `pixel_size`
+  - `resolution` keyword if favor of `pixel_size`
   - `GREEN1` band in favor of `GREEN_1`
   - `utils.stack_dict` function in favor of `utils.stack` (remove `band` argument)
-  - deprecated spectral indices in favor of [awesome spectral index](https://awesome-spectral-indices.github.io/awesome-spectral-indices/) ones.
+  - deprecated spectral indices in favor of [awesome spectral index](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) ones).
     - `AFRI_1_6`: `AFRI1600`
     - `AFRI_2_1`: `AFRI2100`
     - `BSI`: `BI`
@@ -180,7 +183,7 @@
 - **ENH: Add the ability to open a product with a context manager** ([#133](https://github.com/sertit/eoreader/issues/133))
 - **ENH: Use the `window` argument to subset SAR data during SNAP pre-process** ([#186](https://github.com/sertit/eoreader/issues/186))
 - **ENH: Add a function computing the centroid of the footprint of the product**
-- **ENH: Write intermediary files as COG by default and add an environment variable `EOREADER_DEFAULT_DRIVER` to overload the default driver** ([#181](https://github.com/sertit/eoreader/issues/181))
+- **ENH: Write intermediary files as COG by default and add a environment variable `EOREADER_DEFAULT_DRIVER` to overload the default driver** ([#181](https://github.com/sertit/eoreader/issues/181))
 - **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
 - **ENH: Manage COSMO-SkyMed `GTC` (orthorectified) products**
 - **ENH: Raise a proper exception in case of non-existing product path**
@@ -224,14 +227,14 @@
 - FIX: Fixed PAZ Product Regex to properly identify PAZ ST products as `PAZProduct` - by @guillemc23
 - FIX: Fixed PNEO Product Regex to properly identify PNEO products as `PneoProduct` - by @guillemc23
 - FIX: Fixed preprocessing graph paths in order to support relative paths in more complex environments or contexts - by @guillemc23
-- FIX: Remove useless `_norm_diff` function in `indices.py`
+- FIX: Remove useless `_norm_diff` function `indices.py`
 - FIX: Add a fallback in case `map-overlay.kml` is not readable for `Sentinel-1` data ([#180](https://github.com/sertit/eoreader/discussions/180),[#182](https://github.com/sertit/eoreader/issues/182))
 - FIX: Remove warning about Dask's lock and client
 - FIX: Don't throw an error in case of missing cloud coverage, only a warning and set the cloud coverage to 0 [#159](https://github.com/sertit/eoreader/issues/159)
 - FIX: Use the sun elevation angle rather than the sun zenith angle for STAC [#158](https://github.com/sertit/eoreader/issues/158)
 - FIX: Create comparison operators for `BandNames`, removing the `xarray RuntimeWarning` about `sort order is undefined for incomparable objects`.
 - FIX: Add some missing `@cache` around time-consuming functions
-- FIX: Set correctly the SAR product type, by adding two types (`ORTHO` and `GEOCODED`)
+- FIX: Set correctly the SAR product type, with adding two types (`ORTHO` and `GEOCODED`)
 - FIX: Fix the computation of parametric spectral indices [#193](https://github.com/sertit/eoreader/issues/193)
 - FIX: Fix retrieval of quicklook path for SAOCOM when already computed
 - FIX: Write data using `windowed=True` for very big rasters (> 50 Go) to avoid core dumps
@@ -248,7 +251,7 @@
 ## 0.21.7 (2024-11-08)
 
 - FIX: Handle `ICEYE` products with missing quicklook
-- FIX: Fix `Sentinel-1` name with weird PDF names (i.e. ending with `.SAFE-report...`)
+- FIX: Fix `Sentinel-1` name with weird PDFs names (i.e. ending with `.SAFE-report...`)
 - FIX: Remove multi-swath workaround for `Cosmo` products if SNAP > 11.0
 - FIX: By default, try to assign a constellation (in a pure dummy way) to any `Product` created
 - FIX: Add ways of knowing if a constellation is a real one or not (i.e. `CUSTOM` or template such as `Maxar`)
@@ -263,7 +266,7 @@
 ## 0.21.5 (2024-10-17)
 
 - FIX: Fix window's name coming from a vector with an underscore after it
-- FIX: Allow loading numpy pickles stored in S3 buckets
+- FIX: Allow to load numpy pickles stored in S3 buckets
 - FIX: Add MS and PAN resolution in Landsat Products
 
 ## 0.21.4 (2024-10-08)
@@ -272,8 +275,8 @@
 
 ## 0.21.3 (2024-10-08)
 
-- ENH: Allow the processing of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10  ([#172](https://github.com/sertit/eoreader/issues/172))
-- ENH: Add a `BandType` alias for any type that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
+- ENH: Allow the process of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10  ([#172](https://github.com/sertit/eoreader/issues/172))
+- ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
 - FIX: Anticipate Sentinel C and D platforms in Reader's regexes
 - FIX: Resolve the inversion of resolution and pixel size between `stripmap` and `sliding_spotlight` types for `Capella` products
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
@@ -285,14 +288,14 @@
 
 ## 0.21.2 (2024-07-30)
 
-- ENH: `to_str` and `to_band`: add an `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks, @jsetty!
+- ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks, @jsetty!
 - FIX: `Sentinel-2` product with `StopIteration` error ([#142](https://github.com/sertit/eoreader/issues/142))
 - FIX: Fix error in looking for bands in `Sentinel-2 L1C` archived products ([#168](https://github.com/sertit/eoreader/issues/168))
 - FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
 - FIX: In `SPOT` products, METADATA.DIM and IMAGERY.TIF must be at the root of the product ([#145](https://github.com/sertit/eoreader/issues/145))
 - FIX: Fix `Maxar` product with `QB02` satellite ID ([#140](https://github.com/sertit/eoreader/issues/140))
 - FIX: Fix `ICEYE` product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
-- FIX: Handle `RCM` and `RS2` products that don't bundle their extent in a KML file ([#155](https://github.com/sertit/eoreader/issues/155))
+- FIX: Handle `RCM` and `RS2` products that doesn't bundle their extent in a KML file ([#155](https://github.com/sertit/eoreader/issues/155))
 - FIX: Handle wrongly recognized `Planet` products because of the recursive nested mtd in the Reader ([#169](https://github.com/sertit/eoreader/issues/169))
 - FIX: Fix an unknown `Planet` bug that just appeared (`'...Path' has no len()`)
 - FIX: Force the loading of `DimapV1` bands in `float32`
@@ -305,7 +308,7 @@
 
 ## 0.21.1 (2024-04-03)
 
-- ENH: Add an `is_stacked` parameter for EOReader's `Product` to document either its bands are delivered stacked or file by file.
+- ENH: Add a `is_stacked` parameters for EOReader's `Product` to document either its bands are delivered stacked or file by file.
 - FIX: Correct `SWIR_CIRRUS` spectral band's enum value (to `SWIR_CIRRUS` instead of `CIRRUS`), avoiding shadowing cloud band `CIRRUS` ([#131](https://github.com/sertit/eoreader/issues/131))
 - FIX: Raise proper exception (`UnhandledArchiveError`) for archived data that needs to be extracted before use. A warning wasn't enough.
 - FIX: Remove unused `pixel_spacing` for SAR Products
@@ -319,8 +322,8 @@
 ## 0.21.0 (2024-01-08)
 
 - **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
-- **BREAKING CHANGES: Band IDs for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
-- **ENH: Allow using band IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111))**
+- **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
+- **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111))**
 - **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104))**
 - **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113))**
 - **ENH: Guard against S1 COG format, not yet handled by SNAP.**
@@ -330,7 +333,7 @@
 - **ENH: Better handling of calibration step in SNAP for SAR data.**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
-- DEPS: Remove as many mentions as possible of `cloudpathlib`
+- DEPS: Remove as many mention as possible to `cloudpathlib`
 - DEPS: Update minimum versions of some libraries
 - DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
 - DOC: Update copyright to 2024
@@ -368,7 +371,7 @@
 
 ### Bug Fixes
 
-- FIX: Allow band aliases (such as `"CA"` instead of `"COASTAL_AEROSOL"`) in strings in band mapping when creating Custom Stacks
+- FIX: Allow band aliases (such as `"CA"` instead of `"COASTAL_AEROSOL"`) in string in band mapping when creating Custom Stacks
 
 ### Other
 
@@ -379,7 +382,7 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
-- **BREAKING CHANGES: `load` function now returns an `xarray.Dataset`** ([#88](https://github.com/sertit/eoreader/issues/88))
+- **BREAKING CHANGES: `load` function now returns a `xarray.Dataset`** ([#88](https://github.com/sertit/eoreader/issues/88))
 
 ### Bug Fixes
 
@@ -404,8 +407,8 @@
 ### Bug Fixes
 
 - FIX: Removing calibration step from SNAP pre-processing graph for multi-swath `Cosmo-SkyMed 1st GEN` products (to avoid ending up with empty images after pre-process)
-- FIX: Fixing the paths to Sentinel-2 quicklooks: using PVI instead of TCI file if no .jpg preview file is found ([#84](https://github.com/sertit/eoreader/issues/84),
-  [#85](https://github.com/sertit/eoreader/issues/85), thanks a lot @floriandeboissieu)
+- FIX: Fixing the paths to Sentinel-2 quicklooks: using PVI instead of TCI file if no .jpg preview file is found ([#84](https://github.com/sertit/eoreader/issues/84)
+  , [#85](https://github.com/sertit/eoreader/issues/85), thanks a lot @floriandeboissieu)
 
 ### Other
 
@@ -457,7 +460,7 @@
 ### Bug Fixes
 
 - FIX: Fixing a bug for DIMAP V2 products with GML masks opening without CRS: assigning first the raw CRS before converting to the product's CRS
-- FIX: Fixing index creation when exotic bands not handled by ASI have been loaded at the same time (i.e. stacking `NDWI` with `Oa21` band)
+- FIX: Fixing index creation when exotic bands not handled by ASI have been loaded in the same time (i.e. stacking `NDWI` with `Oa21` band)
 
 ### Other
 
@@ -515,9 +518,9 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: Refactoring spectral indices management** ([#47](https://github.com/sertit/eoreader/issues/47))
-    - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing the use of all spectral indices
+    - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing to use all spectral indices
       listed [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/blob/main/output/spectral-indices-table.csv)
-    - SAR products may now compute indices if possible (see [this list](https://awesome-spectral-indices.github.io/awesome-spectral-indices/indices/index.html#modality-radar))
+    - SAR products may now compute indices if possible (see [this list](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar))
     - Old EOReader indices are still available for legacy purposes, with some changes:
         - For Sentinel-2 data, the band `NIR` and `NARROW_NIR` may be interchanged for some index (
           see [this discussion](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27))
@@ -534,7 +537,7 @@
     - Faster: Up to 4 times faster
     - Allows code refactoring between OLCI and SLSTR
 - **BREAKING CHANGES: For SAR product types that are not available in the Data Access Portfolio, default resolution is now the pixel spacing instead of the rg x az resolution**
-    - Changes mainly Sentinel-1 default resolutions (except for IW mode)
+    - Changes mainly Sentinel-1 default resolutions (except from IW mode)
 
 ### Enhancements
 
@@ -612,7 +615,7 @@
 
 - FIX: Add the missing conversion to reflectance for `Sentinel-3 OLCI`
 - FIX: Better condition for the conversion to reflectance for `Sentinel-2 THEIA`
-- FIX: Add logs for `SkySat` data that cannot be converted to reflectance and fix the `radiometry` field of its band xarrays
+- FIX: Add logs for `SkySat` data that cannot been converted to reflectance and fix the `radiometry` field of its band xarrays
 - FIX: Add the correct nodata (when overridden by the user) to stacks saved as uint16
 
 ### Optimizations
@@ -691,7 +694,7 @@
 - **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
     - Add band metadata (such as center wavelength, bandwidth...)
     - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
-    - Add better `__repr__` functions
+    - Add a better `__repr__` functions
 - **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
 - **ENH: Handle some slightly broken `Sentinel-2` products:**
@@ -713,7 +716,7 @@
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
-- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentiwiki.copernicus.eu/web/s1-products#S1-Products-SAR-Naming-Convention) (was missing from the product name, as it is not in
+- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in
   the product preview)
 - FIX: Fixing PAZ/TDX MTD regex
 - FIX: Optical products: Only set cloud cover and radiometry attributes if spectral bands are asked
@@ -735,7 +738,7 @@
 - **BREAKING CHANGES: `footprint`, `extent`, `wgs84_extent` and `crs` properties are converted back to methods in order to prevent side effects of expensive computation when displaying the object when
   debugging (rollback before version 0.8.0)**
 - **BREAKING CHANGES: `get_all_index` becomes `get_all_indices`**
-- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution` becomes `resolution` for `CustomProduct` in accepted keywords, and the metadata fields have been renamed
+- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywords, and the metadata fields have been renamed
   according to the `CustomFields` enum**
 
 ### Enhancements
@@ -799,7 +802,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of `Landsat-9` sensor**
-- **ENH: Support Sentinel-2 with missing datatake metadata file (sometimes happens with data downloaded from AWS buckets and converted to .SAFE)**
+- **ENH: Support Sentinel-2 with missing datatake metadata file(sometimes happens with data downloaded from AWS buckets and converted to .SAFE)**
 
 ### Bug Fixes
 
@@ -827,7 +830,7 @@
 
 - **ENH: Adding the support of `Pleiades-Neo`, `Vision-1` and `SAOCOM` sensors**
 - **ENH: Adding a keyword to allow passing a specific DEM path in `load`/`stack` (for VHR orthorectification and `DEM` bands)**
-- **ENH: Adding the name of the DEM in DEM band (i.e. allow computing the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)**
+- **ENH: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)**
 
 ### Bug Fixes
 
@@ -1061,8 +1064,8 @@
 ### Bug Fixes
 
 - FIX: Bands are correctly ordered in stacks
-- FIX: Only load a band once, even if asked several times in the bands
-- FIX: Use band size for cleaning optical pixels (instead of user resolution/size)
+- FIX: Only load a band once, even if asked several time in the bands
+- FIX: Use band size for cleaning optical pixel (instead of user resolution/size)
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
@@ -1115,7 +1118,7 @@
 - FIX: Discard unused MIR and FNIR bands
 - FIX: Check for existence of given path when reading any product
 - FIX: Workaround for a bug involving some downloaded but badly formatted archives for Sentinel-2
-- FIX: Allow NARROW_NIR for Maxar and DIMAP data (== NIR)
+- FIX: Allow NARROW_NIR for and DIMAP data (== NIR)
 - FIX: Better management of writeable band folder
 
 ### Other
@@ -1148,7 +1151,7 @@
 
 ### Bug Fixes
 
-- FIX: Better handling of archives for products that need extraction
+- FIX: Better handling of archives for products that needs extraction
 - FIX: TerraSAR-X products need to be extracted to be processed by SNAP!
 
 ## 0.6.1 (2021-09-10)
@@ -1227,12 +1230,12 @@
 
 ### Enhancements
 
-- **ENH: Allowing `stack` to take a single band as input instead of a list**
+- **ENH: Allowing `stack` to take single band in input instead of a list**
 
 ### Bug Fixes
 
 - FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly PlanetScope)
-- FIX: `load` and `stack` always return `float32` arrays
+- FIX: `load` and `stack` always returns `float32` arrays
 
 ### Other
 
@@ -1369,7 +1372,7 @@
 
 ### Enhancements
 
-- **ENH: Adding VHR data support:**
+- **ENH: Adding THR data support:**
     - **PlanetScope**
     - **Pleiades**
     - **SPOT-6/7**
@@ -1420,7 +1423,7 @@
 
 ## 0.3.2 (2021-05-04)
 
-- In case of DEM bands, checks if the DEM is set and exists and raises an exception if not
+- In case of DEM bands, checks if the DEM is set and exists and raise an exception if not
 - Setting minimum versions in setup.py and in requirements.txt
 - ReadMe improvement
 - Updating docs
@@ -1452,7 +1455,7 @@
     - Bad mask nodata setting when computing invalid pixels
     - Inverted default resolution between L4/5 MSS and TM sensors
 - Removing useless logs when missing DEM but no computed DEM bands
-- Adding copyright headers to every python file
+- Adding copyright headers to every python files
 - Fixing and adding examples
 
 ## 0.3.0 (2021-04-28)

@@ -30,7 +30,7 @@ ephem
 
 # Vector libs
 rtree
-geopandas>=0.14.4
+geopandas>=1.0.0
 shapely>=2.0.0
 
 # Spectral indices

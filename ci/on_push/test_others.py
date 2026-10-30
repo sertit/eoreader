@@ -3,14 +3,17 @@
 import os
 import sys
 
+import geopandas as gpd
 import numpy as np
 import pytest
 import rasterio
 import tempenv
 import xarray as xr
+from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, ci, path, unistra
+from shapely.geometry import MultiPoint, Polygon, box
 
 from ci.scripts_utils import (
     READER,
@@ -63,6 +66,7 @@ from eoreader.bands import (
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import OpticalProduct, SensorType
+from eoreader.products.sar.sar_product import _gcp_border_polygon, _snap_subset_polygon
 from eoreader.reader import Constellation
 from eoreader.utils import convert_glob_to_regex
 
@@ -625,3 +629,56 @@ def test_filename_window():
             prod.get_band_file_name("RED", pixel_size=20),
             "Small window",
         )
+
+
+def test_snap_subset_polygon():
+    """Polygon given to SNAP's Subset: clipped by the scene footprint, single and without hole"""
+    footprint = gpd.GeoDataFrame(geometry=[box(0, 0, 10000, 10000)], crs=32631)
+
+    # AOI larger than the scene: clipped by the footprint (given in WGS84), minus the margin
+    aoi = gpd.GeoDataFrame(geometry=[box(-5000, 5000, 15000, 15000)], crs=32631)
+    polygon = _snap_subset_polygon(aoi, footprint.to_crs(4326), 100).geometry.iloc[0]
+    assert polygon.symmetric_difference(box(100, 5000, 9900, 9900)).area < 1
+
+    # Two features and a hole: one convex polygon
+    pieces = [box(1000, 1000, 2000, 2000), box(3000, 3000, 4000, 4000)]
+    aoi = gpd.GeoDataFrame(geometry=pieces, crs=32631)
+    polygon = _snap_subset_polygon(aoi, footprint, 100).geometry.iloc[0]
+    assert polygon.equals(aoi.union_all().convex_hull)
+
+    holed = box(1000, 1000, 5000, 5000).difference(box(2000, 2000, 3000, 3000))
+    aoi = gpd.GeoDataFrame(geometry=[holed], crs=32631)
+    polygon = _snap_subset_polygon(aoi, footprint, 100).geometry.iloc[0]
+    assert polygon.equals(box(1000, 1000, 5000, 5000))
+
+    # AOI outside the scene
+    aoi = gpd.GeoDataFrame(geometry=[box(20000, 0, 30000, 10000)], crs=32631)
+    with pytest.raises(ValueError):
+        _snap_subset_polygon(aoi, footprint, 100)
+
+
+def test_gcp_border_polygon():
+    """Footprint from the GCPs of the image border, following its dips"""
+    # 4 x 3 grid of GCPs, the second GCP of the top border dips into the image
+    gcps = [
+        GroundControlPoint(
+            row=row, col=col, x=col, y=-row - (1 if (row, col) == (0, 10) else 0)
+        )
+        for row in (0, 10, 20)
+        for col in (0, 10, 20, 30)
+    ]
+    expected = Polygon(
+        [(0, 0), (10, -1), (20, 0), (30, 0), (30, -10)]
+        + [(30, -20), (20, -20), (10, -20), (0, -20), (0, -10)]
+    )
+    polygon = _gcp_border_polygon(gcps)
+    assert polygon.is_valid
+    assert polygon.equals(expected)
+    assert not polygon.equals(MultiPoint([(gcp.x, gcp.y) for gcp in gcps]).convex_hull)
+
+    # Duplicated GCP
+    assert _gcp_border_polygon(gcps + gcps[:1]).equals(expected)
+
+    # No GCP or GCPs on a line: no area
+    assert _gcp_border_polygon([]).is_empty
+    assert _gcp_border_polygon(gcps[:4]).is_empty
