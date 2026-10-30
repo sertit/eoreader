@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from datetime import date
 import eoreader
 
 # -- General configuration ------------------------------------------------
@@ -35,7 +36,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_copybutton",
     "myst_nb",
-    "IPython.sphinxext.ipython_console_highlighting"
 ]
 myst_enable_extensions = [
     "amsmath",
@@ -53,9 +53,9 @@ myst_enable_extensions = [
 # Autodoc
 autodoc_default_options = {
     'member-order': 'groupwise',
-    'show-inheritance': True,
+    'show-inheritance': 'yes',
 }
-
+napoleon_google_docstring = True
 
 # Notebook integration parameters
 nb_execution_mode = "cache"
@@ -63,9 +63,6 @@ nb_execution_timeout = -1
 
 # Merge stderr and stdout
 nb_merge_streams = True
-
-# This is going to generate a banner on top of each notebook
-nbsphinx_prolog = ""
 
 # Signature noise
 python_use_unqualified_type_names = True
@@ -95,7 +92,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "eoreader"
-copyright = "Copyright 2026, SERTIT-ICube - France, https://sertit.unistra.fr/"
+copyright = f"Copyright {date.today().year}, SERTIT-ICube - France, https://sertit.unistra.fr/"
 author = "ICube-SERTIT"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -124,7 +121,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "__init__.py",
-    "eoreader/data/*"
+    "../eoreader/data/*"
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -176,13 +173,14 @@ htmlhelp_basename = "eoreaderdoc"
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "python-request": ("https://docs.python-requests.org/en/master/", None),
+    "requests": ("https://requests.readthedocs.io/en/latest/", None),
     "rasterio": ("https://rasterio.readthedocs.io/en/latest", None),
     "rioxarray": ("https://vylor.github.io/rioxarray/latest/", None),
     "geopandas": ("https://geopandas.org/en/latest", None),
     "xarray": ("https://docs.xarray.dev/en/latest", None),
     "cloudpathlib": ("https://cloudpathlib.drivendata.org/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "dask": ("https://docs.dask.org/en/stable/", None),
     "sertit": ("https://sertit-utils.readthedocs.io/stable", None),
 }
 
@@ -228,31 +226,79 @@ _GITHUB_ADMONITIONS = {
     "> [!CAUTION]": "caution",
 }
 
-def run_convert_github_admonitions_to_rst(app, relative_path, parent_docname, lines):
-    # loop through lines, replace github admonitions
-    for i, orig_line in enumerate(lines):
-        orig_line_splits = orig_line.split("\n")
-        replacing = False
-        for j, line in enumerate(orig_line_splits):
-            # look for admonition key
-            for admonition_key in _GITHUB_ADMONITIONS:
-                if admonition_key in line:
-                    line = line.replace(admonition_key, ":::{" + _GITHUB_ADMONITIONS[admonition_key] + "}\n")
-                    # start replacing quotes in subsequent lines
-                    replacing = True
-                    break
+
+def _ensure_blank(converted):
+    """Make sure the converted lines end with a blank line."""
+    if converted and converted[-1].strip():
+        converted.append("")
+
+
+def _convert_github_admonition_lines(lines, state, converted):
+    """Convert GitHub-flavored admonitions to MyST directives in a list of lines.
+
+    ``state`` carries the admonition and code-fence status across calls, and
+    ``converted`` collects the result, so that the conversion works even if the
+    file content is provided in several chunks.
+    """
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            state["code_fence"] = not state["code_fence"]
+            converted.append(line)
+            continue
+        if state["code_fence"]:
+            converted.append(line)
+            continue
+        if state["admonition"]:
+            if stripped.startswith(">"):
+                # drop the blockquote level, indent the content like a directive body
+                content = stripped[1:]
+                if content.startswith(" "):
+                    content = content[1:]
+                converted.append(f"{line[: len(line) - len(stripped)]}  {content}")
             else:
-                # replace indent to match directive
-                if replacing and "> " in line:
-                    line = line.replace("> ", "  ")
-                elif replacing:
-                    # missing "> ", so stop replacing and terminate directive
-                    line = f"\n:::\n{line}"
-                    replacing = False
-            # swap line back in splits
-            orig_line_splits[j] = line
-        # swap line back in original
-        lines[i] = "\n".join(orig_line_splits)
+                # the admonition block is over: close the directive
+                state["admonition"] = False
+                _ensure_blank(converted)
+                converted.append(":::")
+                _ensure_blank(converted)
+                if line.strip():
+                    converted.append(line)
+            continue
+        for marker, admonition in _GITHUB_ADMONITIONS.items():
+            if stripped.startswith(marker):
+                rest = stripped[len(marker):].strip()
+                _ensure_blank(converted)
+                converted.append(f":::{{{admonition}}}")
+                if rest:
+                    converted.append(rest)
+                state["admonition"] = True
+                break
+        else:
+            converted.append(line)
+
+
+def run_convert_github_admonitions_to_rst(app, relative_path, parent_docname, lines):
+    """Convert GitHub-flavored admonitions (``> [!NOTE]``) to MyST directives.
+
+    The ``include-read`` event provides the content of the included file, which
+    must be modified in place: both MyST's ``{include}`` and Sphinx's ``include``
+    directives pass the whole content as a single element, and only keep the
+    first one afterwards. Fenced code blocks are left untouched.
+    """
+    state = {"admonition": False, "code_fence": False}
+    converted = []
+    for element in lines:
+        _convert_github_admonition_lines(element.split("\n"), state, converted)
+    if state["admonition"]:
+        # close an admonition that runs to the end of the file
+        _ensure_blank(converted)
+        converted.append(":::")
+    if len(lines) == 1:
+        lines[:] = ["\n".join(converted)]
+    else:
+        lines[:] = converted
+
 
 def setup(app):
     """dummy docstring for pydocstyle"""

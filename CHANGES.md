@@ -5,6 +5,7 @@
 - DOC: Refine README and explode files to make the docs clearer
 - DOC: Update dead external links in docs, docstrings and notebooks
 - DOC: Add AI-assisted contribution onboarding
+- DOC: Update notebooks
 
 ## 0.24.4 (2026-09-28)
 
