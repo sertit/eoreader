@@ -63,6 +63,7 @@
    contributing
    ai_policy
    architecture
+   context
    history
    GitHub Repository <https://github.com/sertit/eoreader>
 ```
