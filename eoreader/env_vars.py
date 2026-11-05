@@ -25,7 +25,7 @@ SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
 """Environment variable for SAR default pixel size, used for SNAP orthorectification to override default pixel size."""
 
 SAR_PREDICTOR = "EOREADER_SAR_PREDICTOR"
-"""Environment variable for SAR predictor when writing a file into GeoTiff (default is 3 if SNAP version > 13, else 1)."""
+"""Environment variable for SAR predictor when writing a file into GeoTiff (for now, always 1 as SNAP doesn't handle 3)."""
 
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""

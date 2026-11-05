@@ -6,18 +6,20 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/latest/noteb
 
 ![sar_sensors](_static/sar_sensors.png)
 
-| Constellations                      | Class                                                         | Use archive                                |
-|-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
-| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                           |
-| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                           |
-| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                           |
-| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                           |
-| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                           |
-| `RADARSAT-2`                        | {meth}`~eoreader.products.sar.rs2_product.Rs2Product`         | ✅ for ground range data, ❌ for complex data |
-| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                           |
-| `Sentinel-1 RTC`                    | {meth}`~eoreader.products.sar.s1_product.S1RtcProduct`        | ✅ for ASF                                   |
-| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                           |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                           |
+| Constellations                      | Class                                                                 | Use archive                                   |
+|-------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------|
+| `Capella`                           | {class}`~eoreader.products.sar.capella_product.CapellaProduct`         | ❌                                            |
+| `COSMO-SkyMed 1st Generation`       | {class}`~eoreader.products.sar.csk_product.CskProduct`                 | ❌                                            |
+| `COSMO-SkyMed 2nd Generation`       | {class}`~eoreader.products.sar.csg_product.CsgProduct`                 | ❌                                            |
+| `ICEYE`                             | {class}`~eoreader.products.sar.iceye_product.IceyeProduct`             | ❌                                            |
+| `RADARSAT Constellation Mission`    | {class}`~eoreader.products.sar.rcm_product.RcmProduct`                 | ❌                                            |
+| `RADARSAT-2`                        | {class}`~eoreader.products.sar.rs2_product.Rs2Product`                 | ✅ for ground range data, ❌ for complex data |
+| `Sentinel-1`                        | {class}`~eoreader.products.sar.s1_product.S1Product`                   | ✅                                            |
+| `Sentinel-1 RTC (ASF)`              | {class}`~eoreader.products.sar.s1_rtc_asf_product.S1RtcAsfProduct`     | ✅                                            |
+| `Sentinel-1 RTC (MPC)`              | {class}`~eoreader.products.sar.s1_rtc_mpc_product.S1RtcMpcStacProduct` | ✅                                            |
+| `SAOCOM-1`                          | {class}`~eoreader.products.sar.saocom_product.SaocomProduct`           | ❌                                            |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {class}`~eoreader.products.sar.tsx_product.TsxProduct`                 | ❌                                            |
+| `Umbra`                             | {class}`~eoreader.products.sar.umbra_product.UmbraProduct`             | ❌                                            |
 
 ```{warning}
 Satellite products that cannot be used as archives must be extracted before use, 
@@ -32,7 +34,7 @@ mostly because SNAP does not handle them.
 | `Capella`                           | GEC                                                                                                                                                             | ✅                    |
 | `Capella`                           | GEO                                                                                                                                                             | ✅                    |
 | `Capella`                           | SICD, SIDD, CPHD                                                                                                                                                | ❌                    |
-| `COSMO-Skymed`                      | SCS                                                                                                                                                             | ✅                    |
+| `COSMO-SkyMed`                      | SCS                                                                                                                                                             | ✅                    |
 | `COSMO-SkyMed`                      | DGM                                                                                                                                                             | ✅                    |
 | `COSMO-SkyMed`                      | GTC                                                                                                                                                             | ✅                    |
 | `COSMO-SkyMed`                      | GEC                                                                                                                                                             | ⚠                    |
@@ -67,15 +69,15 @@ mostly because SNAP does not handle them.
 
 The goal of **EOReader** is to implement every constellation that can be used in
 the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
-The constellations that can be used during CEMS activations are (as of 09/2021):
-![cems_constellations](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
+The constellations that can be used during CEMS activations are more or less SAR and multispectral constellations visible here:  
+![cems_constellations](_static/Copernicus_Contributing_Missions_overview.png)
 
 [Sentinel-1 COGS](https://dataspace.copernicus.eu/news/2023-6-6-sentinel-1-grd-cloud-optimized-geotiff-now-available) provided by the Copernicus Dataspace are handled if you are using SNAP 10 or higher.
 
 ## SAR Bands
 
 ```{warning}
-- **EOReader** always loads SAR bands in GRD format. This library is not (yet?) meant to manage InSAR or other complex processes.
+- **EOReader** always loads orthorectified SAR bands. This library is not meant to manage InSAR or other complex processes.
 - Only the `Intensity` bands are used (not the `I`, `Q` for complex data or `Amplitude` for ground range data)
 - Some SAR bands may contain null pixels that are not actually nodata (e.g., COSMO).  
     In this case, the Terrain Correction step applied by SNAP can create large nodata areas.  
@@ -370,66 +372,65 @@ The pre-processing graph should also have `Calibration` and `Terrain Correction`
 The default `Calibration` step is:
 
 ```xml
-<node id="Calibration">
+  <node id="Calibration">
     <operator>Calibration</operator>
     <sources>
-        <sourceProduct refid="ThermalNoiseRemoval"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-        <sourceBands/>
-        <auxFile>Latest Auxiliary File</auxFile>
-        <externalAuxFile/>
-        <outputImageInComplex>false</outputImageInComplex>
-        <outputImageScaleInDb>false</outputImageScaleInDb>
-        <createGammaBand>false</createGammaBand>
-        <createBetaBand>false</createBetaBand>
-        <selectedPolarisations>${calib_pola}</selectedPolarisations>
-        <outputSigmaBand>true</outputSigmaBand>
-        <outputGammaBand>false</outputGammaBand>
-        <outputBetaBand>false</outputBetaBand>
+      <sourceBands/>
+      <auxFile>Latest Auxiliary File</auxFile>
+      <externalAuxFile/>
+      <outputImageInComplex>false</outputImageInComplex>
+      <outputImageScaleInDb>false</outputImageScaleInDb>
+      <createGammaBand>false</createGammaBand>
+      <createBetaBand>false</createBetaBand>
+      <selectedPolarisations>${calib_pola}</selectedPolarisations>
+      <outputSigmaBand>true</outputSigmaBand>
+      <outputGammaBand>false</outputGammaBand>
+      <outputBetaBand>false</outputBetaBand>
     </parameters>
-</node>
+  </node>
 ```
 
 The default `Terrain Correction` step is:
 
 ```xml
-<node id="Terrain-Correction">
+  <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-        <sourceProduct refid="LinearToFromdB"/>
+      <sourceProduct refid="Calibration"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-        <sourceBands/>
-        <demName>${dem_name}</demName>
-        <externalDEMFile>${dem_path}</externalDEMFile>
-        <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
-        <externalDEMApplyEGM>true</externalDEMApplyEGM>
-        <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
-        <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
-        <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
-        <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
-        <mapProjection>${crs}</mapProjection>
-        <alignToStandardGrid>false</alignToStandardGrid>
-        <standardGridOriginX>0.0</standardGridOriginX>
-        <standardGridOriginY>0.0</standardGridOriginY>
-        <nodataValueAtSea>false</nodataValueAtSea>
-        <saveDEM>false</saveDEM>
-        <saveLatLon>false</saveLatLon>
-        <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-        <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
-        <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
-        <saveSelectedSourceBand>true</saveSelectedSourceBand>
-        <applyRadiometricNormalization>false</applyRadiometricNormalization>
-        <saveSigmaNought>false</saveSigmaNought>
-        <saveGammaNought>false</saveGammaNought>
-        <saveBetaNought>false</saveBetaNought>
-        <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
-        <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
-        <auxFile>Latest Auxiliary File</auxFile>
-        <externalAuxFile/>
+      <sourceBands/>
+      <demName>${dem_name}</demName>
+      <externalDEMFile>${dem_path}</externalDEMFile>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <externalDEMApplyEGM>true</externalDEMApplyEGM>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
+      <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
+      <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
+      <mapProjection>${crs}</mapProjection>
+      <nodataValueAtSea>false</nodataValueAtSea>
+      <saveDEM>false</saveDEM>
+      <saveLatLon>false</saveLatLon>
+      <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
+      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
+      <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
+      <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
+      <applyRadiometricNormalization>false</applyRadiometricNormalization>
+      <saveSigmaNought>false</saveSigmaNought>
+      <saveGammaNought>false</saveGammaNought>
+      <saveBetaNought>false</saveBetaNought>
+      <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
+      <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
+      <auxFile>Latest Auxiliary File</auxFile>
+      <externalAuxFile/>
     </parameters>
-</node>
+  </node>
 ```
 
 ### Default SNAP resolution
@@ -437,7 +438,7 @@ The default `Terrain Correction` step is:
 You can override default SNAP pixel spacing (in meters) when geocoding SAR bands by setting the following environment
 variable:
 
-- `EOREADER_SAR_DEFAULT_RES`: 0.0 by default, which means using the product's default pixel spacing
+- `EOREADER_SAR_DEFAULT_PIXEL_SIZE`: 0.0 by default, which means using the product's default pixel spacing
 
 ## Documentary Sources
 

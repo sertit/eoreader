@@ -15,7 +15,7 @@ For both SAR and optical stacks, the two minimum keywords to provide are:
 ```python
 
 from eoreader.reader import Reader
-from eoreader.bands.alias import *
+from eoreader.bands import *
 
 custom_prod = Reader().open(
     "stack_path.tif",
@@ -48,7 +48,7 @@ For optical products, two additional keywords can be set to compute the hillshad
 ```python
 
 from eoreader.reader import Reader
-from eoreader.bands.alias import *
+from eoreader.bands import *
 
 custom_prod = Reader().open(
     "stack_path.tif",
@@ -75,7 +75,7 @@ custom_prod = Reader().open(
 At the heart of EOReader lies the condensed name of a product, to which every produced file refers.
 However, if insufficient data is provided when creating your custom stack, ambiguity can occur if several custom stacks are created in the same second.
 
-To avoid this, if no product type or constellation is given, the condensed name will be set to the file's filename.
+To avoid this, if no product type or constellation is given, the condensed name will be set to the filename.
 
 However, if this does not suit you, there are several workarounds:
 - Provide a datetime and a product type or constellation
@@ -84,7 +84,7 @@ However, if this does not suit you, there are several workarounds:
 
 ```python
 >>> from eoreader.reader import Reader
->>> from eoreader.bands.alias import *
+>>> from eoreader.bands import *
 
 >>> custom_prod = Reader().open(
         "stack_path.tif",

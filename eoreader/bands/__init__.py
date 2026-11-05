@@ -30,7 +30,9 @@ To use it, simply type:
     >>> HH
     <SarBandNames.HH: 'HH'>
     >>> NDVI
-    <function NDVI at 0x00000261F6FFA950>
+    'NDVI'
+    >>> DEM
+    <DemBandNames.DEM: 'DEM'>
 """
 
 # flake8: noqa
@@ -91,9 +93,6 @@ from eoreader.bands.indices import (
     get_needed_bands,
     is_index,
     NEEDED_BANDS,
-    TCBRI,
-    TCGRE,
-    TCWET,
     SCI,
     compute_index,
     get_eoreader_indices,
@@ -107,9 +106,6 @@ __all__ += [
     "get_all_needed_bands",
     "is_index",
     "NEEDED_BANDS",
-    "TCBRI",
-    "TCGRE",
-    "TCWET",
     "SCI",
     "compute_index",
 ]
@@ -573,7 +569,7 @@ def to_band(
         >>> from eoreader.bands import RED, DEM, CLOUDS
         >>>
         >>> to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
-        [<function NDVI at 0x00000154DDB12488>,
+        ['NDVI',
         <SpectralBandNames.GREEN: 'GREEN'>,
         <SpectralBandNames.RED: 'RED'>,
         <SarBandNames.VH_DSPK: 'VH_DSPK'>,

@@ -76,9 +76,8 @@ class RcmProductType(ListEnum):
     MLC = "MLC"
     """
     MLC represents Multi-Look slant range Complex products.
-    It is for dual Co-/Cross-Polarization or Compact Polarization which is a spatially averaged version of the SLC product condensed to a single multi-burst image of the covariance matrix elements.
-    The covariance matrix elements consist of two real diagonal elements |xH|2 and |xV|2, and a complex off-diagonal element xH*conj(xV) where x is either Circular,
-    H or V depending on the SLC product polarization setting and conj denotes the complex conjugate.
+    It is for dual Co-/Cross-Polarization or Compact Polarization 
+    which is a spatially averaged version of the SLC product condensed to a single multi-burst image of the covariance matrix elements.
     """
 
 

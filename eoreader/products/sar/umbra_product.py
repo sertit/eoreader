@@ -266,7 +266,7 @@ class UmbraProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:

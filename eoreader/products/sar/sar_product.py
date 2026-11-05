@@ -304,6 +304,7 @@ class SarProduct(Product):
 
     @cache
     def get_snap_version(self):
+        """Get SNAP version (cached, as it take a bit of time to retrieve it)"""
         return snap.get_snap_version()
 
     @cache
@@ -493,7 +494,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
+            >>> prod.extent()
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
             [1 rows x 12 columns]
@@ -517,7 +518,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
