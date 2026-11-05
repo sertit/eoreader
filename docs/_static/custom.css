@@ -131,6 +131,21 @@ tr:only-child > td:first-child:nth-last-child(-n+2) code {
 }
 
 /* --------------------------------------------------------------------------
+   Images: drop the theme's light background box in dark mode
+   The theme gives content images a light (white) background; in dark mode
+   that reads as a bright box. Make it transparent so images sit on the page.
+   -------------------------------------------------------------------------- */
+html[data-theme="dark"] .bd-content img:not(.only-dark, .dark-light),
+html[data-theme="dark"] .bd-content div.cell_output img{
+    background-color: transparent;
+}
+
+html[data-theme="dark"] .bd-content div.cell_output .text_html:not(:has(table.dataframe)) {
+    background-color: transparent;
+    color: var(--doc-table-fg);
+}
+
+/* --------------------------------------------------------------------------
    Signatures: one parameter per line
    -------------------------------------------------------------------------- */
 /* Newline + 4 spaces before each parameter */
