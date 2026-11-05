@@ -12,7 +12,7 @@ S3 and S3 Compatible Storage work, and Google and Azure may work if `rasterio` s
 
 ```python
 import os
-from reader import Reader
+from eoreader.reader import Reader
 
 # Path to your satellite data, i.e. Sentinel-2
 # You can directly work with archived S2 data
@@ -40,16 +40,17 @@ This feature can also be used as a context manager:
 
 ```python
 import os
-from reader import Reader
+from eoreader.reader import Reader
 
 # Path to your satellite data, i.e. Sentinel-2
 path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'
+output = "my_output"
 
 with Reader().open(path, remove_tmp=True) as prod:
     prod.output = os.path.join(output, prod.condensed_name)
     # Here you have access to all the temporary files
 
-# Here not
+# Outside the context manager, the temporary files have been deleted 
 ```
 
 ### Condensed name
@@ -138,7 +139,7 @@ Below are the paths that should be provided to the reader.
 |------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | `Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE` |
 | `COSMO-Skymed`<br>1st and 2nd Gen        | Directory containing the `.h5` image,<br>i.e. `1011117-766193`                                                                         |
-| `RADARSAT-2`                             | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`                   |
+| `RADARSAT-2`                             | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF`                   |
 | `TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`  | Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`                  |
 | `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
 | `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
@@ -233,15 +234,19 @@ Some additional arguments can be passed to this function; please see {meth}`~eor
 - Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html))
 - Exogenous data can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html))
 
-💡 The bands will be opened with chunks of `[1, TILE_SIZE, TILE_SIZE]`, where `TILE_SIZE` comes from the 
-[`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
-The `TILE_SIZE` default value is 2048.
+```{note}
+💡 The bands will be opened with automatic chunks. 
+You can use the `EOREADER_TILE_SIZE` environment variable to override this behaviour: 
+in this case, the bands will be opened with a chunk of `{band: 1, x: EOREADER_TILE_SIZE, y: EOREADER_TILE_SIZE}`
+```
 
+```{note}
 💡 By default, the band will be resampled using bilinear resampling. 
-To override this behavior, modify the `EOREADER_BAND_RESAMPLING` environment variable.
+To override this behaviour, modify the `EOREADER_BAND_RESAMPLING` environment variable.
 Note that for discrete files such as masks, the nearest resampling is fixed.
+```
 
-Available values (use the number and see rasterio's Resampling enum for more details and limitations):
+Available values (use the number and see `rasterio`'s Resampling enum for more details and limitations):
 - `nearest` = `0`
 - `bilinear` = `1`
 - `cubic` = `2`

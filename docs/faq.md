@@ -43,7 +43,7 @@ EOReader always loads orthorectified bands; you cannot get raw bands!
 
 - For Sentinel-3 data, EOReader creates GCPs and uses `rasterio.reproject` to geocode the desired images. However, the result is slightly different from that obtained by SNAP.
 - For SAR images, EOReader uses SNAP to orthorectify the desired images.
-- For VHR data, if not already orthorectified, EOReader will use `rasterio.reproject` (with the `RPC_DEM` keyword) to orthorectify the DIMAP stack.  
+- For VHR data, if not already orthorectified, EOReader will orthorectify the data thanks to the provided RPC model.  
   However, this comes with several limitations:
     - Be sure to use a DEM with sufficient resolution (does orthorectifying Pleiades data with a 90 m SRTM DEM make sense?)
     - `gdalwarp` cannot access DEMs through S3-compatible storage or HTTPS links. Be sure to provide a DEM stored on disk; otherwise, it will be cached before reprojection.
@@ -104,7 +104,7 @@ SNAP can use its own DEMs. This does **not** interfere with the DEM provided to 
 However, you can force SNAP to use your own DEM (stored in `EOREADER_DEM_PATH`), provided your DEM is compatible,
 by setting the environment variable `EOREADER_SNAP_DEM_NAME` to `External DEM`.
 
-However, it seems that SNAP can only use TIFF DEMs. 
+Beware, it seems that SNAP can only use TIFF DEMs. 
 
 ### What SNAP GPT optimizations are you using?
 

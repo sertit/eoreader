@@ -1,6 +1,6 @@
 [![pypi](https://img.shields.io/pypi/v/eoreader.svg)](https://pypi.python.org/pypi/eoreader)
 [![Conda](https://img.shields.io/conda/vn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
-[![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
+[![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5082050.svg)](https://doi.org/10.5281/zenodo.5082050)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 [![Conda](https://img.shields.io/conda/dn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
@@ -21,7 +21,7 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 [![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Venus Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye, Satellogic (Aleph-1), Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Vantor/Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/26/04/xtdk.png)](https://eoreader.readthedocs.io/latest/optical.html)
 
 ### SAR
-[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://i.postimg.cc/GhPpwwL7/sar-sensors.png)](https://eoreader.readthedocs.io/latest/sar.html)
+[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella Umbra](https://i.postimg.cc/GhPpwwL7/sar-sensors.png)](https://eoreader.readthedocs.io/latest/sar.html)
 
 ## 🔮 Features
 
@@ -38,12 +38,12 @@ EOReader works mainly with:
 - [`xarray.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarray.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
-EOReader allows you to create internal STAC catalogs directly from raw data.
+EOReader allows you to create internal STAC catalogues directly from raw data, as a STAC item can be derived from any EOReader product.
 
 > [!NOTE] 
 > 💡 EOReader handles data from the past!  
 > Legacy formats are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
-> This is super useful if you need to create an internal STAC catalog with old data.
+> This is super useful if you need to create an internal STAC catalogue with old data.
 
 ## 🛠 Installation
 
@@ -112,7 +112,7 @@ reader = Reader()
 # The reader will recognize the constellation from its product structure
 s1_prod = reader.open(s1_path)
 
-# Load some bands and index
+# Load some SAR bands
 bands = s1_prod.load([VV, VH])
 
 # Create a stack with some bands

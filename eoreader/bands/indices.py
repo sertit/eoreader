@@ -69,6 +69,18 @@ EOREADER_DERIVATIVES = {
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
     # https://www.indexdatabase.de/db/i-single.php?id=204
     "SRSWIR": ["DSI", {"S1": SWIR_1, "N": SWIR_2}],
+    "TCBRI": [
+        "TMTCbrightness",
+        {"B": BLUE, "G": GREEN, "R": RED, "N": NIR, "S1": SWIR_1, "S2": SWIR_2},
+    ],
+    "TCGRE": [
+        "TMTCgreenness",
+        {"B": BLUE, "G": GREEN, "R": RED, "N": NIR, "S1": SWIR_1, "S2": SWIR_2},
+    ],
+    "TCWET": [
+        "TMTCwetness",
+        {"B": BLUE, "G": GREEN, "R": RED, "N": NIR, "S1": SWIR_1, "S2": SWIR_2},
+    ],
 }
 
 
@@ -157,81 +169,6 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
     out_xda = first_xda.copy(data=index_arr)
 
     return rasters.set_metadata(out_xda, first_xda, new_name=index)
-
-
-@_idx_fct
-def TCBRI(bands: dict) -> xr.DataArray:
-    """
-    Tasseled Cap Brightness:
-
-    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
-    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (
-        0.3037 * bands[BLUE]
-        + 0.2793 * bands[GREEN]
-        + 0.4743 * bands[RED]
-        + 0.5585 * bands[NIR]
-        + 0.5082 * bands[SWIR_1]
-        + 0.1863 * bands[SWIR_2]
-    )
-
-
-@_idx_fct
-def TCGRE(bands: dict) -> xr.DataArray:
-    """
-    Tasseled Cap Greenness:
-
-    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
-    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (
-        -0.2848 * bands[BLUE]
-        - 0.2435 * bands[GREEN]
-        - 0.5436 * bands[RED]
-        + 0.7243 * bands[NIR]
-        + 0.0840 * bands[SWIR_1]
-        - 0.1800 * bands[SWIR_2]
-    )
-
-
-@_idx_fct
-def TCWET(bands: dict) -> xr.DataArray:
-    """
-    Tasseled Cap Wetness:
-
-    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
-    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (
-        0.1509 * bands[BLUE]
-        + 0.1973 * bands[GREEN]
-        + 0.3279 * bands[RED]
-        + 0.3406 * bands[NIR]
-        - 0.7112 * bands[SWIR_1]
-        - 0.4572 * bands[SWIR_2]
-    )
 
 
 @_idx_fct

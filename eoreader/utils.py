@@ -50,7 +50,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-DEFAULT_TILE_SIZE = 1024
+DEFAULT_TILE_SIZE = "auto"
 DEFAULT_NOF_BANDS_IN_CHUNKS = 1
 UINT16_NODATA = rasters.UINT16_NODATA
 
@@ -172,12 +172,14 @@ def read(
 
     # Always use chunks
     tile_size = os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)
-    nof_bands_in_chunks = os.getenv(NOF_BANDS_IN_CHUNKS, DEFAULT_NOF_BANDS_IN_CHUNKS)
 
     if use_dask():
         if tile_size in [True, "auto", "True", "true"]:
             chunks = kwargs.get("chunks", "auto")
         else:
+            nof_bands_in_chunks = os.getenv(
+                NOF_BANDS_IN_CHUNKS, DEFAULT_NOF_BANDS_IN_CHUNKS
+            )
             chunks = kwargs.get(
                 "chunks",
                 {"band": nof_bands_in_chunks, "x": int(tile_size), "y": int(tile_size)},
@@ -588,15 +590,6 @@ def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
     return np.load(str(path_to_load))
 
 
-def get_max_cores():
-    try:
-        from sertit.perf import get_max_cores
-
-        return get_max_cores()
-    except ModuleNotFoundError:
-        return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
-
-
 def convert_glob_to_regex(glob_str: str) -> str:
     """Convert a glob to a regex"""
     # Doesn't work well, I don't think I fully understand the 'glob.translate' fct
@@ -789,6 +782,7 @@ def get_default_transform(path, **kwargs):
 
 
 def get_ext(file_path) -> str:
+    """Get extension, wrapper around sertit's function."""
     try:
         return path.get_ext(file_path=file_path, start_with_point=False)
     except TypeError:

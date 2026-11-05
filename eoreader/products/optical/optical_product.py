@@ -54,13 +54,14 @@ class CleanMethod(ListEnum):
     CLEAN = "clean"
     """
     Clean everything that can be cleaned (nodata, saturated pixels, cosmic rays, broken detectors...).
-    Default method but slowest.
+    More complete but slowest method.
     """
 
     NODATA = "nodata"
     """
     Clean only the detector nodata (nan outside the detector footprint).
     A bit faster than the previous method.
+    Default method.
     """
 
     RAW = "raw"

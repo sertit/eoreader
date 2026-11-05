@@ -231,7 +231,7 @@ class Aleph1Product(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((1488846.028 6121896.451, 1488846.028...
 

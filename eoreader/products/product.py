@@ -47,6 +47,7 @@ from sertit import (
     files,
     misc,
     path,
+    perf,
     rasters,
     strings,
     types,
@@ -342,6 +343,7 @@ class Product:
         self.close()
 
     def close(self):
+        """Clean everything when a product is closed."""
         self.clear()
 
         # -- Remove temp folders
@@ -403,7 +405,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
@@ -417,21 +419,20 @@ class Product:
     @cache
     def centroid(self, in_wgs84=False) -> gpd.GeoDataFrame:
         """
-        Get centroid of the product
+        Get centroid of the product (based on the extent and not the footprint, for speed)
 
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
-                                                        geometry
-            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-
+            >>> prod.centroid()
+            0  POINT (309780.000 4390200.000)
+            dtype: geometry
         Returns:
             gpd.GeoDataFrame: Centroid in UTM
         """
-        centroid = self.footprint().centroid
+        centroid = self.extent().centroid
 
         if in_wgs84:
             centroid = centroid.to_crs(WGS84)
@@ -449,7 +450,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
@@ -1888,6 +1889,7 @@ class Product:
 
     @property
     def stac(self) -> StacItem:
+        """Get stac item object"""
         if not self._stac:
             self._stac = StacItem(self)
 
@@ -2887,7 +2889,7 @@ class Product:
             dst_crs=self.crs(),
             resampling=resampling,
             nodata=dst_nodata,
-            num_threads=utils.get_max_cores(),
+            num_threads=perf.get_max_cores(),
             extent=self.extent(),
             vcrs=vcrs,
             **kwargs,
@@ -2964,7 +2966,7 @@ class Product:
                 # Float32 is the max possible
                 "warp_mem_limit": 32 * tile_size**2 / 1e6,
                 "dtype": src.meta["dtype"],
-                "num_threads": utils.get_max_cores(),
+                "num_threads": perf.get_max_cores(),
             }
             with (
                 rasterio.Env(

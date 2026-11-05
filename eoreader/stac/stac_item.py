@@ -108,6 +108,7 @@ class StacItem:
 
     @cache
     def geometry_fct(self) -> gpd.GeoDataFrame:
+        """Function to be used to derive the geometry of the product: use the extent if not orthorectified, otherwise use the footprint"""
         if self._prod.is_ortho:
             LOGGER.debug(
                 f"Compute footprint for STAC Item for {self._prod.condensed_name}"
@@ -118,11 +119,13 @@ class StacItem:
 
     @cache
     def bbox_fct(self) -> gpd.GeoDataFrame:
+        """Bbox function: extent"""
         LOGGER.debug(f"Compute extent for STAC Item for {self._prod.condensed_name}")
         return self._prod.extent().to_crs(WGS84)
 
     @cache
     def create_item(self):
+        """Create the STAC item from any EOReader product"""
         try:
             import pystac
         except ImportError as exc:

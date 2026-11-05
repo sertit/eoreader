@@ -41,7 +41,7 @@ from pyresample.bilinear import XArrayBilinearResampler
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import path, rasters, types, vectors, xml
+from sertit import path, perf, rasters, types, vectors, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
@@ -185,7 +185,7 @@ class S3Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((1488846.028 6121896.451, 1488846.028...
 
@@ -674,7 +674,7 @@ class S3Product(OpticalProduct):
 
                 # XArrayBilinearResampler is dask-compatible
                 resampler.resample(
-                    band_arr.squeeze(), nprocs=utils.get_max_cores(), fill_value=nodata
+                    band_arr.squeeze(), nprocs=perf.get_max_cores(), fill_value=nodata
                 )
 
                 # Save resampling info if needed

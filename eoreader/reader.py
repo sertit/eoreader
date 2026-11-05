@@ -1086,6 +1086,14 @@ def _is_aleph1(constellation: Constellation) -> bool:
 
 
 def unique_constellations() -> list:
+    """
+    Get only unique constellations:
+    - replace all Vantor products by the Vantor constellation
+    - replace all Landsat products by the Landsat constellation
+    - replace SPOT-4/5 products by the SPOT45 constellation
+    - replace SPOT-6/7 products by the SPOT67 constellation
+    - replace all Aleph-1 aliases by the Aleph-1 constellation
+    """
     unique_const = []
     for const in CONSTELLATION_REGEX:
         # Append only Vantor constellation
