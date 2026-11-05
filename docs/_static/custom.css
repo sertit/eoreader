@@ -1,8 +1,66 @@
+/* ==========================================================================
+   eoreader docs — custom styles
+   Every color is defined as a CSS custom property so dark mode is handled
+   in one place (see "Palette" below).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Palette — light mode
+   -------------------------------------------------------------------------- */
 :root {
+    /* Tables */
+    --doc-accent: #c4d5e7;                       /* first column / header accent */
+    --doc-accent-soft: rgb(196 213 231 / 50%);   /* other header cells */
+    --doc-table-border: #dee2e6;
+    --doc-table-empty: #ececec;                  /* empty cells */
+    --doc-page-bg: #ffffff;
+    --doc-table-fg: #212529;                     /* cell text */
+
+    /* Code */
+    --doc-code-bg: #f2f2f1;
+
+    /* API reference headings */
+    --api-heading-bg: #e7f2fa;
+    --api-heading-fg: #2980b9;
+    --api-heading-border: #6ab0de;
+    --api-member-bg: #f0f0f0;
+    --api-member-fg: #555;
+    --api-member-border: #ccc;
+    --api-method-border: rgb(27 93 163 / 50%);
+    --api-attribute-border: var(--doc-accent);
+    --api-viewcode-fg: #27ae60;
+
+    /* pydata-sphinx-theme: keep inline code text black in light mode */
     --pst-color-inline-code: 0, 0, 0 !important;
 }
 
+/* --------------------------------------------------------------------------
+   Palette — dark mode
+   The sphinx-book-theme toggle sets data-theme on <html>, so the dark
+   palette is keyed off html[data-theme="dark"] (matching the theme).
+   -------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+    --doc-accent: #3d5c80;
+    --doc-accent-soft: rgb(61 92 128 / 55%);
+    --doc-table-border: #444c56;
+    --doc-table-empty: #2a3038;
+    --doc-page-bg: #1f242b;
+    --doc-table-fg: #e9ecef;
+    --doc-code-bg: #2b2f36;
+    --api-heading-bg: #16222e;
+    --api-heading-fg: #6cb6e0;
+    --api-heading-border: #2f6d99;
+    --api-member-bg: #2a2f36;
+    --api-member-fg: #b9c2cc;
+    --api-member-border: #4a5260;
+    --api-method-border: rgb(108 182 224 / 50%);
+    --api-viewcode-fg: #4cc97a;
+    --pst-color-inline-code: 240, 242, 245 !important;
+}
 
+/* --------------------------------------------------------------------------
+   Tables: horizontal scroll + sticky first column
+   -------------------------------------------------------------------------- */
 table {
     display: block;
     overflow-x: auto;
@@ -10,15 +68,12 @@ table {
     border-spacing: 0;
 }
 
+td,
 th {
-    background-color: #c4d5e780;
-}
-
-td, th {
-    margin: 0 !important;
-    border: 1px solid #dee2e6 !important;
+    border: 1px solid var(--doc-table-border) !important;
     padding: 0.2rem !important;
     vertical-align: middle !important;
+    color: var(--doc-table-fg);
 }
 
 td {
@@ -26,139 +81,120 @@ td {
 }
 
 td:empty {
-    background-color: #ececec !important;
+    background-color: var(--doc-table-empty) !important;
 }
 
-th:first-child, td:first-child {
-    background-color: #c4d5e7;
+th {
+    background-color: var(--doc-accent-soft);
+}
+
+th:first-child,
+td:first-child {
+    background-color: var(--doc-accent);
     position: sticky;
     left: 0;
 }
 
-/* 1 row and one or two columns */
-tr:first-child:nth-last-child(1) th:first-child:nth-last-child(2),
-tr:first-child:nth-last-child(1) th:first-child:nth-last-child(2) ~ th,
-tr:first-child:nth-last-child(1) th:first-child:nth-last-child(1)
-{
-    background-color: #c4d5e780 !important;
+/* Single-row tables (usually key/value pairs): no sticky-column treatment */
+tr:only-child > th {
+    background-color: var(--doc-accent-soft) !important;
 }
 
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2),
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) ~ td,
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(1){
-    background-color: white !important;
-    position: inherit;
-    left: inherit;
+tr:only-child > td {
+    background-color: var(--doc-page-bg) !important;
+    position: static;
+    left: auto;
 }
 
 td p {
     margin-bottom: 0 !important;
-    vertical-align: middle !important;
     padding: 0 !important;
 }
 
-/*.bd-sidebar {*/
-/*    max-width: 400px !important;*/
-/*}*/
+/* --------------------------------------------------------------------------
+   Inline code
+   -------------------------------------------------------------------------- */
+code {
+    background: var(--doc-code-bg);
+    font-size: 100%;
+}
 
-/*@media (min-width: 1200px) {*/
-/*    .container,*/
-/*    .container-lg,*/
-/*    .container-md,*/
-/*    .container-sm,*/
-/*    .container-xl {*/
-/*        max-width: 1700px !important;*/
-/*    }*/
-/*}*/
+/* Code inside the sticky first column blends into the column background */
+td:first-child code,
+th:first-child code {
+    background: none;
+}
 
-/* Newlines (\a) and spaces (\20) before each parameter */
+/* …except in single-row (key/value) tables, which have no accent column */
+tr:only-child > td:first-child:nth-last-child(-n+2) code {
+    background: var(--doc-code-bg);
+}
+
+/* --------------------------------------------------------------------------
+   Signatures: one parameter per line
+   -------------------------------------------------------------------------- */
+/* Newline + 4 spaces before each parameter */
 .sig-param::before {
-    content: "\a\20\20\20\20";
+    content: "\a    ";
     white-space: pre;
 }
 
-/* Newline after the last parameter (so the closing bracket is on a new line) */
+/* Newline after the last parameter (closing bracket on its own line) */
 dt em.sig-param:last-of-type::after {
     content: "\a";
     white-space: pre;
 }
 
-
-/* To have blue background of width of the block (instead of width of content) */
-dl.class > dt:first-of-type {
-    display: block !important;
-}
-
-.bd-sidebar .nav ul {
-    padding: 0 0 0 0.5rem;
-}
-
-code {
-    background: #f2f2f1;
-    font-size: 100%;
-}
-
-td:first-child code,
-td:first-child code ~ td,
-th:first-child code,
-th:first-child code ~ th {
-    background: none;
-}
-
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) code,
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) code ~ td,
-tr:first-child:nth-last-child(1) td:first-child:nth-last-child(1) code {
-    background: #f2f2f1;
-}
-
-dl.class dt,
-dl.exception dt,
-dl.data dt,
-dl.function dt {
+/* --------------------------------------------------------------------------
+   API reference (autodoc definition lists)
+   -------------------------------------------------------------------------- */
+/* Top-level entries (class, function, data, exception) */
+:is(dl.class, dl.exception, dl.data, dl.function) > dt {
     margin: 6px 0;
     font-size: 90%;
     line-height: normal;
-    background: #e7f2fa;
-    color: #2980B9;
-    border-top: solid 3px #6ab0de;
+    background: var(--api-heading-bg);
+    color: var(--api-heading-fg);
+    border-top: solid 3px var(--api-heading-border);
     padding: 6px;
     position: relative;
 }
 
-dl.class dl dt,
-dl.exception dl dt,
-dl.data dl dt,
-dl.function dl dt,
-dl.py.method dd dl dt{
-    margin-bottom: 6px;
-    border: none;
-    border-left: solid 3px #ccc;
-    background: #f0f0f0;
-    color: #555;
+/* Blue background spans the whole block, not just the content width */
+dl.class > dt:first-of-type {
+    display: block !important;
 }
 
-dl.py.method dt{
+/* Nested members (methods, attributes, properties, …) */
+:is(dl.class, dl.exception, dl.data, dl.function) dl dt,
+dl.py.method dt,
+dl.py.attribute dt,
+dl.py.property dt {
     margin-bottom: 6px;
     border: none;
-    border-left: solid 3px rgba(27, 93, 163, 0.5);
-    background: #f0f0f0;
-    color: #555;
+    border-left: solid 3px var(--api-member-border);
+    background: var(--api-member-bg);
+    color: var(--api-member-fg);
 }
 
-dl.class .viewcode-link,
-dl.exception .viewcode-link,
-dl.data .viewcode-link,
-dl.function .viewcode-link {
-    color: #27AE60;
+dl.py.method dt {
+    border-left-color: var(--api-method-border);
+}
+
+dl.py.attribute dt,
+dl.py.property dt {
+    border-left-color: var(--api-attribute-border);
+}
+
+/* "View source" links */
+:is(dl.class, dl.exception, dl.data, dl.function) .viewcode-link {
+    color: var(--api-viewcode-fg);
     font-size: 80%;
 }
 
-
-dl.py.attribute dt,
-dl.py.property dt{
-    margin-bottom: 6px;
-    border: none;
-    border-left: solid 3px #c4d5e7;
-    background: #f0f0f0;
-    color: #555;
+/* --------------------------------------------------------------------------
+   Misc
+   -------------------------------------------------------------------------- */
+.bd-sidebar .nav ul {
+    padding: 0 0 0 0.5rem;
 }
