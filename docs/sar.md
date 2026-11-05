@@ -70,7 +70,7 @@ mostly because SNAP does not handle them.
 The goal of **EOReader** is to implement every constellation that can be used in
 the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
 The constellations that can be used during CEMS activations are more or less SAR and multispectral constellations visible here:  
-![cems_constellations](_static/Copernicus_Contributing_Missions_overview.png)
+[![cems_constellations](_static/Copernicus_Contributing_Missions_overview.png)](https://www.esa.int/articles/about-us/directorates/earth-observation-programmes/copernicus/copernicus-contributing-missions)
 
 [Sentinel-1 COGS](https://dataspace.copernicus.eu/news/2023-6-6-sentinel-1-grd-cloud-optimized-geotiff-now-available) provided by the Copernicus Dataspace are handled if you are using SNAP 10 or higher.
 
@@ -445,7 +445,7 @@ variable:
 - [Data Access Portfolio (2014-2024)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf)
 
 ### Copernicus 
-- [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
+- [Copernicus Contributing Missions](https://www.esa.int/articles/about-us/directorates/earth-observation-programmes/copernicus/copernicus-contributing-missions)
 
 ### Sentinel-1
 

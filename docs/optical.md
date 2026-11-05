@@ -82,7 +82,7 @@ Note that for the rest of this documentation:
 
 The goal of **EOReader** is to implement every constellation that can be used in the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
 The constellations that can be used during CEMS activations are more or less SAR and multispectral constellations visible here:  
-![cems_constellations](_static/Copernicus_Contributing_Missions_overview.png)
+[![cems_constellations](_static/Copernicus_Contributing_Missions_overview.png)](https://www.esa.int/articles/about-us/directorates/earth-observation-programmes/copernicus/copernicus-contributing-missions)
 
 ## Optical bands
 
@@ -321,7 +321,7 @@ Currently, this does not work automatically on archived or cloud-stored products
 
 ### Copernicus
 
-- [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
+- [Copernicus Contributing Missions](https://www.esa.int/articles/about-us/directorates/earth-observation-programmes/copernicus/copernicus-contributing-missions)
 
 ### Landsat
 
