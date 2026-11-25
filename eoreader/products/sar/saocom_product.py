@@ -24,6 +24,7 @@ from enum import unique
 
 import geopandas as gpd
 from lxml import etree
+from rasterio.enums import Resampling
 from sertit import path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
@@ -270,6 +271,7 @@ class SaocomProduct(SarProduct):
             pixel_size=max(
                 self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
             ),
+            resampling=Resampling.nearest,
         )
         return rasters.get_valid_vector(default_arr)
 

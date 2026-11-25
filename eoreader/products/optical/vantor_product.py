@@ -32,6 +32,7 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
+from rasterio.enums import Resampling
 from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
@@ -1443,6 +1444,7 @@ class VantorProduct(VhrProduct):
             arr = utils.read(
                 self.get_default_band_path(),
                 resolution=self.pixel_size * footprint_dezoom,
+                resampling=Resampling.nearest,
                 indexes=[1],
             )
 

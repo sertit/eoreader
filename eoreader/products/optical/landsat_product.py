@@ -320,6 +320,7 @@ class LandsatProduct(OpticalProduct):
         nodata_band = utils.read(
             qa_path,
             pixel_size=self.pixel_size * footprint_dezoom,
+            resampling=Resampling.nearest,
             masked=False,
         )
 

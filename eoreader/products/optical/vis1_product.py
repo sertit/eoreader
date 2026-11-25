@@ -28,6 +28,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
+from rasterio.enums import Resampling
 from sertit import geometry, rasters
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
@@ -307,6 +308,7 @@ class Vis1Product(DimapV1Product):
                 arr = utils.read(
                     self.get_default_band_path(),
                     resolution=self.pixel_size * footprint_dezoom,
+                    resampling=Resampling.nearest,
                     indexes=[1],
                 )
 
@@ -395,7 +397,7 @@ class Vis1Product(DimapV1Product):
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
     @qck_wrapper
-    def get_quicklook_path(self) -> str:
+    def get_quicklook_path(self) -> str | None:
         """
         Get quicklook path if existing.
 

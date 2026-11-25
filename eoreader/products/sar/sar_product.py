@@ -15,6 +15,7 @@
 # limitations under the License.
 """Super class for SAR products"""
 
+import contextlib
 import logging
 import os
 import re
@@ -366,6 +367,7 @@ class SarProduct(Product):
             pixel_size=max(
                 self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
             ),
+            resampling=Resampling.nearest,
         )
         return rasters.get_footprint(downsampled_band)
 
@@ -759,18 +761,15 @@ class SarProduct(Product):
             with rasterio.open(str(band_path)) as ds:
                 self.pixel_size = ds.res[0]
 
-        try:
+        with contextlib.suppress(TypeError):
             if pixel_size < 0.0:
                 pixel_size = self.pixel_size
-        except TypeError:
-            pass
 
         band_arr = utils.read(
             band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=kwargs.pop("resampling", self.band_resampling),
-            as_type=np.float32,
             **kwargs,
         )
 

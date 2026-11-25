@@ -185,10 +185,16 @@ class VenusProduct(OpticalProduct):
         """
         TODO : almost the same as s2_theia_product
         """
+        footprint_dezoom = 10
         edg_path = self._get_mask_path(
             VenusMaskBandNames.EDG.name
         )  # there is no additional parameter
-        mask = utils.read(edg_path, masked=False)
+        mask = utils.read(
+            edg_path,
+            masked=False,
+            resolution=self.pixel_size * footprint_dezoom,
+            resampling=Resampling.nearest,
+        )
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=1)

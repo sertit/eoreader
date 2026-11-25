@@ -228,9 +228,15 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
+        footprint_dezoom = 10
         # Use R2 mask to speed up processing: we don't care about the resolution to compute a footprint!
         edg_path = self._get_mask_path(S2TheiaMaskBandNames.EDG.name, "R2")
-        mask = utils.read(edg_path, masked=False)
+        mask = utils.read(
+            edg_path,
+            masked=False,
+            resolution=self.pixel_size * footprint_dezoom,
+            resampling=Resampling.nearest,
+        )
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=1)

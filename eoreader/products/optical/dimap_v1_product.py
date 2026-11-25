@@ -29,6 +29,7 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from rasterio import crs as riocrs
+from rasterio.enums import Resampling
 from sertit import geometry, rasters, vectors
 from shapely.geometry import Polygon, box
 
@@ -150,6 +151,7 @@ class DimapV1Product(VhrProduct):
             arr = utils.read(
                 self.get_default_band_path(),
                 resolution=self.pixel_size * footprint_dezoom,
+                resampling=Resampling.nearest,
                 indexes=[1],
             )
 
