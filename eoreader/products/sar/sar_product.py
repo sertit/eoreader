@@ -1590,11 +1590,13 @@ class SarProduct(Product):
             str(self.get_raw_band_paths()[self.get_default_band()])
         ) as ds:
             if ds.crs is not None:
+                LOGGER.debug("Fallback from bounds")
                 extent_wgs84 = gpd.GeoDataFrame(
                     geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],
                     crs=ds.crs,
                 )
             elif ds.gcps is not None:
+                LOGGER.debug("Fallback from GCPs")
                 gcps, crs = ds.gcps
                 extent_wgs84 = gpd.GeoDataFrame(
                     geometry=[_gcp_border_polygon(gcps)], crs=crs

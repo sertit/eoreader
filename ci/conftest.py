@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +24,27 @@ def pytest_sessionstart(session):
         import ci.scripts_utils
 
         ci.scripts_utils.get_ci_db_dir = lambda: Path(ci_db_dir)
+
+
+@pytest.fixture(autouse=True)
+def run_before_tests():
+    """Fixture to execute asserts before and after a test is run"""
+    from sertit import dask
+
+    from eoreader.env_vars import USE_DASK
+
+    # Declare dask cluster
+    if os.getenv(USE_DASK, "0") == "1":
+        os.environ[dask.SERTIT_DEFAULT_CHUNKS] = "auto"
+        with (
+            dask.get_or_create_dask_client(processes=True),
+        ):
+            yield  # this is where the testing happens
+    else:
+        os.environ[dask.SERTIT_DEFAULT_CHUNKS] = "none"
+        os.environ["CI_SERTIT_USE_DASK"] = "0"
+        os.environ[USE_DASK] = "0"
+        yield
 
 
 @dataclass

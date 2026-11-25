@@ -435,7 +435,7 @@ class S2Product(OpticalProduct):
                     )
 
                     footprint = rasters.vectorize(
-                        det_footprint, values=0, keep_values=False, dissolve=True
+                        det_footprint.where(det_footprint > 0), dissolve=True
                     )
 
                     footprint = geometry.get_wider_exterior(footprint).to_crs(
@@ -450,7 +450,7 @@ class S2Product(OpticalProduct):
         else:
             det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.DETFOO, def_band)
             footprint = rasters.vectorize(
-                det_footprint, values=0, keep_values=False, dissolve=True
+                det_footprint.where(det_footprint > 0), dissolve=True
             )
 
             # Keep only the convex hull
@@ -851,6 +851,7 @@ class S2Product(OpticalProduct):
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -860,12 +861,17 @@ class S2Product(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         band_dict = {}
         if bands:
             # First, try to open the cloud band written on disk
@@ -892,7 +898,10 @@ class S2Product(OpticalProduct):
                         **kwargs,
                     )
                     if mask_path.is_file():
-                        band_dict[key] = utils.read(mask_path)
+                        mask_arr = utils.read(mask_path)
+                        if ref_arr is not None:
+                            mask_arr = rasters.collocate(ref_arr, mask_arr)
+                        band_dict[band] = mask_arr
                     else:
                         if band not in bands_to_load:
                             bands_to_load.append(band)
@@ -907,16 +916,19 @@ class S2Product(OpticalProduct):
             )
 
             # Write them on disk
-            for band_id, band_arr in loaded_bands.items():
+            for band_id, mask_arr in loaded_bands.items():
+                if ref_arr is not None:
+                    mask_arr = rasters.collocate(ref_arr, mask_arr)
+
                 mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
-                band_arr = utils.write_path_in_attrs(band_arr, mask_path)
+                mask_arr = utils.write_path_in_attrs(mask_arr, mask_path)
                 utils.write(
-                    band_arr,
+                    mask_arr,
                     mask_path,
-                    dtype=band_arr.rst.dtype,
-                    nodata=band_arr.rst.nodata,
+                    dtype=mask_arr.rst.dtype,
+                    nodata=mask_arr.rst.nodata,
                 )
 
             # Merge the dict
@@ -956,7 +968,7 @@ class S2Product(OpticalProduct):
                 # Open mask
                 LOGGER.debug(f"Loading {to_str(key, as_list=False)} mask")
                 band_arr = self._open_mask(
-                    band, associated_band, pixel_size, size, **kwargs
+                    band, associated_band, pixel_size=pixel_size, size=size, **kwargs
                 )
 
                 # Save band in output dict
@@ -968,6 +980,7 @@ class S2Product(OpticalProduct):
         self,
         band: BandNames,
         associated_band: BandNames = None,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -978,12 +991,17 @@ class S2Product(OpticalProduct):
         Args:
             bands (BandNames): Wanted mask band
             associated_band (BandNames): Associated spectral band to the wanted mask, to determine the bit ID of some masks. Using the GREEN band if not given.
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         if band in [S2MaskBandNames.CLDPRB, S2MaskBandNames.SNWPRB]:
             try:
                 mask_path = self._glob(
@@ -1030,11 +1048,15 @@ class S2Product(OpticalProduct):
                 band_arr = self._open_mask_gt_4_0(
                     mapping.mask_fname,
                     associated_band,
+                    ref_arr=ref_arr,
                     pixel_size=pixel_size,
                     size=size,
                     indexes=mapping.band_number,
                     **kwargs,
                 )
+
+        if ref_arr is not None:
+            band_arr = rasters.collocate(ref_arr, band_arr)
 
         band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
         band_arr.attrs["long_name"] = band_name
@@ -1114,6 +1136,7 @@ class S2Product(OpticalProduct):
         self,
         mask_id: str | S2Jp2Masks,
         band: BandNames | str = None,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -1130,12 +1153,17 @@ class S2Product(OpticalProduct):
         Args:
             mask_id (str | S2GmlMasks): Mask ID
             band (BandNames | str): Band number as a SpectralBandNames or str (for clouds: 00)
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             xr.DataArray: Mask as a DataArray
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         # Check inputs
         mask_id = S2Jp2Masks.from_value(mask_id)
         if mask_id == S2Jp2Masks.CLASSI:
@@ -1157,13 +1185,15 @@ class S2Product(OpticalProduct):
             **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
         )
 
+        if ref_arr is not None:
+            mask = rasters.collocate(ref_arr, mask)
+
         return mask
 
     def _manage_invalid_pixels(
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1188,7 +1218,6 @@ class S2Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1203,15 +1232,14 @@ class S2Product(OpticalProduct):
             xr.DataArray: Cleaned band array
         """
         if self._processing_baseline < 4.0:
-            return self._manage_nodata_lt_4_0(band_arr, band, pixel_size, **kwargs)
+            return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
         else:
-            return self._manage_nodata_gt_4_0(band_arr, band, pixel_size, **kwargs)
+            return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1279,7 +1307,6 @@ class S2Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1299,8 +1326,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             **kwargs,
         ).data
 
@@ -1315,8 +1341,7 @@ class S2Product(OpticalProduct):
         quality = self._open_mask_gt_4_0(
             S2Jp2Masks.QUALIT,
             band,
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             indexes=[3, 4, 5, 6, 8],
             **kwargs,
         ).data
@@ -1330,7 +1355,6 @@ class S2Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1373,7 +1397,6 @@ class S2Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1392,8 +1415,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             **kwargs,
         ).data
 

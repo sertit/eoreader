@@ -330,7 +330,6 @@ class VhrProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """

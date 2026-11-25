@@ -2,9 +2,11 @@
 
 ## 0.25.0 (Unreleased)
 
+- FIX: Correct bug using `resolution` instead of `pixel_size` in `utils.read`, causing a major slowdown in footprint computation
 - FIX: Clip the AOI by the scene footprint before SNAP's `Subset`, as SNAP moves the vertices outside the image to its first pixel and the orthorectified bands end up cut or empty [#331](https://github.com/sertit/eoreader/issues/331)
 - FIX: Use the GCPs of the image border instead of an affine fit for the extent of SAR products without extent file
 - OPTIM: Systematically dezoom and use nearest resampling for footprint computation
+- DEPS: Switching rasters/vectors backend to GeoUtils (through `sertit` v2.0.0) 
 - DEPS: Pin `geopandas>=1.0.0` (for `union_all`)
 - DOC: Update custom.css to handle correctly the dark mode
 - DOC: Refine README and explode files to make the docs clearer

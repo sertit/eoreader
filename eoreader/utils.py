@@ -168,6 +168,9 @@ def read(
         xr.DataArray: Masked xarray corresponding to the raster data and its metadata
 
     """
+    if "resolution" in kwargs:
+        raise ValueError("'resolution' has been deprecated!")
+
     window = kwargs.get("window")
 
     # Always use chunks

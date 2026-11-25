@@ -303,20 +303,18 @@ class OpticalProduct(Product):
             # If raw data, clean it!
             if AnyPath(band_path).name != clean_band_path.name:
                 # Clean pixels
-                cleaning_method = CleanMethod.from_value(
+                cleaning_method: CleanMethod = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
                 )
                 if cleaning_method == CleanMethod.RAW:
                     pass
                 elif cleaning_method == CleanMethod.NODATA:
                     LOGGER.debug(f"Manage nodata for band {band.name}")
-                    band_arr = self._manage_nodata(
-                        band_arr, band=band, pixel_size=pixel_size, **kwargs
-                    )
+                    band_arr = self._manage_nodata(band_arr, band=band, **kwargs)
                 else:
                     LOGGER.debug(f"Manage invalid pixels for band {band.name}")
                     band_arr = self._manage_invalid_pixels(
-                        band_arr, band=band, pixel_size=pixel_size, **kwargs
+                        band_arr, band=band, **kwargs
                     )
                 band_arr.attrs["cleaning_method"] = cleaning_method.value
 
@@ -384,7 +382,6 @@ class OpticalProduct(Product):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -400,14 +397,13 @@ class OpticalProduct(Product):
             xr.DataArray: Cleaned band array
         """
         # Let's assume there is only nodata
-        return self._manage_nodata(band_arr, band, pixel_size=pixel_size, **kwargs)
+        return self._manage_nodata(band_arr, band, **kwargs)
 
     @abstractmethod
     def _manage_nodata(
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -553,7 +549,9 @@ class OpticalProduct(Product):
 
             # Compute hillshade
             hillshade = rasters.hillshade(
-                warped_dem_path, mean_azimuth_angle, mean_zenith_angle
+                warped_dem_path,
+                azimuth=mean_azimuth_angle,
+                altitude=90 - mean_zenith_angle,
             )
             hillshade = utils.write_path_in_attrs(hillshade, hillshade_path)
             utils.write(hillshade, hillshade_path)
@@ -652,6 +650,7 @@ class OpticalProduct(Product):
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -661,12 +660,17 @@ class OpticalProduct(Product):
 
         Args:
             bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         band_dict = {}
         if bands:
             # First, try to open the cloud band written on disk
@@ -676,7 +680,10 @@ class OpticalProduct(Product):
                     self.get_band_file_name(band, pixel_size, size, **kwargs)
                 )
                 if mask_exists:
-                    band_dict[band] = utils.read(mask_path)
+                    mask_arr = utils.read(mask_path)
+                    if ref_arr is not None:
+                        mask_arr = rasters.collocate(ref_arr, mask_arr)
+                    band_dict[band] = mask_arr
                 else:
                     bands_to_load.append(band)
 
@@ -684,16 +691,19 @@ class OpticalProduct(Product):
             loaded_bands = self._open_masks(bands_to_load, pixel_size, size, **kwargs)
 
             # Write them on disk
-            for band_id, band_arr in loaded_bands.items():
+            for band_id, mask_arr in loaded_bands.items():
+                if ref_arr is not None:
+                    mask_arr = rasters.collocate(ref_arr, mask_arr)
+
                 mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
-                band_arr = utils.write_path_in_attrs(band_arr, mask_path)
+                mask_arr = utils.write_path_in_attrs(mask_arr, mask_path)
                 utils.write(
-                    band_arr,
+                    mask_arr,
                     mask_path,
-                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
-                    nodata=band_arr.encoding.get("_FillValue"),
+                    dtype=mask_arr.encoding["dtype"],  # This field is mandatory
+                    nodata=mask_arr.encoding.get("_FillValue"),
                 )
 
             # Merge the dict

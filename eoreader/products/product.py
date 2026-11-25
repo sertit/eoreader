@@ -269,6 +269,7 @@ class Product:
         """Band resampling (default: bilinear). Overridden by the env variable "EOREADER_BAND_RESAMPLING", if existing and valid."""
 
         self._stac = None
+        self._footprint_dezoom = 10
 
         # Manage output
         if output_path:
@@ -1394,6 +1395,7 @@ class Product:
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -1403,6 +1405,7 @@ class Product:
 
         Args:
             bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
@@ -2248,7 +2251,7 @@ class Product:
         if stack_path:
             stack_path = AnyPath(stack_path)
             if stack_path.is_file():
-                stack = utils.read(stack_path, resolution=pixel_size, size=size)
+                stack = utils.read(stack_path, pixel_size=pixel_size, size=size)
                 stack = self._update_attrs(stack, bands, **kwargs)
                 return stack
             else:
@@ -2873,7 +2876,7 @@ class Product:
         dst_nodata = kwargs.pop("nodata", self._raw_nodata)
 
         out_xda = rasters.reproject(
-            src_xda,
+            src_xda.compute(),
             dem_path=dem_path,
             pixel_size=pixel_size,
             dst_crs=self.crs(),
@@ -2882,7 +2885,7 @@ class Product:
             num_threads=perf.get_max_cores(),
             extent=self.extent(),
             vcrs=vcrs,
-            **kwargs,
+            **kw,
         ).rename(f"Reprojected stack of {self.name}")
 
         if "long_name" in kw:
@@ -2943,7 +2946,7 @@ class Product:
             try:
                 tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
             except ValueError:
-                tile_size = int(DEFAULT_TILE_SIZE)
+                tile_size = 2048
 
             vrt_options = {
                 "crs": self.crs(),

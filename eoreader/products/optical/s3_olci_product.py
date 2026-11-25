@@ -619,7 +619,6 @@ class S3OlciProduct(S3Product):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -706,7 +705,7 @@ class S3OlciProduct(S3Product):
         qual_flags_path = self._preprocess(
             qual_regex,
             subdataset=subds,
-            pixel_size=pixel_size,
+            pixel_size=band_arr.rst.res,
             to_reflectance=False,
             dtype=np.uint32,
         )

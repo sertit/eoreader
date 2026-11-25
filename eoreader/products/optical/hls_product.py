@@ -278,7 +278,7 @@ class HlsProduct(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )

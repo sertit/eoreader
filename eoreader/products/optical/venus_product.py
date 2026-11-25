@@ -185,18 +185,17 @@ class VenusProduct(OpticalProduct):
         """
         TODO : almost the same as s2_theia_product
         """
-        footprint_dezoom = 10
         edg_path = self._get_mask_path(
             VenusMaskBandNames.EDG.name
         )  # there is no additional parameter
         mask = utils.read(
             edg_path,
             masked=False,
-            resolution=self.pixel_size * footprint_dezoom,
+            pixel_size=self.pixel_size * self._footprint_dezoom,
             resampling=Resampling.nearest,
         )
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=1)
         footprint = geometry.get_wider_exterior(footprint)
         footprint.geometry = footprint.geometry.convex_hull
@@ -304,7 +303,6 @@ class VenusProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -320,31 +318,28 @@ class VenusProduct(OpticalProduct):
         # Open NODATA pixels mask
         edg_mask = self._open_mask(
             VenusMaskBandNames.EDG,
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             **kwargs,
-        )
+        ).data.astype(np.uint8)
         sat_mask = self._open_mask(
             VenusMaskBandNames.SAT,
             associated_band=band,
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             **kwargs,
-        )
+        ).data.astype(np.uint8)
 
         # Combine masks
-        mask = no_data_mask | edg_mask.data | sat_mask.data
+        mask = no_data_mask | edg_mask | sat_mask
 
         # Open defective pixels (optional mask)
         try:
             def_mask = self._open_mask(
                 VenusMaskBandNames.PIX,
                 associated_band=band,
-                pixel_size=pixel_size,
-                size=band_arr.rst.shape,
+                ref_arr=band_arr,
                 **kwargs,
-            )
-            mask = mask | def_mask.data
+            ).data.astype(np.uint8)
+            mask = mask | def_mask
         except InvalidProductError:
             pass
 
@@ -358,7 +353,6 @@ class VenusProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -450,13 +444,27 @@ class VenusProduct(OpticalProduct):
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
-        TODO : same as s2_theia_product
+        Load cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         band_dict = {}
         if bands:
             # First, try to open the cloud band written on disk
@@ -482,7 +490,10 @@ class VenusProduct(OpticalProduct):
                         **kwargs,
                     )
                     if mask_path.is_file():
-                        band_dict[key] = utils.read(mask_path)
+                        mask_arr = utils.read(mask_path)
+                        if ref_arr is not None:
+                            mask_arr = rasters.collocate(ref_arr, mask_arr)
+                        band_dict[band] = mask_arr
                     else:
                         bands_to_load.append(band)
                         associated_bands_to_load[band].append(associated_band)
@@ -497,6 +508,9 @@ class VenusProduct(OpticalProduct):
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
+                if ref_arr is not None:
+                    mask_arr = rasters.collocate(ref_arr, mask_arr)
+
                 mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
@@ -537,7 +551,7 @@ class VenusProduct(OpticalProduct):
                 # Open mask
                 LOGGER.debug(f"Loading {to_str(key, as_list=False)} mask")
                 band_arr = self._open_mask(
-                    band, associated_band, pixel_size, size, **kwargs
+                    band, associated_band, pixel_size=pixel_size, size=size, **kwargs
                 )
 
                 # Get the dict key (manage SAT and DFP masks with associated spectral bands)
@@ -549,13 +563,26 @@ class VenusProduct(OpticalProduct):
         self,
         band: BandNames,
         associated_band: BandNames = None,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
-        TODO : almost the same as s2_theia_product
+        Args:
+            bands (BandNames): Wanted mask band
+            associated_band (BandNames): Associated spectral band to the wanted mask, to determine the bit ID of some masks. Using the GREEN band if not given.
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            xr.DataArray: Mask
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         # Just to choose between R1 and R2 here -> take R1
         if associated_band is None:
             associated_band = self.get_default_band()
@@ -573,6 +600,9 @@ class VenusProduct(OpticalProduct):
 
         if band in [VenusMaskBandNames.SAT, VenusMaskBandNames.PIX]:
             mask = mask.copy(data=rasters.read_bit_array(mask, 0))  # TODO : check 0
+
+        if ref_arr is not None:
+            mask = rasters.collocate(ref_arr, mask)
 
         band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
         mask.attrs["long_name"] = band_name

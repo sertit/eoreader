@@ -143,31 +143,28 @@ class DimapV1Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        footprint_dezoom = 10
-
         # If ortho -> nodata is not set!
         if self.is_ortho:
+            LOGGER.debug("Using the ortho stack to compute the footprint.")
             # Get the footprint of the first band of the stack
             arr = utils.read(
                 self.get_default_band_path(),
-                resolution=self.pixel_size * footprint_dezoom,
+                pixel_size=self.pixel_size * self._footprint_dezoom,
                 resampling=Resampling.nearest,
                 indexes=[1],
             )
 
-            # Just in case
-            arr = arr.fillna(0)
-
-            # Vectorize the nodata band
-            footprint = rasters.vectorize(
-                arr, values=0, keep_values=False, dissolve=True
-            )
+            # Vectorise the nodata band
+            LOGGER.debug(f"Shape to vectorise: {arr.rst.shape}")
+            footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
             footprint = geometry.get_wider_exterior(footprint)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
+            LOGGER.debug("Using the orthorectified band to compute the footprint.")
             downsampled_band = utils.read(
                 self.get_default_band_path(),
-                pixel_size=self.resolution * footprint_dezoom,
+                pixel_size=self.resolution * self._footprint_dezoom,
+                resampling=Resampling.nearest,
             )
             footprint = rasters.get_footprint(downsampled_band)
 

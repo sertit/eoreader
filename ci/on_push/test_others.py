@@ -550,6 +550,7 @@ def test_write(tmp_path):
         stack_path=zarr,
         driver="Zarr",
         compress="NONE",
+        chunks=None,
     )
 
     # Just test to read the zarr array

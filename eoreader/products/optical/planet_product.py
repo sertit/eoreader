@@ -379,9 +379,11 @@ class PlanetProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        nodata = self._load_nodata()
+        nodata = self._load_nodata(
+            pixel_size=self.pixel_size * self._footprint_dezoom,
+        )
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         # Don't use convex hull as the product can be cropped to an AOI!
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
@@ -491,7 +493,6 @@ class PlanetProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -510,8 +511,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            pixel_size=band_arr.rst.res,
             **kwargs,
         )
 
@@ -535,15 +535,14 @@ class PlanetProduct(OpticalProduct):
         # Open unusable mask
         udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE],
-            pixel_size=pixel_size,
-            size=band_arr.rst.shape,
+            ref_arr=band_arr,
             **kwargs,
         )[PlanetMaskBandNames.UNUSABLE]
 
         dubious_mask = rasters.read_bit_array(udm, dubious_bands[band])
 
         # Combine masks
-        mask = no_data_mask | dubious_mask
+        mask = no_data_mask.astype(np.uint8) | dubious_mask.astype(np.uint8)
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
@@ -552,7 +551,6 @@ class PlanetProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -568,8 +566,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=band_arr.rst.shape,
-            pixel_size=pixel_size,
+            pixel_size=band_arr.rst.res,
             **kwargs,
         )
 
@@ -689,7 +686,8 @@ class PlanetProduct(OpticalProduct):
         )
 
         # Load nodata
-        nodata = self._load_nodata(pixel_size, size, **kwargs).data
+        nodata = self._load_nodata(pixel_size, size, **kwargs)
+        nodata = rasters.collocate(def_xarr, nodata).data
 
         def __get_cloud_mask(cloud_bands: list):
             cloud_dict = self._load_masks(
@@ -697,17 +695,15 @@ class PlanetProduct(OpticalProduct):
             )
             if len(cloud_dict) > 1:
                 condition = reduce(
-                    lambda x, y: (
-                        x.fillna(0).astype(np.uint8) | y.fillna(0).astype(np.uint8)
-                    ),
+                    lambda x, y: x.fillna(0) | y.fillna(0),
                     cloud_dict.values(),
                 )
             else:
-                condition = cloud_dict[cloud_bands[0]].fillna(0).astype(np.uint8)
+                condition = cloud_dict[cloud_bands[0]].fillna(0)
 
-            return self._create_mask(
-                def_xarr, rasters.collocate(def_xarr, condition), nodata
-            )
+            condition = rasters.collocate(def_xarr, condition)
+
+            return self._create_mask(def_xarr, condition, nodata)
 
         if bands:
             for band in bands:
@@ -1007,9 +1003,9 @@ class PlanetProduct(OpticalProduct):
 
         """
         udm = self._load_masks(
-            [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
+            [PlanetMaskBandNames.UNUSABLE], pixel_size=pixel_size, size=size, **kwargs
         )[PlanetMaskBandNames.UNUSABLE]
-        nodata = udm.copy(data=rasters.read_bit_array(udm, 0))
+        nodata = udm.copy(data=rasters.read_bit_array(udm, 0).astype(np.float32))
         return nodata.rename("NODATA")
 
     def _get_path(

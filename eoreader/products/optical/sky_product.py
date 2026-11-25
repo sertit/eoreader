@@ -223,11 +223,10 @@ class SkyProduct(PlanetProduct):
         """
         # WARNING: Sometimes the product seems to contain several tiles that are not contiguous
         # Do not simplify geometry then
-        footprint_dezoom = 10
         arr = utils.read(
             self.get_default_band_path(),
             indexes=[1],
-            resolution=self.pixel_size * footprint_dezoom,
+            pixel_size=self.pixel_size * self._footprint_dezoom,
             resampling=Resampling.nearest,
         )
         return rasters.get_valid_vector(arr, default_nodata=0)

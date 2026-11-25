@@ -905,7 +905,6 @@ class S3SlstrProduct(S3Product):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -928,7 +927,7 @@ class S3SlstrProduct(S3Product):
             band,
             suffix=suffix,
             subdataset=self._replace(self._exception_name, band=band, suffix=suffix),
-            pixel_size=pixel_size,
+            pixel_size=band_arr.rst.res,
             to_reflectance=False,
             flags=True,
             dtype=np.uint8,
