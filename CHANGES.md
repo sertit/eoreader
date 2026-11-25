@@ -11,6 +11,7 @@
 - DOC: Update dead external links in docs, docstrings and notebooks
 - DOC: Add AI-assisted contribution onboarding
 - DOC: Update notebooks
+- CI: Correctly handle dask states during tests
 
 ## 0.24.4 (2026-09-28)
 
