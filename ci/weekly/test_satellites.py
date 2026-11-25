@@ -233,7 +233,7 @@ def check_load_size(
     )
     band_arr = band_xds[first_band]
     utils.write(band_arr, curr_path_band)
-    ci.assert_val(size, (band_arr.rio.width, band_arr.rio.height), "Size")
+    ci.assert_val(size, band_arr.rst.shape, "Size")
     try:
         ci.assert_raster_almost_equal_magnitude(curr_path_band, ci_band, decimal=1)
     except AssertionError as e:
@@ -384,13 +384,13 @@ def core(prod_path, possible_bands, debug, tmpdir, **kwargs):
             prod,
             tmp_dir,
             first_band,
-            size=(stack.rio.width, stack.rio.height),
+            size=stack.rst.shape,
             **kwargs,
         )
         check_band_consistency(prod, band_arr, first_band)
 
         # Check clouds
-        check_clouds(prod, size=(stack.rio.width, stack.rio.height))
+        check_clouds(prod, size=stack.rst.shape)
 
         # Check quicklook and plot
         test_satellites.check_plot(prod)
@@ -496,7 +496,7 @@ def test_sar_constellations(pattern, kwargs, eoreader_tests_path):
 
 
 # TODO:
-# check non existing bands
+# check non-existing bands
 # check cloud results
 
 

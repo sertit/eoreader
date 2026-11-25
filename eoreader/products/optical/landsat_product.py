@@ -977,7 +977,7 @@ class LandsatProduct(OpticalProduct):
         for band in band_list:
             if not self.has_band(band):
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) "
+                    f"Non-existing band ({band.name}) "
                     f"for Landsat-{self.product_type.name} products"
                 )
             band_id = self.bands[band].id
@@ -991,7 +991,7 @@ class LandsatProduct(OpticalProduct):
                     band_paths[band] = self._get_path(f"B{band_id}")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -1451,7 +1451,7 @@ class LandsatProduct(OpticalProduct):
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
 
@@ -1472,7 +1472,7 @@ class LandsatProduct(OpticalProduct):
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.QA_RADSAT,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
 
@@ -1508,7 +1508,7 @@ class LandsatProduct(OpticalProduct):
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
             # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
@@ -1543,7 +1543,7 @@ class LandsatProduct(OpticalProduct):
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
 
@@ -1556,7 +1556,7 @@ class LandsatProduct(OpticalProduct):
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
             # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
@@ -1764,7 +1764,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-MSS constellation: {band}"
+                    f"Non-existing cloud band for Landsat-MSS constellation: {band}"
                 )
 
             # Rename
@@ -1834,7 +1834,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-(E)TM constellations: {band}"
+                    f"Non-existing cloud band for Landsat-(E)TM constellations: {band}"
                 )
 
             # Rename
@@ -1928,7 +1928,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for {self.instrument.value} constellations: {band}"
+                    f"Non-existing cloud band for {self.instrument.value} constellations: {band}"
                 )
 
             # Rename

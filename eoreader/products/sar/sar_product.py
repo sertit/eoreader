@@ -27,7 +27,6 @@ from string import Formatter
 import geopandas as gpd
 import numpy as np
 import rasterio
-import rioxarray
 import xarray as xr
 from affine import Affine
 from rasterio import CRS, crs
@@ -324,12 +323,12 @@ class SarProduct(Product):
 
         """
         # If we could know if imageio handles Predictor=3:
-        # # 3 for float if handled (SNAP > 13 and not on windows apparently...)
+        # # 3 for float if handled (SNAP > 14 and not on windows apparently...)
         pred = os.getenv(
             SAR_PREDICTOR,
             1,
         )
-        # pred = 3 if self._has_snap_x_or_higher(13) else 1
+        # pred = 3 if self._has_snap_x_or_higher(14) else 1
         LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
         return int(pred)
 
@@ -1049,9 +1048,9 @@ class SarProduct(Product):
     def _already_processed_path(
         self,
         band: sab,
-        pixel_size: float = None,
+        pixel_size: float | None = None,
         **kwargs,
-    ) -> AnyPathType:
+    ) -> AnyPathType | None:
         """
         Check if an acceptable orthorectified file already exists on disk
 
@@ -1415,22 +1414,6 @@ class SarProduct(Product):
         dspk = dspk_suffix in band_id
         pol = band_id.replace(dspk_suffix, "")
 
-        def interp_na(array, dim):
-            try:
-                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-            except ValueError:
-                try:
-                    # ValueError: Index 'y' must be monotonically increasing
-                    dim_idx = getattr(array, dim)
-                    reversed_dim_idx = list(reversed(dim_idx))
-                    array = array.reindex(**{dim: reversed_dim_idx})
-                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-                    array = array.reindex(**{dim: dim_idx})
-                except ValueError:
-                    pass
-
-            return array
-
         # Get the .img path(s)
         imgs = self._find_beam_dimaps(dim_path, pol)
 
@@ -1448,32 +1431,24 @@ class SarProduct(Product):
             mos_path = imgs[0]
 
         # Open SAR image and convert it to a clean geotiff
-        with rioxarray.open_rasterio(mos_path) as arr:
-            arr = arr.where(arr != self._snap_no_data, np.nan)
+        crop_window = kwargs.get("crop")
+        arr = rasters.read(mos_path, window=crop_window)
 
-            # Interpolate if needed (interpolate na works only 1D-like, sadly)
-            # DSPK step is done on already interpolated data
-            if not dspk and kwargs.get(SAR_INTERP_NA, False):
-                arr = interp_na(arr, dim="y")
-                arr = interp_na(arr, dim="x")
+        if not dspk and kwargs.get(SAR_INTERP_NA, False):
+            # Fill nodata over 10 pix
+            # Warning: fill_nodata is an eager function!
+            arr = arr.rst.fill_nodata(max_search_distance=10)
 
-            crop_window = kwargs.get("crop")
-            if crop_window is not None:
-                if isinstance(crop_window, Window):
-                    arr = arr.rio.isel_window(crop_window)
-                else:
-                    arr = rasters.crop(arr, crop_window)
-
-            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-            arr = utils.write_path_in_attrs(arr, out_path)
-            utils.write(
-                arr,
-                out_path,
-                dtype=np.float32,
-                nodata=self._snap_no_data,
-                predictor=self._get_predictor(),
-                driver="GTiff",  # SNAP doesn't handle COGs very well apparently
-            )
+        # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
+        arr = utils.write_path_in_attrs(arr, out_path)
+        utils.write(
+            arr,
+            out_path,
+            dtype=np.float32,
+            nodata=self._snap_no_data,
+            predictor=self._get_predictor(),
+            driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+        )
 
         return out_path
 
@@ -1490,24 +1465,7 @@ class SarProduct(Product):
             AnyPathType: SAR path
         """
         LOGGER.debug("Write LIA")
-        # Save the file as the terrain-corrected image
-        # input data
-
-        def interp_na(array, dim):
-            try:
-                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-            except ValueError:
-                try:
-                    # ValueError: Index 'y' must be monotonically increasing
-                    dim_idx = getattr(array, dim)
-                    reversed_dim_idx = list(reversed(dim_idx))
-                    array = array.reindex(**{dim: reversed_dim_idx})
-                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-                    array = array.reindex(**{dim: dim_idx})
-                except ValueError:
-                    pass
-
-            return array
+        # Save the file as the terrain-corrected image input data
 
         # Get the .img path(s)
         imgs = []
@@ -1523,33 +1481,26 @@ class SarProduct(Product):
             lia_out_path = out_path.parent / f"{base_name}_LIA.tif"
 
             # Open Local Incidence Angle image and convert it to a clean geotiff
-            with rioxarray.open_rasterio(img) as arr:
-                arr = arr.where(arr != self._snap_no_data, np.nan)
+            crop_window = kwargs.get("crop")
+            arr = rasters.read(img, window=crop_window)
 
-                # Interpolate if needed (interpolate na works only 1D-like, sadly)
-                if kwargs.get(SAR_INTERP_NA, False):
-                    arr = interp_na(arr, dim="y")
-                    arr = interp_na(arr, dim="x")
+            if kwargs.get(SAR_INTERP_NA, False):
+                # Fill nodata over 10 pix
+                # Warning: fill_nodata is an eager function!
+                arr = arr.rst.fill_nodata(max_search_distance=10)
 
-                crop_window = kwargs.get("crop")
-                if crop_window is not None:
-                    if isinstance(crop_window, Window):
-                        arr = arr.rio.isel_window(crop_window)
-                    else:
-                        arr = rasters.crop(arr, crop_window)
-
-                # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-                # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
-                # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-                arr = utils.write_path_in_attrs(arr, lia_out_path)
-                utils.write(
-                    arr,
-                    lia_out_path,
-                    dtype=np.float32,
-                    nodata=self._snap_no_data,
-                    predictor=self._get_predictor(),
-                    driver="GTiff",  # SNAP doesn't handle COGs very well apparently
-                )
+            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
+            # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
+            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+            arr = utils.write_path_in_attrs(arr, lia_out_path)
+            utils.write(
+                arr,
+                lia_out_path,
+                dtype=np.float32,
+                nodata=self._snap_no_data,
+                predictor=self._get_predictor(),
+                driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+            )
 
         return lia_out_path
 

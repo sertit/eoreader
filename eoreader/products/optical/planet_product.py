@@ -511,7 +511,7 @@ class PlanetProduct(OpticalProduct):
         # Nodata
         no_data_mask = self._load_nodata(
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         )
 
@@ -536,7 +536,7 @@ class PlanetProduct(OpticalProduct):
         udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE],
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         )[PlanetMaskBandNames.UNUSABLE]
 
@@ -568,7 +568,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             pixel_size=pixel_size,
             **kwargs,
         )
@@ -731,7 +731,7 @@ class PlanetProduct(OpticalProduct):
                     )
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value}: {band}"
+                        f"Non-existing cloud band for {self.constellation.value}: {band}"
                     )
 
                 # Rename
@@ -792,7 +792,7 @@ class PlanetProduct(OpticalProduct):
                     cloud = udm
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value}: {band}"
+                        f"Non-existing cloud band for {self.constellation.value}: {band}"
                     )
 
                 # Rename

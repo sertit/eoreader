@@ -26,7 +26,6 @@ from enum import unique
 import geopandas as gpd
 import numpy as np
 import pytz
-import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
@@ -625,14 +624,8 @@ class Sv1Product(VhrProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
                 tile = utils.read(self._get_tile_path(**kwargs))
-
-                # TODO: change this when available in rioxarray
-                # See https://github.com/corteva/rioxarray/issues/837
-                with rasterio.open(str(self._get_tile_path(**kwargs))) as ds:
-                    rpcs = ds.rpcs
-
                 self._orthorectify(
-                    tile, rpcs=rpcs, dem_path=dem_path, ortho_path=ortho_path, **kwargs
+                    tile, dem_path=dem_path, ortho_path=ortho_path, **kwargs
                 )
 
         else:

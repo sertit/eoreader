@@ -15,8 +15,6 @@
 # limitations under the License.
 """Class for STAC products"""
 
-import asyncio
-import contextlib
 import logging
 from io import BytesIO
 
@@ -44,9 +42,6 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 class StacProduct(Product):
     """Stac products"""
-
-    with contextlib.suppress(AttributeError):
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     item = None
     clients = None
@@ -183,9 +178,9 @@ class StacProduct(Product):
                 else:
                     # Check it
                     qck = utils.read(quicklook_path)
-                    if qck.rio.count == 3:
+                    if qck.rst.count == 3:
                         qck.plot.imshow(robust=True)
-                    elif qck.rio.count == 1:
+                    elif qck.rst.count == 1:
                         qck.plot(cmap="GnBu_r", robust=True)
                     else:
                         pass

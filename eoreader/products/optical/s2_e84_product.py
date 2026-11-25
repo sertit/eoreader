@@ -522,7 +522,7 @@ class S2E84Product(OpticalProduct):
         for band in band_list:
             if not self.has_band(band):
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) for Sentinel-2 cloud products."
+                    f"Non-existing band ({band.name}) for Sentinel-2 cloud products."
                 )
             band_id = self.bands[band].id
 
@@ -536,7 +536,7 @@ class S2E84Product(OpticalProduct):
                     band_paths[band] = self._get_path(band_id, ext="tif")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -603,7 +603,7 @@ class S2E84Product(OpticalProduct):
         # Get detector footprint to deduce the outside nodata
         mask = self.open_mask(
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
         )
 
         # NO_DATA is 0, SATURATED_OR_DEFECTIVE is 1
@@ -713,7 +713,7 @@ class S2E84Product(OpticalProduct):
                     cloud = mask
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value} constellations: {band}"
+                        f"Non-existing cloud band for {self.constellation.value} constellations: {band}"
                     )
 
                 # Rename

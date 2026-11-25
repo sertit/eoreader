@@ -31,7 +31,6 @@ from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
-from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -146,36 +145,13 @@ class VhrProduct(OpticalProduct):
 
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
-
-                with rasterio.open(str(self._get_tile_path())) as ds:
-                    tags = ds.tags()
-
-                    # TODO: change this when available in rioxarray
-                    # See https://github.com/corteva/rioxarray/issues/837
-                    rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
-
-                    # Only look for GCPs if RPCs are absent
-                    if not rpcs:
-                        gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
-                    else:
-                        gcps = None
-
-                if not rpcs and not gcps:
-                    raise InvalidProductError(
-                        "Your projected VHR data doesn't have any RPCs or GCPs. "
-                        "EOReader cannot orthorectify it!"
-                    )
-                else:
-                    tile = utils.read(self._get_tile_path())
-                    self._orthorectify(
-                        tile,
-                        rpcs=rpcs,
-                        gcps=gcps,
-                        dem_path=dem_path,
-                        ortho_path=ortho_path,
-                        tags=tags,
-                        **kwargs,
-                    )
+                tile = utils.read(self._get_tile_path())
+                self._orthorectify(
+                    tile,
+                    dem_path=dem_path,
+                    ortho_path=ortho_path,
+                    **kwargs,
+                )
 
         else:
             ortho_path = self._get_tile_path()
@@ -369,7 +345,7 @@ class VhrProduct(OpticalProduct):
             xr.DataArray: Cleaned band array
         """
         # If nodata not set, set it here
-        if not band_arr.rio.encoded_nodata:
+        if not band_arr.rst.nodata:
             band_arr = rasters.set_nodata(band_arr, self._raw_nodata)
 
         return band_arr

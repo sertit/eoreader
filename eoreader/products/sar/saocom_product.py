@@ -288,7 +288,7 @@ class SaocomProduct(SarProduct):
         try:
             cuss_file = next(self.path.glob("*.zip"))
         except StopIteration as exc:
-            raise FileNotFoundError(f"Non existing file *.zip in {self.path}") from exc
+            raise FileNotFoundError(f"Non-existing file *.zip in {self.path}") from exc
         band_paths = {}
         for band in SarBandNames.speckle_list():
             band_regex = extended_fmt.format(self._raw_band_regex, band.value)

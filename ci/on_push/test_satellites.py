@@ -591,7 +591,7 @@ def test_sar_constellations(pattern, kwargs, eoreader_tests_path):
 
 
 # TODO:
-# check non existing bands
+# check non-existing bands
 # check cloud results
 
 

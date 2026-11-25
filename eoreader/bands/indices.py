@@ -306,7 +306,7 @@ def get_needed_bands(index: str) -> list:
         ]
     else:
         raise NotImplementedError(
-            f"Non existing index, please chose a spectral indice among {get_all_index_names()}"
+            f"Non-existing index, please chose a spectral indice among {get_all_index_names()}"
         )
 
 

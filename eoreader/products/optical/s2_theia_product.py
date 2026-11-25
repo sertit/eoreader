@@ -431,14 +431,14 @@ class S2TheiaProduct(OpticalProduct):
         edg_mask = self._open_mask(
             S2TheiaMaskBandNames.EDG,
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         )
         sat_mask = self._open_mask(
             S2TheiaMaskBandNames.SAT,
             associated_band=band,
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         )
 
@@ -451,7 +451,7 @@ class S2TheiaProduct(OpticalProduct):
                 S2TheiaMaskBandNames.DFP,
                 associated_band=band,
                 pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                size=band_arr.rst.shape,
                 **kwargs,
             )
             mask = mask | def_mask.data
@@ -668,8 +668,8 @@ class S2TheiaProduct(OpticalProduct):
                 utils.write(
                     band_arr,
                     mask_path,
-                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
-                    nodata=band_arr.encoding.get("_FillValue"),
+                    dtype=band_arr.rst.dtype,
+                    nodata=band_arr.rst.nodata,
                 )
 
             # Merge the dict

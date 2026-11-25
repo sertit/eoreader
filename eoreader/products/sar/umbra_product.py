@@ -209,7 +209,7 @@ class UmbraProduct(SarProduct):
                 self._raw_band_regex = str(next(self.path.glob(f"{name}_*.nitf")).name)
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file {name}.tif or {name}.nitf in {self.path}"
+                    f"Non-existing file {name}.tif or {name}.nitf in {self.path}"
                 ) from exc
 
         # Pre init done by the super class
@@ -537,7 +537,6 @@ class UmbraProduct(SarProduct):
                     self._orthorectify(
                         arr,
                         pixel_size=pixel_size,
-                        rpcs=ds.rpcs,
                         dem_path=dem_path,
                         ortho_path=pre_processed_path,
                         long_name="Orthorectified GEC",

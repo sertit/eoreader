@@ -912,7 +912,7 @@ class DimapV2Product(VhrProduct):
 
             for band in bands:
                 if band not in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
-                    raise InvalidTypeError(f"Non existing cloud band for: {band}")
+                    raise InvalidTypeError(f"Non-existing cloud band for: {band}")
 
                 # Rename
                 band_name = to_str(band)[0]

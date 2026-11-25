@@ -163,7 +163,7 @@ def read(
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
         indexes (int | list): Indexes to load. Load the whole array if None.
-        **kwargs: Optional keyword arguments to pass into rioxarray.open_rasterio().
+        **kwargs: Optional keyword arguments to pass into geoutils.open_raster().
     Returns:
         xr.DataArray: Masked xarray corresponding to the raster data and its metadata
 
@@ -264,7 +264,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
     """
     # Reset the long name as a list to write it down
     previous_long_name = xds.attrs.get("long_name")
-    if previous_long_name and xds.rio.count > 1:
+    if previous_long_name and xds.rst.count > 1:
         try:
             xds.attrs["long_name"] = xds.attrs.get(
                 "long_name", xds.attrs.get("name", "")
@@ -297,7 +297,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
     )
 
     # Set back the previous long name
-    if previous_long_name and xds.rio.count > 1:
+    if previous_long_name and xds.rst.count > 1:
         xds.attrs["long_name"] = previous_long_name
 
 
@@ -542,7 +542,7 @@ def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
     )
 
     # Set nodata if needed (NaN values are already set)
-    if dtype == np.float32 and stack.rio.encoded_nodata != nodata:
+    if dtype == np.float32 and stack.rst.nodata != nodata:
         stack = rasters.set_nodata(stack.astype(dtype), nodata)
 
     return stack, dtype

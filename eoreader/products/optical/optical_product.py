@@ -296,7 +296,7 @@ class OpticalProduct(Product):
             )
 
             if not pixel_size:
-                pixel_size = band_arr.rio.resolution()[0]
+                pixel_size = band_arr.rst.res[0]
             clean_band_path = self.get_band_path(
                 band, pixel_size=pixel_size, writable=True, **kwargs
             )

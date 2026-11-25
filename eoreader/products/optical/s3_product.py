@@ -198,29 +198,6 @@ class S3Product(OpticalProduct):
             crs=self.crs(),
         )
 
-        # --- EXTENT IN WGS84 ---
-        # # Open lon/lat/alt files
-        # lat = rioxarray.open_rasterio(self._get_nc_file_str(self._tie_geo_file, self._tie_lat_nc_name))
-        # lon = rioxarray.open_rasterio(self._get_nc_file_str(self._tie_geo_file, self._tie_lon_nc_name))
-        #
-        # assert lat.data.shape == lon.data.shape
-        #
-        # # Get min/max of lat/lon
-        # def _get_min_max(xds: xr.DataArray) -> tuple:
-        #     corners = [xds.data[0, 0, 0], xds.data[0, 0, -1], xds.data[0, -1, 0], xds.data[0, -1, -1]]
-        #     return np.min(corners) * xds.scale_factor, np.max(corners) * xds.scale_factor
-        #
-        # lat_min, lat_max = _get_min_max(lat)
-        # lon_min, lon_max = _get_min_max(lon)
-        #
-        # # Create wgs84 extent (left, bottom, right, top)
-        # extent_wgs84 = gpd.GeoDataFrame(
-        #     geometry=[
-        #         geometry.from_bounds_to_polygon(lon_min, lat_min, lon_max, lat_max)
-        #     ],
-        #     crs=vectors.WGS84,
-        # )
-
         return extent
 
     @cache
@@ -299,8 +276,8 @@ class S3Product(OpticalProduct):
         assert lat.data.shape == lon.data.shape
 
         # Get lon/lat in the middle of the band
-        mid_x = int(lat.rio.width / 2)
-        mid_y = int(lat.rio.height / 2)
+        mid_x = int(lat.rst.width / 2)
+        mid_y = int(lat.rst.height / 2)
         mid_lat = lat[0, mid_y, mid_x].data
         mid_lon = lon[0, mid_y, mid_x].data
 
@@ -648,7 +625,7 @@ class S3Product(OpticalProduct):
                 # Sometimes, some weird multithread errors happen
                 # SystemError: Objects/tupleobject.c:927: bad argument to internal function
                 try:
-                    # From 08/2019, still true in 01/2025
+                    # From 08/2019, still true in 12/2026
                     # https://github.com/pytroll/pyresample/issues/206#issuecomment-520971930
                     # XArrayResamplerNN is using "pykdtree which is faster than scipy and uses OpenMP, but is not dask or multi-process friendly otherwise"
                     # Workaround is to force dask computation with multithreads scheduler
@@ -690,7 +667,7 @@ class S3Product(OpticalProduct):
         )
 
         # Write array data
-        band_arr_resampled.rio.write_crs(self.crs(), inplace=True)
+        band_arr_resampled.rst.set_crs(self.crs())
         band_arr_resampled.rio.update_attrs(band_arr.attrs, inplace=True)
         band_arr_resampled.rio.update_encoding(band_arr.encoding, inplace=True)
 
@@ -835,7 +812,7 @@ class S3Product(OpticalProduct):
                 nc_path = next(self.path.glob(f"{filename}*"))
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file {filename} in {self.path}"
+                    f"Non-existing file {filename} in {self.path}"
                 ) from exc
 
             if path.is_cloud_path(nc_path):

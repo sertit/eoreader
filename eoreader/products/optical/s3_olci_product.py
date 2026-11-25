@@ -568,7 +568,7 @@ class S3OlciProduct(S3Product):
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the image column coordinate.
                 sza, _ = rasters_rio.read(
                     ds_sza,
-                    size=(band_arr.rio.width, band_arr.rio.height),
+                    size=band_arr.rst.shape,
                     resampling=Resampling.bilinear,
                     masked=False,
                 )
@@ -714,7 +714,7 @@ class S3OlciProduct(S3Product):
         # Open flag file
         qual_arr = utils.read(
             qual_flags_path,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
             as_type=np.uint32,

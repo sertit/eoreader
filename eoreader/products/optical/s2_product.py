@@ -915,8 +915,8 @@ class S2Product(OpticalProduct):
                 utils.write(
                     band_arr,
                     mask_path,
-                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
-                    nodata=band_arr.encoding.get("_FillValue"),
+                    dtype=band_arr.rst.dtype,
+                    nodata=band_arr.rst.nodata,
                 )
 
             # Merge the dict
@@ -1304,7 +1304,7 @@ class S2Product(OpticalProduct):
             S2Jp2Masks.DETFOO,
             band,
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         ).data
 
@@ -1320,7 +1320,7 @@ class S2Product(OpticalProduct):
             S2Jp2Masks.QUALIT,
             band,
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             indexes=[3, 4, 5, 6, 8],
             **kwargs,
         ).data
@@ -1397,7 +1397,7 @@ class S2Product(OpticalProduct):
             S2Jp2Masks.DETFOO,
             band,
             pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             **kwargs,
         ).data
 
@@ -1712,7 +1712,7 @@ class S2Product(OpticalProduct):
                     cloud = self._rasterize(def_band, cloud_vec, nodata)
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-2: {band}"
+                        f"Non-existing cloud band for Sentinel-2: {band}"
                     )
 
                 # Rename
@@ -1768,7 +1768,7 @@ class S2Product(OpticalProduct):
                     cloud = cloud_arr
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-2: {band}"
+                        f"Non-existing cloud band for Sentinel-2: {band}"
                     )
 
                 if len(cloud.shape) == 2:
@@ -1849,7 +1849,7 @@ class S2Product(OpticalProduct):
                     cloud = cloud_arr
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-2: {band}"
+                        f"Non-existing cloud band for Sentinel-2: {band}"
                     )
 
                 if len(cloud.shape) == 2:
@@ -1931,17 +1931,17 @@ class S2Product(OpticalProduct):
 
         if not geometry.empty:
             # Just in case
-            if geometry.crs != xds.rio.crs:
-                geometry = geometry.to_crs(xds.rio.crs)
+            if geometry.crs != xds.rst.crs:
+                geometry = geometry.to_crs(xds.rst.crs)
 
             # Rasterize mask
             cond = features.rasterize(
                 geometry.geometry,
-                out_shape=(xds.rio.height, xds.rio.width),
+                out_shape=xds.rst.shape,
                 fill=value_outside,  # Pixels outside mask
                 default_value=value_inside,  # Pixels inside mask
                 transform=transform.from_bounds(
-                    *xds.rio.bounds(), xds.rio.width, xds.rio.height
+                    *xds.rst.bounds, xds.rst.width, xds.rst.height
                 ),
                 dtype=np.uint8,
             )
@@ -1950,7 +1950,7 @@ class S2Product(OpticalProduct):
         else:
             # If empty geometry, just
             cond = np.full(
-                shape=(xds.rio.count, xds.rio.height, xds.rio.width),
+                shape=xds.shape,
                 fill_value=value_outside,
                 dtype=np.uint8,
             )
@@ -2286,7 +2286,7 @@ class S2StacProduct(StacProduct, S2Product):
                     band_paths[band] = self._get_path(band_id)
                 except (FileNotFoundError, IndexError) as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
