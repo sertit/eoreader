@@ -460,6 +460,10 @@ class OpticalProduct(Product):
             raise NotImplementedError
 
         band_arr_nodata = band_arr.where(mask == 0)
+        if band_arr_nodata.rst.nodata is None:
+            band_arr_nodata.rst.set_nodata(
+                rasters.get_nodata_value_from_dtype(band_arr_nodata.dtype)
+            )
 
         # Where sadly drops the encoding dict...
         band_arr_nodata.rio.update_encoding(band_arr.encoding, inplace=True)

@@ -939,8 +939,6 @@ class S3SlstrProduct(S3Product):
             qual_flags_path,
             size=band_arr.rst.shape,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 
@@ -1029,8 +1027,6 @@ class S3SlstrProduct(S3Product):
                 pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
-                masked=False,
-                as_type=np.uint16,
                 **kwargs,
             )
 

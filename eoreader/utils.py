@@ -511,9 +511,6 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> (AnyXrDataStructure, type):
                 else:
                     xds[band] = band_xda * scale
 
-        # Fill no data and convert to uint16
-        xds = xds.fillna(UINT16_NODATA).astype(dtype)
-
     return xds, dtype
 
 
@@ -532,18 +529,11 @@ def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
 
     # Save as integer
     dtype = kwargs.get("dtype", np.float32)
-    nodata = kwargs.get("nodata", rasters.get_nodata_value_from_dtype(dtype))
 
     # Create dataset, with dims well-ordered
-    stack = (
-        band_xds.fillna(nodata)
-        .to_stacked_array(new_dim="bands", sample_dims=("x", "y"))
-        .transpose("bands", "y", "x")
-    )
-
-    # Set nodata if needed (NaN values are already set)
-    if dtype == np.float32 and stack.rst.nodata != nodata:
-        stack = rasters.set_nodata(stack.astype(dtype), nodata)
+    stack = band_xds.to_stacked_array(
+        new_dim="bands", sample_dims=("x", "y")
+    ).transpose("bands", "y", "x")
 
     return stack, dtype
 

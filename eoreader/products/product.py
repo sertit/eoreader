@@ -1540,7 +1540,7 @@ class Product:
 
                 dem_name = to_str(band)[0]
                 dem_arr = utils.read(
-                    band_path, pixel_size=pixel_size, size=size, as_type=np.float32
+                    band_path, pixel_size=pixel_size, size=size
                 ).rename(dem_name)
                 dem_arr.attrs["long_name"] = dem_name
                 dem_bands[band] = dem_arr
@@ -1601,7 +1601,6 @@ class Product:
                     size=size,
                     resampling=resampling,
                     indexes=band_idxs,
-                    as_type=np.float32,
                 ).rename(exo_name)
                 exo_arr.attrs["long_name"] = exo_name
                 exo_bands[exo_key] = exo_arr
@@ -2276,7 +2275,9 @@ class Product:
             if save_as_int:
                 stack_to_save, dtype = utils.convert_to_uint16(band_xds)
                 if dtype == np.uint16:
-                    stack_to_save, _ = utils.stack(band_xds, dtype=dtype, **kwargs)
+                    stack_to_save, _ = utils.stack(
+                        band_xds, dtype=dtype, nodata=rasters.UINT16_NODATA, **kwargs
+                    )
                     stack_to_save = self._update_attrs(
                         stack_to_save, band_xds.keys(), **kwargs
                     )

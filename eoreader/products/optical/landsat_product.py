@@ -1111,27 +1111,25 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
-        masked = False
-        resampling = Resampling.nearest
-        if band in [
-            LandsatMaskBandNames.BQA,
-            LandsatMaskBandNames.QA_PIXEL,
-            LandsatMaskBandNames.QA_RADSAT,
-        ]:
-            dtype = np.uint16
-        elif band in [
-            LandsatMaskBandNames.SAA,
-            LandsatMaskBandNames.SZA,
-            LandsatMaskBandNames.VAA,
-            LandsatMaskBandNames.VZA,
-            LandsatMaskBandNames.ST_QA,
-        ]:
-            dtype = np.int16
-        elif band == LandsatMaskBandNames.SR_QA_AEROSOL:
-            dtype = np.uint8
+        if (
+            band
+            in [
+                LandsatMaskBandNames.BQA,
+                LandsatMaskBandNames.QA_PIXEL,
+                LandsatMaskBandNames.QA_RADSAT,
+            ]
+            or band
+            in [
+                LandsatMaskBandNames.SAA,
+                LandsatMaskBandNames.SZA,
+                LandsatMaskBandNames.VAA,
+                LandsatMaskBandNames.VZA,
+                LandsatMaskBandNames.ST_QA,
+            ]
+            or band == LandsatMaskBandNames.SR_QA_AEROSOL
+        ):
+            resampling = Resampling.nearest
         else:
-            dtype = np.float32
-            masked = True
             resampling = kwargs.pop("resampling", self.band_resampling)
 
         # Load PAN band to native resolution if default/unspecified pixel size
@@ -1143,8 +1141,6 @@ class LandsatProduct(OpticalProduct):
             band_path,
             pixel_size=pixel_size,
             size=size,
-            as_type=dtype,
-            masked=masked,
             resampling=resampling,
             **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
         )

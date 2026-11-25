@@ -439,7 +439,6 @@ class CustomProduct(Product):
                 size=size,
                 resampling=kwargs.pop("resampling", self.band_resampling),
                 indexes=[self.bands[band].id],
-                as_type=np.float32,
                 **kwargs,
             ).rename(band_name)
 

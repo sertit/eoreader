@@ -647,16 +647,14 @@ class DimapV2Product(VhrProduct):
             xr.DataArray: Cleaned band array
         """
         # array data
-        width = band_arr.rio.width
-        height = band_arr.rio.height
         mask_path, mask_exists = self._get_out_path(
-            f"{self.condensed_name}_other_masks_{int(width)}x{int(height)}.npy"
+            f"{self.condensed_name}_other_masks_{int(band_arr.rst.width)}x{int(band_arr.rst.height)}.npy"
         )
 
         if not mask_exists:
             nodata = self._load_masks(
                 [DimapV2MaskBandNames.ROI],
-                size=[width, height],
+                size=band_arr.rst.shape,
                 pixel_size=pixel_size,
                 # Do not recompute the UTM band, use directly the band_arr
                 utm_xarr=band_arr,
@@ -672,7 +670,7 @@ class DimapV2Product(VhrProduct):
                 masks = self._load_masks(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
                     pixel_size=pixel_size,
-                    size=[width, height],
+                    size=band_arr.rst.shape,
                     # Do not recompute the UTM band, use directly the band_arr
                     utm_xarr=band_arr,
                     **kwargs,
@@ -768,7 +766,7 @@ class DimapV2Product(VhrProduct):
         nodata = self._load_masks(
             [DimapV2MaskBandNames.ROI],
             pixel_size=pixel_size,
-            size=[band_arr.rio.width, band_arr.rio.height],
+            size=band_arr.rst.shape,
             # Do not recompute the UTM band, use directly the band_arr
             utm_xarr=band_arr,
             **kwargs,
@@ -991,10 +989,8 @@ class DimapV2Product(VhrProduct):
                     )
 
         # Load nodata
-        width = def_xarr.rio.width
-        height = def_xarr.rio.height
         vec_tr = transform.from_bounds(
-            *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+            *def_xarr.rst.bounds, def_xarr.rst.width, def_xarr.rst.height
         )
 
         for band in bands:
@@ -1005,14 +1001,14 @@ class DimapV2Product(VhrProduct):
             # Rasterize features if existing vector
             if has_vec:
                 mask_path, mask_exists = self._get_out_path(
-                    f"{self.condensed_name}_{band.name.lower()}_{int(width)}x{int(height)}.npy"
+                    f"{self.condensed_name}_{band.name.lower()}_{int(def_xarr.rst.width)}x{int(def_xarr.rst.height)}.npy"
                 )
                 if not mask_exists:
                     LOGGER.debug(f"Rasterizing {band.name} mask")
                     # Rasterize nodata
                     mask_arr = features.rasterize(
                         mask_vec.geometry,
-                        out_shape=(height, width),
+                        out_shape=def_xarr.rst.shape,
                         fill=self._mask_false,  # Outside vector
                         default_value=self._mask_true,  # Inside vector
                         transform=vec_tr,
@@ -1025,7 +1021,9 @@ class DimapV2Product(VhrProduct):
                 # Rasterize gives a 2D array, we want a 3D array
                 mask_arr = np.expand_dims(mask_arr, axis=0)
             else:
-                mask_arr = np.zeros((1, height, width), dtype=np.uint8)
+                mask_arr = np.zeros(
+                    (1, def_xarr.rst.height, def_xarr.rst.width), dtype=np.uint8
+                )
 
             # Create mask xarray
             mask = (
@@ -1035,7 +1033,7 @@ class DimapV2Product(VhrProduct):
                 .fillna(self._mask_nodata)
                 .astype(np.uint8)
             )
-            mask.rio.write_nodata(self._mask_nodata, inplace=True)
+            mask.rst.set_nodata(self._mask_nodata)
             mask.encoding["dtype"] = np.uint8
 
             # Rename
@@ -1134,15 +1132,8 @@ class DimapV2Product(VhrProduct):
                         # Reproject mask raster
                         LOGGER.debug(f"\tReprojecting {mask_str}")
                         dem_path = self._get_dem_path(**kwargs)
-
-                        # TODO: change this when available in rioxarray
-                        # See https://github.com/corteva/rioxarray/issues/837
-                        with rasterio.open(str(self._get_tile_path())) as ds:
-                            rpcs = ds.rpcs
-
                         reproj_data = self._orthorectify(
                             mask_raster,
-                            rpcs=rpcs,
                             dem_path=dem_path,
                             ortho_path=ortho_path,
                             long_name=mask_str,

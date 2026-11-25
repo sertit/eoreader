@@ -781,8 +781,6 @@ class S2TheiaProduct(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 

@@ -716,8 +716,6 @@ class S3OlciProduct(S3Product):
             qual_flags_path,
             size=band_arr.rst.shape,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint32,
             **kwargs,
         )
         invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])

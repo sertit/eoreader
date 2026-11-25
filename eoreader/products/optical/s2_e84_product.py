@@ -295,8 +295,6 @@ class S2E84Product(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 

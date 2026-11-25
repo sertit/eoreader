@@ -163,7 +163,7 @@ MASK_MAPPING_PB_0400 = {
     S2MaskBandNames.QT_SATURATED_PIXELS: S2_MSK(
         mask_fname=S2Jp2Masks.QUALIT, band_number=8
     ),
-    # S2MaskBandNames.CLOUD_INV: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=9),  # Non existing for L1C
+    # S2MaskBandNames.CLOUD_INV: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=9),  # Non-existing for L1C
     S2MaskBandNames.OPAQUE: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=1),
     S2MaskBandNames.CIRRUS: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=2),
     S2MaskBandNames.SNOW_ICE: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=3),
@@ -1007,8 +1007,6 @@ class S2Product(OpticalProduct):
                 pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
-                as_type=np.uint8,
-                masked=False,
                 **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
             )
         else:
@@ -1156,8 +1154,6 @@ class S2Product(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,
-            as_type=np.uint8,
-            masked=False,
             **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
         )
 
@@ -1498,8 +1494,6 @@ class S2Product(OpticalProduct):
                         pixel_size=pixel_size,
                         size=size,
                         resampling=Resampling.nearest,
-                        as_type=np.uint8,
-                        masked=False,
                         **kwargs,
                     )
 

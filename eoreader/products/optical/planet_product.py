@@ -871,8 +871,6 @@ class PlanetProduct(OpticalProduct):
                     band=self.get_default_band(),
                     pixel_size=pixel_size,
                     size=size,
-                    as_type=np.uint8,
-                    masked=False,
                     **kwargs,
                 )
                 mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
@@ -952,9 +950,7 @@ class PlanetProduct(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
             indexes=[band_mapping[mask_id]],
-            as_type=np.uint8,
             **kwargs,
         )
 
@@ -989,8 +985,6 @@ class PlanetProduct(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 
