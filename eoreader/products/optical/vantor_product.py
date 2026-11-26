@@ -1450,7 +1450,9 @@ class VantorProduct(VhrProduct):
 
             # Vectorise the nodata band
             LOGGER.debug(f"Shape to vectorise: {arr.rst.shape}")
-            footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
+            footprint = rasters.vectorize(
+                rasters.where(arr > 0, 1, 0, arr), values=1, dissolve=True
+            )
             footprint = geometry.get_wider_exterior(footprint.convex_hull)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set

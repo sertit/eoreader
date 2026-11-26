@@ -296,7 +296,9 @@ class Vis1Product(DimapV1Product):
             arr = utils.read(ql_path, indexes=[1])
 
             # Vectorise the nodata band
-            footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
+            footprint = rasters.vectorize(
+                rasters.where(arr > 0, 1, 0, arr), values=1, dissolve=True
+            )
             footprint = geometry.get_wider_exterior(footprint)
         else:
             # If ortho -> nodata is not set!
@@ -311,7 +313,9 @@ class Vis1Product(DimapV1Product):
                 )
 
                 # Vectorise the nodata band
-                footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
+                footprint = rasters.vectorize(
+                    rasters.where(arr > 0, 1, 0, arr), values=1, dissolve=True
+                )
                 footprint = geometry.get_wider_exterior(footprint)
             else:
                 # If not ortho -> default band has been orthorectified and nodata will be set

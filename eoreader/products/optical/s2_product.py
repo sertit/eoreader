@@ -433,9 +433,10 @@ class S2Product(OpticalProduct):
                     LOGGER.warning(
                         "Invalid DETFOO mask. Trying to vectorize nodata from GREEN band. Your product may be broken and the results may be inaccurate!"
                     )
-
                     footprint = rasters.vectorize(
-                        det_footprint.where(det_footprint > 0), dissolve=True
+                        rasters.where(det_footprint > 0, 1, 0, det_footprint),
+                        values=1,
+                        dissolve=True,
                     )
 
                     footprint = geometry.get_wider_exterior(footprint).to_crs(
@@ -450,7 +451,9 @@ class S2Product(OpticalProduct):
         else:
             det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.DETFOO, def_band)
             footprint = rasters.vectorize(
-                det_footprint.where(det_footprint > 0), dissolve=True
+                rasters.where(det_footprint > 0, 1, 0, det_footprint),
+                values=1,
+                dissolve=True,
             )
 
             # Keep only the convex hull
