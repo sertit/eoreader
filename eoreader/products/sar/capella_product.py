@@ -162,18 +162,27 @@ class CapellaProduct(SarProduct):
         See
         `here <https://support.capellaspace.com/what-sar-imagery-products-are-available-with-capella>`_
         """
-        # Using az resolution
-        if self.sensor_mode == CapellaSensorMode.SP:
-            def_pixel_size = 0.35
-            def_res = 0.5
-        elif self.sensor_mode == CapellaSensorMode.SS:
-            def_pixel_size = 0.6
-            def_res = 1.0
-        elif self.sensor_mode == CapellaSensorMode.SM:
-            def_pixel_size = 0.8
-            def_res = 1.2
-        else:
-            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+        try:
+            root, _ = self.read_mtd()
+            def_pixel_size = float(root.findtext(".//pixel_spacing_range"))
+            def_res = float(root.findtext(".//resolution_ground_range"))
+        except Exception:
+            def_pixel_size = None
+            def_res = None
+
+        if def_pixel_size is None:
+            if self.sensor_mode == CapellaSensorMode.SP:
+                def_pixel_size = 0.35
+                def_res = 0.5
+            elif self.sensor_mode == CapellaSensorMode.SS:
+                def_pixel_size = 0.6
+                def_res = 1.0
+            elif self.sensor_mode == CapellaSensorMode.SM:
+                def_pixel_size = 0.8
+                def_res = 1.2
+            else:
+                raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+
         self.pixel_size = def_pixel_size
         self.resolution = def_res
 

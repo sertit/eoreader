@@ -2,6 +2,7 @@
 
 ## 0.25.0 (Unreleased)
 
+- FIX: Read Capella's `pixel_size` and `resolution` from the metadata instead, as they can vary among products
 - FIX: Correct bug using `resolution` instead of `pixel_size` in `utils.read`, causing a major slowdown in footprint computation
 - FIX: Clip the AOI by the scene footprint before SNAP's `Subset`, as SNAP moves the vertices outside the image to its first pixel and the orthorectified bands end up cut or empty [#331](https://github.com/sertit/eoreader/issues/331)
 - FIX: Use the GCPs of the image border instead of an affine fit for the extent of SAR products without extent file
