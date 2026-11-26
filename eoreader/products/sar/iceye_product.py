@@ -147,7 +147,7 @@ class IceyeProduct(SarProduct):
                 self._raw_band_regex = "*ICEYE*GRD*.tif"
         except StopIteration as exc:
             raise FileNotFoundError(
-                f"Non existing file *ICEYE*SLC*.xml or *ICEYE*GRD*.xml in {self.path}"
+                f"Non-existing file *ICEYE*SLC*.xml or *ICEYE*GRD*.xml in {self.path}"
             ) from exc
 
         # Pre init done by the super class

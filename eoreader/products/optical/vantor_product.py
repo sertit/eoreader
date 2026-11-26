@@ -32,6 +32,7 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
+from rasterio.enums import Resampling
 from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
@@ -1438,22 +1439,28 @@ class VantorProduct(VhrProduct):
         """
         # If ortho -> nodata is not set!
         if self.is_ortho:
+            LOGGER.debug("Using the ortho stack to compute the footprint.")
             # Get footprint of the first band of the stack
-            footprint_dezoom = 10
             arr = utils.read(
                 self.get_default_band_path(),
-                resolution=self.pixel_size * footprint_dezoom,
+                pixel_size=self.pixel_size * self._footprint_dezoom,
+                resampling=Resampling.nearest,
                 indexes=[1],
             )
 
-            # Vectorize the nodata band
-            footprint = rasters.vectorize(
-                arr, values=0, keep_values=False, dissolve=True
-            )
+            # Vectorise the nodata band
+            LOGGER.debug(f"Shape to vectorise: {arr.rst.shape}")
+            footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
             footprint = geometry.get_wider_exterior(footprint.convex_hull)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
-            footprint = rasters.get_footprint(self.get_default_band_path())
+            LOGGER.debug("Using the orthorectified band to compute the footprint.")
+            downsampled_band = utils.read(
+                self.get_default_band_path(),
+                pixel_size=self.resolution * self._footprint_dezoom,
+                resampling=Resampling.nearest,
+            )
+            footprint = rasters.get_footprint(downsampled_band)
 
         return footprint.to_crs(self.crs())
 

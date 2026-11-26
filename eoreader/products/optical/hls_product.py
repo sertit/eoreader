@@ -278,7 +278,7 @@ class HlsProduct(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )
@@ -699,7 +699,7 @@ class HlsProduct(OpticalProduct):
         for band in band_list:
             if not self.has_band(band):
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) for HLS products."
+                    f"Non-existing band ({band.name}) for HLS products."
                 )
             band_id = self.bands[band].id
 
@@ -712,7 +712,7 @@ class HlsProduct(OpticalProduct):
                     band_paths[band] = self._get_path(f"B{band_id}")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -977,7 +977,7 @@ class HlsProduct(OpticalProduct):
                     cloud = fmask
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value} constellations: {band}"
+                        f"Non-existing cloud band for {self.constellation.value} constellations: {band}"
                     )
 
                 # Rename

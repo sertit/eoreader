@@ -13,7 +13,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
 from eoreader import EOREADER_NAME
-from eoreader.env_vars import DEM_PATH, TILE_SIZE
+from eoreader.env_vars import DEM_PATH, TILE_SIZE, USE_DASK
 from eoreader.reader import Reader
 from eoreader.utils import use_dask
 
@@ -138,11 +138,12 @@ def dask_env(function: Callable):
 
         processes = False
 
-        os.environ[TILE_SIZE] = "auto"
         if use_dask_overload:
+            os.environ[TILE_SIZE] = "auto"
 
             def set_env():
                 os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "1"
+                os.environ[TILE_SIZE] = "auto"
 
                 if processes:
                     # Set that to dask workers to make process=True work on cloud
@@ -183,6 +184,8 @@ def dask_env(function: Callable):
                     client.run(lambda: os.environ.pop("AWS_ENDPOINT_URL"))
         else:
             LOGGER.info("**NOT** using Dask!")
+            os.environ[TILE_SIZE] = "none"
+            os.environ[USE_DASK] = "0"
             function(*_args, **_kwargs)
 
     return dask_env_wrapper

@@ -248,7 +248,7 @@ def _test_core(
                 LOGGER.info("Checking load with size keyword")
                 band_arr = prod.load(  # noqa
                     first_band,
-                    size=(stack.rio.width, stack.rio.height),
+                    size=stack.rst.shape,
                     window=None,
                     clean_optical="clean",
                     **kwargs,
@@ -268,7 +268,7 @@ def _test_core(
                 LOGGER.info("Loading clouds")
                 cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
                 ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
-                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
+                prod.load(ok_clouds, size=stack.rst.shape)  # noqa
 
                 # Check if no error
                 LOGGER.info("get_default_band_path")

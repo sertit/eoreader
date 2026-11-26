@@ -568,7 +568,7 @@ class S3OlciProduct(S3Product):
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the image column coordinate.
                 sza, _ = rasters_rio.read(
                     ds_sza,
-                    size=(band_arr.rio.width, band_arr.rio.height),
+                    size=band_arr.rst.shape,
                     resampling=Resampling.bilinear,
                     masked=False,
                 )
@@ -619,7 +619,6 @@ class S3OlciProduct(S3Product):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -706,7 +705,7 @@ class S3OlciProduct(S3Product):
         qual_flags_path = self._preprocess(
             qual_regex,
             subdataset=subds,
-            pixel_size=pixel_size,
+            pixel_size=band_arr.rst.res,
             to_reflectance=False,
             dtype=np.uint32,
         )
@@ -714,10 +713,8 @@ class S3OlciProduct(S3Product):
         # Open flag file
         qual_arr = utils.read(
             qual_flags_path,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint32,
             **kwargs,
         )
         invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])

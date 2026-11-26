@@ -201,7 +201,7 @@ class CapellaProduct(SarProduct):
             self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
         except StopIteration as exc:
             raise FileNotFoundError(
-                f"Non existing file *CAPELLA*.json in {self.path}"
+                f"Non-existing file *CAPELLA*.json in {self.path}"
             ) from exc
 
         # To be done in pre-init, but we don't have the product name here
@@ -218,7 +218,7 @@ class CapellaProduct(SarProduct):
                     self._raw_band_regex = str(next(self.path.glob(f"{name}.ntf")).name)
                 except StopIteration as exc:
                     raise FileNotFoundError(
-                        f"Non existing file {name}.tif or {name}.ntf in {self.path}"
+                        f"Non-existing file {name}.tif or {name}.ntf in {self.path}"
                     ) from exc
 
         # Pre init done by the super class
@@ -247,7 +247,7 @@ class CapellaProduct(SarProduct):
                 mtd_file = next(self.path.glob(f"{self.name}.json"))
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file {self.name}.json in {self.path}"
+                    f"Non-existing file {self.name}.json in {self.path}"
                 ) from exc
             extent = vectors.read(mtd_file)
         else:

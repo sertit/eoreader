@@ -37,8 +37,8 @@ import validators
 import xarray as xr
 from affine import Affine
 from lxml import etree, html
-from rasterio import control, rpc, transform, warp
 from rasterio import shutil as rio_shutil
+from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
@@ -269,6 +269,7 @@ class Product:
         """Band resampling (default: bilinear). Overridden by the env variable "EOREADER_BAND_RESAMPLING", if existing and valid."""
 
         self._stac = None
+        self._footprint_dezoom = 10
 
         # Manage output
         if output_path:
@@ -909,7 +910,7 @@ class Product:
                 vec = vectors.read(next(self.path.glob(glob_str)), **kwargs)
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file '{glob_str}' in {self.path}"
+                    f"Non-existing file '{glob_str}' in {self.path}"
                 ) from exc
 
         return vec
@@ -936,7 +937,7 @@ class Product:
                 found_path = next(base_path.glob(glob_str))
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file '{glob_str}' in {base_path}"
+                    f"Non-existing file '{glob_str}' in {base_path}"
                 ) from exc
 
         return found_path
@@ -1394,6 +1395,7 @@ class Product:
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -1403,6 +1405,7 @@ class Product:
 
         Args:
             bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
@@ -1540,7 +1543,7 @@ class Product:
 
                 dem_name = to_str(band)[0]
                 dem_arr = utils.read(
-                    band_path, pixel_size=pixel_size, size=size, as_type=np.float32
+                    band_path, pixel_size=pixel_size, size=size
                 ).rename(dem_name)
                 dem_arr.attrs["long_name"] = dem_name
                 dem_bands[band] = dem_arr
@@ -1601,7 +1604,6 @@ class Product:
                     size=size,
                     resampling=resampling,
                     indexes=band_idxs,
-                    as_type=np.float32,
                 ).rename(exo_name)
                 exo_arr.attrs["long_name"] = exo_name
                 exo_bands[exo_key] = exo_arr
@@ -2240,7 +2242,7 @@ class Product:
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             stack_path (AnyPathStrType): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-            **kwargs: Other arguments passed to :code:`load` or :code:`rioxarray.to_raster()` (such as :code:`compress`)
+            **kwargs: Other arguments passed to :code:`load` or when saving the stack (such as :code:`compress`)
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -2249,7 +2251,7 @@ class Product:
         if stack_path:
             stack_path = AnyPath(stack_path)
             if stack_path.is_file():
-                stack = utils.read(stack_path, resolution=pixel_size, size=size)
+                stack = utils.read(stack_path, pixel_size=pixel_size, size=size)
                 stack = self._update_attrs(stack, bands, **kwargs)
                 return stack
             else:
@@ -2276,7 +2278,9 @@ class Product:
             if save_as_int:
                 stack_to_save, dtype = utils.convert_to_uint16(band_xds)
                 if dtype == np.uint16:
-                    stack_to_save, _ = utils.stack(band_xds, dtype=dtype, **kwargs)
+                    stack_to_save, _ = utils.stack(
+                        band_xds, dtype=dtype, nodata=rasters.UINT16_NODATA, **kwargs
+                    )
                     stack_to_save = self._update_attrs(
                         stack_to_save, band_xds.keys(), **kwargs
                     )
@@ -2633,13 +2637,13 @@ class Product:
 
             # Plot quicklook according to the number of bands
             plt.figure(figsize=(6, 6))
-            if qck.rio.count == 3:
+            if qck.rst.count == 3:
                 qck.plot.imshow(robust=robust)
-            elif qck.rio.count == 1:
+            elif qck.rst.count == 1:
                 qck.plot(cmap=cmap, robust=robust)
             else:
                 LOGGER.warning(
-                    f"Your quicklook has an invalid number of bands (accepted number is 1 or 3): {qck.rio.count}"
+                    f"Your quicklook has an invalid number of bands (accepted number is 1 or 3): {qck.rst.count}"
                 )
                 pass
 
@@ -2846,8 +2850,6 @@ class Product:
         src_xda: xr.DataArray,
         dem_path: str,
         ortho_path: AnyPathStrType,
-        rpcs: rpc.RPC = None,
-        gcps: control.GroundControlPoint = None,
         pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -2857,8 +2859,6 @@ class Product:
         Args:
             src_arr (np.ndarray): Array to reproject
             src_meta (dict): Metadata
-            rpcs (rpc.RPC): RPCs
-            gcps (control.GroundControlPoint): Ground Control Points
             dem_path (str): DEM path
             ortho_path (AnyPathStrType): Ortho path
             pixel_size (float): Pixel size
@@ -2873,17 +2873,10 @@ class Product:
         resampling = kw.pop("resampling", self.band_resampling)
         vcrs = kw.pop("vcrs", os.getenv(DEM_VCRS))
 
-        if rpcs and not src_xda.rio.crs:
-            # RPCs are always in 4326 by convention
-            # https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-with-other-georeferencing-metadata
-            src_xda.rio.write_crs(vectors.EPSG_4326, inplace=True)
-
         dst_nodata = kwargs.pop("nodata", self._raw_nodata)
 
         out_xda = rasters.reproject(
-            src_xda,
-            rpcs=rpcs,
-            gcps=gcps,
+            src_xda.compute(),
             dem_path=dem_path,
             pixel_size=pixel_size,
             dst_crs=self.crs(),
@@ -2892,7 +2885,7 @@ class Product:
             num_threads=perf.get_max_cores(),
             extent=self.extent(),
             vcrs=vcrs,
-            **kwargs,
+            **kw,
         ).rename(f"Reprojected stack of {self.name}")
 
         if "long_name" in kw:
@@ -2953,7 +2946,7 @@ class Product:
             try:
                 tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
             except ValueError:
-                tile_size = int(DEFAULT_TILE_SIZE)
+                tile_size = 2048
 
             vrt_options = {
                 "crs": self.crs(),

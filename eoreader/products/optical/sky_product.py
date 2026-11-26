@@ -30,6 +30,7 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
+from rasterio.enums import Resampling
 from sertit import path, rasters, vectors, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
@@ -222,7 +223,12 @@ class SkyProduct(PlanetProduct):
         """
         # WARNING: Sometimes the product seems to contain several tiles that are not contiguous
         # Do not simplify geometry then
-        arr = utils.read(self.get_default_band_path(), indexes=[1])
+        arr = utils.read(
+            self.get_default_band_path(),
+            indexes=[1],
+            pixel_size=self.pixel_size * self._footprint_dezoom,
+            resampling=Resampling.nearest,
+        )
         return rasters.get_valid_vector(arr, default_nodata=0)
 
     def _set_pixel_size(self) -> None:

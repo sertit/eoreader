@@ -905,7 +905,6 @@ class S3SlstrProduct(S3Product):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -928,7 +927,7 @@ class S3SlstrProduct(S3Product):
             band,
             suffix=suffix,
             subdataset=self._replace(self._exception_name, band=band, suffix=suffix),
-            pixel_size=pixel_size,
+            pixel_size=band_arr.rst.res,
             to_reflectance=False,
             flags=True,
             dtype=np.uint8,
@@ -937,10 +936,8 @@ class S3SlstrProduct(S3Product):
         # Open flag file
         qual_arr = utils.read(
             qual_flags_path,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            size=band_arr.rst.shape,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 
@@ -1029,8 +1026,6 @@ class S3SlstrProduct(S3Product):
                 pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
-                masked=False,
-                as_type=np.uint16,
                 **kwargs,
             )
 
@@ -1048,7 +1043,7 @@ class S3SlstrProduct(S3Product):
                     cloud = clouds_array
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-3 SLSTR: {band}"
+                        f"Non-existing cloud band for Sentinel-3 SLSTR: {band}"
                     )
 
                 # Rename

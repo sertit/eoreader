@@ -222,7 +222,7 @@ def _test_core(
                 LOGGER.info("Checking load with size keyword")
                 band_arr = prod.load(  # noqa
                     first_band,
-                    size=(stack.rio.width, stack.rio.height),
+                    size=stack.rst.shape,
                     clean_optical="clean",
                     **kwargs,
                 )[first_band]

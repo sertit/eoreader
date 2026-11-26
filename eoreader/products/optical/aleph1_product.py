@@ -509,7 +509,7 @@ class Aleph1Product(VhrProduct):
                 mtd = files.read_json(next(self.path.glob(glob_str)), print_file=False)
             except StopIteration as exc:
                 raise FileNotFoundError(
-                    f"Non existing file '{glob_str}' in {self.path}"
+                    f"Non-existing file '{glob_str}' in {self.path}"
                 ) from exc
 
         return mtd

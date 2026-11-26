@@ -230,9 +230,14 @@ class S2TheiaProduct(OpticalProduct):
         """
         # Use R2 mask to speed up processing: we don't care about the resolution to compute a footprint!
         edg_path = self._get_mask_path(S2TheiaMaskBandNames.EDG.name, "R2")
-        mask = utils.read(edg_path, masked=False)
+        mask = utils.read(
+            edg_path,
+            masked=False,
+            pixe=self.pixel_size * self._footprint_dezoom,
+            resampling=Resampling.nearest,
+        )
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=1)
         footprint = geometry.get_wider_exterior(footprint)
         footprint.geometry = footprint.geometry.convex_hull
@@ -405,7 +410,6 @@ class S2TheiaProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -430,31 +434,28 @@ class S2TheiaProduct(OpticalProduct):
         # Open NODATA pixels mask
         edg_mask = self._open_mask(
             S2TheiaMaskBandNames.EDG,
-            pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            ref_arr=band_arr,
             **kwargs,
-        )
+        ).data.astype(np.uint8)
         sat_mask = self._open_mask(
             S2TheiaMaskBandNames.SAT,
             associated_band=band,
-            pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            ref_arr=band_arr,
             **kwargs,
-        )
+        ).data.astype(np.uint8)
 
         # Combine masks
-        mask = no_data_mask | edg_mask.data | sat_mask.data
+        mask = no_data_mask | edg_mask | sat_mask
 
         # Open defective pixels (optional mask)
         try:
             def_mask = self._open_mask(
                 S2TheiaMaskBandNames.DFP,
                 associated_band=band,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
-            )
-            mask = mask | def_mask.data
+            ).data.astype(np.uint8)
+            mask = mask | def_mask
         except InvalidProductError:
             pass
 
@@ -465,7 +466,6 @@ class S2TheiaProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -605,6 +605,7 @@ class S2TheiaProduct(OpticalProduct):
     def _load_masks(
         self,
         bands: list,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -614,12 +615,17 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         band_dict = {}
         if bands:
             # First, try to open the cloud band written on disk
@@ -646,7 +652,10 @@ class S2TheiaProduct(OpticalProduct):
                         **kwargs,
                     )
                     if mask_path.is_file():
-                        band_dict[key] = utils.read(mask_path)
+                        mask_arr = utils.read(mask_path)
+                        if ref_arr is not None:
+                            mask_arr = rasters.collocate(ref_arr, mask_arr)
+                        band_dict[band] = mask_arr
                     else:
                         bands_to_load.append(band)
                         associated_bands_to_load[band].append(associated_band)
@@ -660,16 +669,19 @@ class S2TheiaProduct(OpticalProduct):
             )
 
             # Write them on disk
-            for band_id, band_arr in loaded_bands.items():
+            for band_id, mask_arr in loaded_bands.items():
+                if ref_arr is not None:
+                    mask_arr = rasters.collocate(ref_arr, mask_arr)
+
                 mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
-                band_arr = utils.write_path_in_attrs(band_arr, mask_path)
+                mask_arr = utils.write_path_in_attrs(mask_arr, mask_path)
                 utils.write(
-                    band_arr,
+                    mask_arr,
                     mask_path,
-                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
-                    nodata=band_arr.encoding.get("_FillValue"),
+                    dtype=mask_arr.rst.dtype,
+                    nodata=mask_arr.rst.nodata,
                 )
 
             # Merge the dict
@@ -709,7 +721,7 @@ class S2TheiaProduct(OpticalProduct):
                 # Open mask
                 LOGGER.debug(f"Loading {to_str(key, as_list=False)} mask")
                 band_arr = self._open_mask(
-                    band, associated_band, pixel_size, size, **kwargs
+                    band, associated_band, pixel_size=pixel_size, size=size, **kwargs
                 )
 
                 # Get the dict key (manage SAT and DFP masks with associated spectral bands)
@@ -721,6 +733,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         band: BandNames,
         associated_band: BandNames = None,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -734,12 +747,17 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             bands (BandNames): Wanted mask band
             associated_band (BandNames): Associated spectral band to the wanted mask, to determine the bit ID of some masks. Using the GREEN band if not given.
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         # Just to choose between R1 and R2 here -> take R1
         if associated_band is None:
             associated_band = self.get_default_band()
@@ -775,13 +793,14 @@ class S2TheiaProduct(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
 
         if band in [S2TheiaMaskBandNames.SAT, S2TheiaMaskBandNames.DFP]:
             mask = mask.copy(data=rasters.read_bit_array(mask, bit_id))
+
+        if ref_arr is not None:
+            mask = rasters.collocate(ref_arr, mask)
 
         band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
         mask.attrs["long_name"] = band_name

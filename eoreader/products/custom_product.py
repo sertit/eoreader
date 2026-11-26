@@ -317,7 +317,12 @@ class CustomProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        arr = utils.read(self.get_default_band_path(), indexes=[1])
+        arr = utils.read(
+            self.get_default_band_path(),
+            pixel_size=self.pixel_size * self._footprint_dezoom,
+            resampling=Resampling.nearest,
+            indexes=[1],
+        )
         return rasters.get_footprint(arr).to_crs(self.crs())
 
     @cache
@@ -433,7 +438,6 @@ class CustomProduct(Product):
                 size=size,
                 resampling=kwargs.pop("resampling", self.band_resampling),
                 indexes=[self.bands[band].id],
-                as_type=np.float32,
                 **kwargs,
             ).rename(band_name)
 
@@ -550,7 +554,9 @@ class CustomProduct(Product):
                 LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
                 # Compute hillshade
-                hillshade = rasters.hillshade(warped_dem_path, sun_az, sun_zen)
+                hillshade = rasters.hillshade(
+                    warped_dem_path, azimuth=sun_az, altitude=90 - sun_zen
+                )
                 hillshade = utils.write_path_in_attrs(hillshade, hillshade_path)
                 utils.write(hillshade, hillshade_path)
 

@@ -313,17 +313,18 @@ class LandsatProduct(OpticalProduct):
             )
             footprint_dezoom = 50
         else:
-            footprint_dezoom = 1
+            footprint_dezoom = self._footprint_dezoom
 
         # Read the file with a very low resolution
         qa_path = self._get_path(self._pixel_quality_id)
         nodata_band = utils.read(
             qa_path,
             pixel_size=self.pixel_size * footprint_dezoom,
+            resampling=Resampling.nearest,
             masked=False,
         )
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
         )
@@ -977,7 +978,7 @@ class LandsatProduct(OpticalProduct):
         for band in band_list:
             if not self.has_band(band):
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) "
+                    f"Non-existing band ({band.name}) "
                     f"for Landsat-{self.product_type.name} products"
                 )
             band_id = self.bands[band].id
@@ -991,7 +992,7 @@ class LandsatProduct(OpticalProduct):
                     band_paths[band] = self._get_path(f"B{band_id}")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -1110,27 +1111,25 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
-        masked = False
-        resampling = Resampling.nearest
-        if band in [
-            LandsatMaskBandNames.BQA,
-            LandsatMaskBandNames.QA_PIXEL,
-            LandsatMaskBandNames.QA_RADSAT,
-        ]:
-            dtype = np.uint16
-        elif band in [
-            LandsatMaskBandNames.SAA,
-            LandsatMaskBandNames.SZA,
-            LandsatMaskBandNames.VAA,
-            LandsatMaskBandNames.VZA,
-            LandsatMaskBandNames.ST_QA,
-        ]:
-            dtype = np.int16
-        elif band == LandsatMaskBandNames.SR_QA_AEROSOL:
-            dtype = np.uint8
+        if (
+            band
+            in [
+                LandsatMaskBandNames.BQA,
+                LandsatMaskBandNames.QA_PIXEL,
+                LandsatMaskBandNames.QA_RADSAT,
+            ]
+            or band
+            in [
+                LandsatMaskBandNames.SAA,
+                LandsatMaskBandNames.SZA,
+                LandsatMaskBandNames.VAA,
+                LandsatMaskBandNames.VZA,
+                LandsatMaskBandNames.ST_QA,
+            ]
+            or band == LandsatMaskBandNames.SR_QA_AEROSOL
+        ):
+            resampling = Resampling.nearest
         else:
-            dtype = np.float32
-            masked = True
             resampling = kwargs.pop("resampling", self.band_resampling)
 
         # Load PAN band to native resolution if default/unspecified pixel size
@@ -1142,8 +1141,6 @@ class LandsatProduct(OpticalProduct):
             band_path,
             pixel_size=pixel_size,
             size=size,
-            as_type=dtype,
-            masked=masked,
             resampling=resampling,
             **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
         )
@@ -1213,7 +1210,7 @@ class LandsatProduct(OpticalProduct):
         band_dict = {}
 
         for band in bands:
-            mask_arr = self._open_mask(band, pixel_size, size, **kwargs)
+            mask_arr = self._open_mask(band, pixel_size=pixel_size, size=size, **kwargs)
 
             # Set nodata for some masks, for others I'm not sure if it's really nodata (value = 1, not 0)
             if band in [
@@ -1232,6 +1229,7 @@ class LandsatProduct(OpticalProduct):
     def _open_mask(
         self,
         band: BandNames,
+        ref_arr: xr.DataArray | None = None,
         pixel_size: float = None,
         size: list | tuple = None,
         **kwargs,
@@ -1241,12 +1239,17 @@ class LandsatProduct(OpticalProduct):
 
         Args:
             bands (BandNames): Wanted mask band
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (int): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         band_name = band.name
         mask_path = self._get_path(band_name)
 
@@ -1257,6 +1260,10 @@ class LandsatProduct(OpticalProduct):
             size=size,
             **kwargs,
         )
+
+        if ref_arr is not None:
+            band_arr = rasters.collocate(ref_arr, band_arr)
+
         band_arr.attrs["long_name"] = band_name
         return band_arr.rename(band_name)
 
@@ -1433,7 +1440,6 @@ class LandsatProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1450,8 +1456,7 @@ class LandsatProduct(OpticalProduct):
         if self._collection == LandsatCollection.COL_1:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
             )
 
@@ -1471,8 +1476,7 @@ class LandsatProduct(OpticalProduct):
         else:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.QA_RADSAT,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
             )
 
@@ -1507,8 +1511,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
             )
             # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
@@ -1522,7 +1525,6 @@ class LandsatProduct(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1536,14 +1538,12 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Cleaned band array
         """
-
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
             # Open QA band
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
             )
 
@@ -1555,8 +1555,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
-                pixel_size=pixel_size,
-                size=(band_arr.rio.width, band_arr.rio.height),
+                ref_arr=band_arr,
                 **kwargs,
             )
             # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
@@ -1764,7 +1763,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-MSS constellation: {band}"
+                    f"Non-existing cloud band for Landsat-MSS constellation: {band}"
                 )
 
             # Rename
@@ -1834,7 +1833,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-(E)TM constellations: {band}"
+                    f"Non-existing cloud band for Landsat-(E)TM constellations: {band}"
                 )
 
             # Rename
@@ -1928,7 +1927,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for {self.instrument.value} constellations: {band}"
+                    f"Non-existing cloud band for {self.instrument.value} constellations: {band}"
                 )
 
             # Rename

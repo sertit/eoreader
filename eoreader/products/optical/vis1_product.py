@@ -28,6 +28,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
+from rasterio.enums import Resampling
 from sertit import geometry, rasters
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
@@ -294,30 +295,33 @@ class Vis1Product(DimapV1Product):
         if ql_path is not None:
             arr = utils.read(ql_path, indexes=[1])
 
-            # Vectorize the nodata band
-            footprint = rasters.vectorize(
-                arr, values=0, keep_values=False, dissolve=True
-            )
+            # Vectorise the nodata band
+            footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
             footprint = geometry.get_wider_exterior(footprint)
         else:
             # If ortho -> nodata is not set!
             if self.is_ortho:
+                LOGGER.debug("Using the ortho stack to compute the footprint.")
                 # Get footprint of the first band of the stack
-                footprint_dezoom = 10
                 arr = utils.read(
                     self.get_default_band_path(),
-                    resolution=self.pixel_size * footprint_dezoom,
+                    pixel_size=self.pixel_size * self._footprint_dezoom,
+                    resampling=Resampling.nearest,
                     indexes=[1],
                 )
 
-                # Vectorize the nodata band
-                footprint = rasters.vectorize(
-                    arr, values=0, keep_values=False, dissolve=True
-                )
+                # Vectorise the nodata band
+                footprint = rasters.vectorize(arr.where(arr > 0), dissolve=True)
                 footprint = geometry.get_wider_exterior(footprint)
             else:
                 # If not ortho -> default band has been orthorectified and nodata will be set
-                footprint = rasters.get_footprint(self.get_default_band_path())
+                LOGGER.debug("Using the orthorectified band to compute the footprint.")
+                downsampled_band = utils.read(
+                    self.get_default_band_path(),
+                    pixel_size=self.resolution * self._footprint_dezoom,
+                    resampling=Resampling.nearest,
+                )
+                footprint = rasters.get_footprint(downsampled_band)
 
         return footprint.to_crs(self.crs())
 
@@ -395,7 +399,7 @@ class Vis1Product(DimapV1Product):
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
     @qck_wrapper
-    def get_quicklook_path(self) -> str:
+    def get_quicklook_path(self) -> str | None:
         """
         Get quicklook path if existing.
 

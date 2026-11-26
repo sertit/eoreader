@@ -632,7 +632,6 @@ class DimapV2Product(VhrProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -647,17 +646,14 @@ class DimapV2Product(VhrProduct):
             xr.DataArray: Cleaned band array
         """
         # array data
-        width = band_arr.rio.width
-        height = band_arr.rio.height
         mask_path, mask_exists = self._get_out_path(
-            f"{self.condensed_name}_other_masks_{int(width)}x{int(height)}.npy"
+            f"{self.condensed_name}_other_masks_{int(band_arr.rst.width)}x{int(band_arr.rst.height)}.npy"
         )
 
         if not mask_exists:
             nodata = self._load_masks(
                 [DimapV2MaskBandNames.ROI],
-                size=[width, height],
-                pixel_size=pixel_size,
+                ref_arr=band_arr,
                 # Do not recompute the UTM band, use directly the band_arr
                 utm_xarr=band_arr,
                 **kwargs,
@@ -671,15 +667,11 @@ class DimapV2Product(VhrProduct):
             with contextlib.suppress(InvalidProductError):
                 masks = self._load_masks(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
-                    pixel_size=pixel_size,
-                    size=[width, height],
+                    ref_arr=band_arr,
                     # Do not recompute the UTM band, use directly the band_arr
                     utm_xarr=band_arr,
                     **kwargs,
                 )
-
-                mask_det = rasters.collocate(nodata, masks[DimapV2MaskBandNames.DET])
-                mask_vis = rasters.collocate(nodata, masks[DimapV2MaskBandNames.VIS])
 
                 nodata = reduce(
                     lambda x, y: (
@@ -687,8 +679,8 @@ class DimapV2Product(VhrProduct):
                     ),
                     [
                         nodata,
-                        mask_det,
-                        mask_vis,
+                        masks[DimapV2MaskBandNames.DET],
+                        masks[DimapV2MaskBandNames.VIS],
                     ],
                 )
             np.save(str(mask_path), nodata)
@@ -749,7 +741,6 @@ class DimapV2Product(VhrProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -767,8 +758,7 @@ class DimapV2Product(VhrProduct):
         LOGGER.debug("Load nodata")
         nodata = self._load_masks(
             [DimapV2MaskBandNames.ROI],
-            pixel_size=pixel_size,
-            size=[band_arr.rio.width, band_arr.rio.height],
+            ref_arr=band_arr,
             # Do not recompute the UTM band, use directly the band_arr
             utm_xarr=band_arr,
             **kwargs,
@@ -912,7 +902,7 @@ class DimapV2Product(VhrProduct):
 
             for band in bands:
                 if band not in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
-                    raise InvalidTypeError(f"Non existing cloud band for: {band}")
+                    raise InvalidTypeError(f"Non-existing cloud band for: {band}")
 
                 # Rename
                 band_name = to_str(band)[0]
@@ -991,10 +981,8 @@ class DimapV2Product(VhrProduct):
                     )
 
         # Load nodata
-        width = def_xarr.rio.width
-        height = def_xarr.rio.height
         vec_tr = transform.from_bounds(
-            *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+            *def_xarr.rst.bounds, def_xarr.rst.width, def_xarr.rst.height
         )
 
         for band in bands:
@@ -1005,14 +993,14 @@ class DimapV2Product(VhrProduct):
             # Rasterize features if existing vector
             if has_vec:
                 mask_path, mask_exists = self._get_out_path(
-                    f"{self.condensed_name}_{band.name.lower()}_{int(width)}x{int(height)}.npy"
+                    f"{self.condensed_name}_{band.name.lower()}_{int(def_xarr.rst.width)}x{int(def_xarr.rst.height)}.npy"
                 )
                 if not mask_exists:
                     LOGGER.debug(f"Rasterizing {band.name} mask")
                     # Rasterize nodata
                     mask_arr = features.rasterize(
                         mask_vec.geometry,
-                        out_shape=(height, width),
+                        out_shape=def_xarr.rst.shape,
                         fill=self._mask_false,  # Outside vector
                         default_value=self._mask_true,  # Inside vector
                         transform=vec_tr,
@@ -1025,7 +1013,9 @@ class DimapV2Product(VhrProduct):
                 # Rasterize gives a 2D array, we want a 3D array
                 mask_arr = np.expand_dims(mask_arr, axis=0)
             else:
-                mask_arr = np.zeros((1, height, width), dtype=np.uint8)
+                mask_arr = np.zeros(
+                    (1, def_xarr.rst.height, def_xarr.rst.width), dtype=np.uint8
+                )
 
             # Create mask xarray
             mask = (
@@ -1035,7 +1025,7 @@ class DimapV2Product(VhrProduct):
                 .fillna(self._mask_nodata)
                 .astype(np.uint8)
             )
-            mask.rio.write_nodata(self._mask_nodata, inplace=True)
+            mask.rst.set_nodata(self._mask_nodata)
             mask.encoding["dtype"] = np.uint8
 
             # Rename
@@ -1116,13 +1106,55 @@ class DimapV2Product(VhrProduct):
                 LOGGER.debug(f"\tRasterizing {mask_str}")
                 tile = utils.read(self._get_tile_path())[0:1, ...]
 
-                mask_raster = rasters.rasterize(
-                    tile,
-                    mask,
-                    default_nodata=self._mask_false,  # Outside vector
-                    default_value=self._mask_true,  # Inside vector
-                    dtype=np.uint8,
-                )
+                from geoutils.exceptions import InvalidGridError
+
+                try:
+                    mask_raster = rasters.rasterize(
+                        tile,
+                        mask,
+                        default_nodata=self._mask_false,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
+                        dtype=np.uint8,
+                    )
+                except InvalidGridError:
+                    # https://github.com/GlacioHack/geoutils/discussions/1023#discussioncomment-19889805
+                    from sertit import dask as sdask
+
+                    nodata = tile.rst.nodata
+                    if nodata is None:
+                        nodata = self._mask_false
+
+                    mask_raster = features.rasterize(
+                        mask.geometry,
+                        out_shape=(tile.rst.height, tile.rst.width),
+                        fill=nodata,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
+                        transform=tile.rst.transform,
+                        all_touched=True,
+                        dtype=np.uint8,
+                    )
+
+                    # Convert to dask array if input data is chunked
+                    if sdask.is_chunked(mask_raster):
+                        import dask.array as da
+
+                        mask_raster = da.from_array(
+                            mask_raster,
+                            chunks=(mask_raster.chunks[0][0], mask_raster.chunks[1][0]),
+                        )
+
+                    # Expand dim to match classic rasterio pattern {count, heigh, width}
+                    if len(mask_raster.shape) != 3:
+                        mask_raster = np.expand_dims(mask_raster, axis=0)
+
+                    # Set result back in xarray (ensure copying in a one band xarray)
+                    mask_raster = tile[0:1].copy(data=mask_raster)
+
+                    # Change nodata
+                    mask_raster = rasters.set_nodata(mask_raster, nodata_val=nodata)
+                    mask_raster = mask_raster.rename("Rasterized vector")
+                    mask_raster.attrs["long_name"] = "Rasterized vector"
+
                 # Check mask validity (to avoid reprojecting)
                 # All null
                 if mask_raster.max() == 0:
@@ -1134,15 +1166,8 @@ class DimapV2Product(VhrProduct):
                         # Reproject mask raster
                         LOGGER.debug(f"\tReprojecting {mask_str}")
                         dem_path = self._get_dem_path(**kwargs)
-
-                        # TODO: change this when available in rioxarray
-                        # See https://github.com/corteva/rioxarray/issues/837
-                        with rasterio.open(str(self._get_tile_path())) as ds:
-                            rpcs = ds.rpcs
-
                         reproj_data = self._orthorectify(
                             mask_raster,
-                            rpcs=rpcs,
                             dem_path=dem_path,
                             ortho_path=ortho_path,
                             long_name=mask_str,

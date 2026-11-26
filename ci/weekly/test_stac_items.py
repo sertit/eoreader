@@ -55,9 +55,9 @@ def _test_core(
             try:
                 def_band = prod.get_default_band()
                 band = prod.load(
-                    def_band, window=Window(col_off=0, row_off=0, width=100, height=100)
+                    def_band, window=Window(col_off=0, row_off=0, width=10, height=10)
                 )[def_band]
-                assert band.shape == (1, 100, 100)
+                assert band.shape == (1, 10, 10)
             except ClientError as ex:
                 if ex.response["Error"]["Code"] in ["NoSuchBucket", "404"]:
                     LOGGER.warning(

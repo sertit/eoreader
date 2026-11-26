@@ -258,7 +258,11 @@ class S2E84Product(OpticalProduct):
         return False
 
     def open_mask(
-        self, pixel_size: float = None, size: list | tuple = None, **kwargs
+        self,
+        ref_arr: xr.DataArray | None = None,
+        pixel_size: float = None,
+        size: list | tuple = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Open a Scene classification map (SCL) mask.
@@ -280,6 +284,7 @@ class S2E84Product(OpticalProduct):
         - 11 : SNOW or ICE
 
         Args:
+            ref_arr (xr.DataArray): Reference array, on which the mask will be applied
             pixel_size (float): Band pixel size in meters
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
@@ -287,18 +292,25 @@ class S2E84Product(OpticalProduct):
             xarray.DataArray: Mask array
 
         """
+        if ref_arr is not None:
+            pixel_size = ref_arr.rst.res
+            size = None
+
         mask_path = self._get_path("SCL")
 
         # Open mask band
-        return utils.read(
+        mask_arr = utils.read(
             mask_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         )
+
+        if ref_arr is not None:
+            mask_arr = rasters.collocate(ref_arr, mask_arr)
+
+        return mask_arr
 
     def _load_bands(
         self,
@@ -420,9 +432,11 @@ class S2E84Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        nodata = self._load_nodata()
+        nodata = self._load_nodata(
+            pixel_size=self.pixel_size * self._footprint_dezoom,
+        )
 
-        # Vectorize the nodata band
+        # Vectorise the nodata band
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )
@@ -522,7 +536,7 @@ class S2E84Product(OpticalProduct):
         for band in band_list:
             if not self.has_band(band):
                 raise InvalidProductError(
-                    f"Non existing band ({band.name}) for Sentinel-2 cloud products."
+                    f"Non-existing band ({band.name}) for Sentinel-2 cloud products."
                 )
             band_id = self.bands[band].id
 
@@ -536,7 +550,7 @@ class S2E84Product(OpticalProduct):
                     band_paths[band] = self._get_path(band_id, ext="tif")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({band_id}) band for {self.path}"
+                        f"Non-existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -586,7 +600,6 @@ class S2E84Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         band: BandNames,
-        pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -602,8 +615,7 @@ class S2E84Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         mask = self.open_mask(
-            pixel_size=pixel_size,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            ref_arr=band_arr,
         )
 
         # NO_DATA is 0, SATURATED_OR_DEFECTIVE is 1
@@ -688,7 +700,7 @@ class S2E84Product(OpticalProduct):
 
         if bands:
             # Open Mask
-            mask = self.open_mask(pixel_size, size, **kwargs)
+            mask = self.open_mask(pixel_size=pixel_size, size=size, **kwargs)
 
             # Don't use load_nodata in order not to load a 2nd time mask
             nodata_id = self.raw_no_data
@@ -713,7 +725,7 @@ class S2E84Product(OpticalProduct):
                     cloud = mask
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for {self.constellation.value} constellations: {band}"
+                        f"Non-existing cloud band for {self.constellation.value} constellations: {band}"
                     )
 
                 # Rename
