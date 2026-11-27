@@ -34,7 +34,7 @@ from rasterio import CRS, crs
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types, vectors
-from sertit.misc import ListEnum
+from sertit.misc import ListEnum, compare_version
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import WGS84
 from shapely.geometry import MultiPoint, Point, Polygon
@@ -1021,8 +1021,13 @@ class SarProduct(Product):
                     f"{self.condensed_name}{win_suffix}_snap_subset.shp"
                 )
                 if not exists:
+                    res = (
+                        "quad_segs"
+                        if compare_version("geopandas", "1.2", ">=")
+                        else "resolution"
+                    )
                     geo_region_gdf = geometry.buffer(
-                        geo_region_gdf.to_crs(self.crs()), 1000, resolution=2
+                        geo_region_gdf.to_crs(self.crs()), 1000, **{res: 2}
                     )
             except Exception as exc:
                 raise NotImplementedError(
